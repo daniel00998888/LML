@@ -3,120 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LA MELY | Streetwear & Style</title>
+    <title>LA MELY | Infinite Style</title>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --gold: #d4af37;
             --dark-bg: #0d0d0d;
-            --surface: #1a1a1a;
             --text: #ffffff;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             background-color: var(--dark-bg);
             color: var(--text);
             font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
         }
 
-        /* Header Responsivo */
         header {
-            padding: clamp(2rem, 8vw, 4rem) 1rem;
+            padding: 3rem 1rem;
             text-align: center;
-            background: linear-gradient(180deg, rgba(26,26,26,1) 0%, rgba(13,13,13,1) 100%);
             border-bottom: 2px solid var(--gold);
         }
 
         h1 {
             font-family: 'Oswald', sans-serif;
-            font-size: clamp(2.5rem, 10vw, 5.5rem); /* Se escala según el dispositivo */
+            font-size: clamp(3rem, 12vw, 6rem);
             color: var(--gold);
-            text-transform: uppercase;
-            letter-spacing: clamp(5px, 2vw, 15px);
-            line-height: 0.9;
+            letter-spacing: 10px;
         }
 
-        /* Contenedor del Carrusel Escalable */
-        .main-content {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
+        /* Contenedor del Carrusel */
         .carousel-wrapper {
             width: 100%;
-            max-width: 1200px;
-            aspect-ratio: 16 / 9; /* Mantiene la proporción en cualquier pantalla */
+            max-width: 1100px;
+            margin: 40px auto;
             position: relative;
-            overflow: hidden;
-            border-radius: 12px;
-            border: 1px solid #333;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            overflow: hidden; /* Oculta lo que está fuera del cuadro */
+            aspect-ratio: 16 / 9;
         }
 
         .carousel-track {
             display: flex;
             height: 100%;
-            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            /* La transición se maneja por JS para evitar saltos en el clon */
         }
 
         .carousel-slide {
             min-width: 100%;
             height: 100%;
-            object-fit: cover; /* Evita que la imagen se estire */
-            object-position: center;
+            object-fit: cover;
         }
 
-        /* Botones Flotantes */
         .nav-btn {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.5);
             color: var(--gold);
             border: 1px solid var(--gold);
-            width: clamp(40px, 8vw, 60px);
-            height: clamp(40px, 8vw, 60px);
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             cursor: pointer;
             z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.3s;
         }
 
-        .nav-btn:hover { background: var(--gold); color: black; }
         .prev { left: 20px; }
         .next { right: 20px; }
 
-        footer {
-            padding: 2rem;
-            text-align: center;
-            font-size: 0.8rem;
-            letter-spacing: 3px;
-            color: #666;
-            text-transform: uppercase;
-        }
-
-        /* Ajustes para móviles muy pequeños */
         @media (max-width: 480px) {
-            .carousel-wrapper { aspect-ratio: 4 / 5; } /* Formato tipo Instagram para móvil */
-            .nav-btn { bottom: 10px; top: auto; transform: none; }
-            .prev { left: 30%; }
-            .next { right: 30%; }
+            .carousel-wrapper { aspect-ratio: 4 / 5; }
         }
     </style>
 </head>
@@ -124,40 +84,73 @@
 
     <header>
         <h1>LA MELY</h1>
-        <p style="color: var(--gold); font-weight: 300; letter-spacing: 4px; margin-top: 10px;">PREMIUM STREET CULTURE</p>
     </header>
 
-    <main class="main-content">
-        <div class="carousel-wrapper">
-            <div class="carousel-track" id="track">
-                <!-- Reemplaza con tus fotos en GitHub -->
-                <img src="foto1.jpg" class="carousel-slide" alt="Mely 1">
-                <img src="foto2.jpg" class="carousel-slide" alt="Mely 2">
-                <img src="foto3.jpg" class="carousel-slide" alt="Mely 3">
-                <img src="foto4.jpg" class="carousel-slide" alt="Mely 4">
-            </div>
-
-            <button class="nav-btn prev" onclick="move(-1)">&#10094;</button>
-            <button class="nav-btn next" onclick="move(1)">&#10095;</button>
+    <div class="carousel-wrapper">
+        <div class="carousel-track" id="track">
+            <!-- Tus fotos originales -->
+            <img src="foto1.jpg" class="carousel-slide" alt="1">
+            <img src="foto2.jpg" class="carousel-slide" alt="2">
+            <img src="foto3.jpg" class="carousel-slide" alt="3">
+            <img src="foto4.jpg" class="carousel-slide" alt="4">
         </div>
-    </main>
 
-    <footer>
-        &copy; 2026 LA MELY. TRABAJO, LEALTAD Y ESTILO.
-    </footer>
+        <button class="nav-btn prev" id="prevBtn">&#10094;</button>
+        <button class="nav-btn next" id="nextBtn">&#10095;</button>
+    </div>
 
     <script>
         const track = document.getElementById('track');
-        let index = 0;
         const slides = document.querySelectorAll('.carousel-slide');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
 
-        function move(dir) {
-            index = (index + dir + slides.length) % slides.length;
-            track.style.transform = `translateX(-${index * 100}%)`;
+        // 1. Clonamos la primera y última imagen
+        const firstClone = slides[0].cloneNode(true);
+        const lastClone = slides[slides.length - 1].cloneNode(true);
+
+        // 2. Las añadimos al track
+        track.appendChild(firstClone);
+        track.insertBefore(lastClone, slides[0]);
+
+        // 3. Ajuste inicial (empezamos en la foto 1, no en el clon)
+        let index = 1;
+        const size = 100;
+        track.style.transform = `translateX(${-index * size}%)`;
+
+        function moveNext() {
+            if (index >= track.children.length - 1) return;
+            index++;
+            track.style.transition = "transform 0.6s ease-in-out";
+            track.style.transform = `translateX(${-index * size}%)`;
         }
 
-        // Cambio automático cada 5 seg
-        setInterval(() => move(1), 5000);
+        function movePrev() {
+            if (index <= 0) return;
+            index--;
+            track.style.transition = "transform 0.6s ease-in-out";
+            track.style.transform = `translateX(${-index * size}%)`;
+        }
+
+        // 4. El "Truco Infinito": detectamos cuando termina la animación
+        track.addEventListener('transitionend', () => {
+            if (track.children[index] === firstClone) {
+                track.style.transition = "none"; // Quitamos la animación para el salto
+                index = 1;
+                track.style.transform = `translateX(${-index * size}%)`;
+            }
+            if (track.children[index] === lastClone) {
+                track.style.transition = "none";
+                index = track.children.length - 2;
+                track.style.transform = `translateX(${-index * size}%)`;
+            }
+        });
+
+        nextBtn.addEventListener('click', moveNext);
+        prevBtn.addEventListener('click', movePrev);
+
+        // Auto-play hacia la derecha siempre
+        setInterval(moveNext, 4000);
     </script>
 </body>
 </html>
