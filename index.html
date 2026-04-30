@@ -20,25 +20,22 @@
         .logo { font-family: 'Oswald'; font-size: 3.5rem; color: #d4af37; margin-bottom: 20px; letter-spacing: 5px; }
         input, textarea { width: 100%; padding: 15px; margin-bottom: 12px; background: #222; border: 1px solid #333; color: #fff; border-radius: 12px; font-family: 'Montserrat'; }
         .btn-main { width: 100%; padding: 16px; background: #d4af37; color: #000; border: none; border-radius: 50px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
-        .btn-main:active { transform: scale(0.95); }
 
-        /* --- FEED TIKTOK (Snap Scroll Corregido) --- */
-        #feed-screen { display: none; height: 100%; }
+        /* --- FEED TIKTOK (Snap Scroll 1 Solo Deslizamiento) --- */
         #feed-container { 
             width: 100%; 
-            height: 100dvh; /* Altura dinámica real */
+            height: calc(100dvh - 65px); 
             overflow-y: scroll; 
-            snap-type: y mandatory; 
-            scroll-behavior: smooth;
+            snap-type: y mandatory; /* Activa el magnetismo */
+            scroll-snap-stop: always; /* Obliga a detenerse en cada video */
             scrollbar-width: none; 
-            padding-bottom: 65px; /* Espacio para la nav */
         }
         #feed-container::-webkit-scrollbar { display: none; }
 
         .post-card { 
             width: 100%; 
-            height: calc(100dvh - 65px); /* Ajuste exacto al área visible */
-            snap-align: start; 
+            height: calc(100dvh - 65px); 
+            snap-align: center; /* Centra el video automáticamente */
             snap-stop: always; 
             position: relative; 
             background: #000;
@@ -47,18 +44,16 @@
             justify-content: center;
         }
 
-        .video-player { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+        .video-player { width: 100%; height: 100%; object-fit: cover; }
 
         /* --- UI CONTROLES --- */
         .ui-info { position: absolute; bottom: 50px; left: 15px; pointer-events: none; z-index: 10; text-shadow: 2px 2px 10px rgba(0,0,0,1); }
         .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.5rem; margin-bottom: 5px; }
-        
         .status-icon { position: absolute; font-size: 4rem; color: rgba(255,255,255,0.4); opacity: 0; pointer-events: none; z-index: 15; }
 
         /* BARRA DE PROGRESO */
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 5px; background: rgba(255,255,255,0.1); z-index: 20; }
-        .progress-bar { height: 100%; background: #d4af37; width: 0%; transition: width 0.1s linear; }
-        .seek-input { position: absolute; top: -10px; width: 100%; height: 25px; opacity: 0; cursor: pointer; z-index: 21; }
+        .progress-bar { height: 100%; background: #d4af37; width: 0%; }
 
         /* --- NAVEGACION --- */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
@@ -68,19 +63,24 @@
         .plus-btn::before { content:''; position:absolute; left:-3px; width:100%; height:100%; background:#20f3ea; border-radius:10px; z-index:-1; }
         .plus-btn::after { content:''; position:absolute; right:-3px; width:100%; height:100%; background:#ff0050; border-radius:10px; z-index:-1; }
 
-        /* --- UPLOAD SCREEN --- */
+        /* --- PERFIL SCREEN --- */
+        #profile-screen { background: #000; overflow-y: auto; padding-bottom: 80px; }
+        .profile-header { padding: 40px 20px; text-align: center; background: #111; border-bottom: 1px solid #222; }
+        .profile-header h1 { font-family: 'Oswald'; color: #d4af37; font-size: 2rem; }
+        .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
+        .grid-item { aspect-ratio: 9/16; background: #222; overflow: hidden; position: relative; }
+        .grid-item video, .grid-item img { width: 100%; height: 100%; object-fit: cover; }
+
         #upload-screen { background: #000; padding: 20px; z-index: 1500; }
         .preview-box { width: 100%; height: 50vh; background: #111; border-radius: 20px; overflow: hidden; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; border: 1px dashed #d4af37; }
-
         #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; display: none; align-items: center; justify-content: center; flex-direction: column; }
-        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <div id="loading">
         <div style="border:4px solid #d4af37; border-top:4px solid transparent; width:50px; height:50px; border-radius:50%; animation:spin 1s linear infinite"></div>
-        <p style="margin-top:15px; color:#d4af37; font-weight:bold;">SUBIENDO A LA MELY...</p>
+        <p style="margin-top:15px; color:#d4af37; font-weight:bold;">PROCESANDO...</p>
     </div>
 
     <div id="auth-screen" class="screen">
@@ -102,23 +102,42 @@
         </div>
     </div>
 
+    <!-- PANTALLA FEED -->
     <div id="feed-screen" class="screen">
         <div id="feed-container"></div>
         <div class="bottom-nav">
-            <div class="nav-item" onclick="location.reload()"><i class="fas fa-home"></i>Inicio</div>
+            <div class="nav-item" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
             <div class="nav-item" onclick="document.getElementById('file-input').click()">
                 <div class="plus-btn"><i class="fas fa-plus" style="color:#000; font-size:1rem"></i></div>
             </div>
-            <div class="nav-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Salir</div>
+            <div class="nav-item" onclick="showScreen('profile')"><i class="fas fa-user"></i>Perfil</div>
         </div>
     </div>
 
+    <!-- PANTALLA PERFIL -->
+    <div id="profile-screen" class="screen">
+        <div class="profile-header">
+            <h1 id="prof-user">@Usuario</h1>
+            <p id="prof-email" style="color:#666; font-size:0.8rem; margin-bottom:15px;"></p>
+            <button onclick="logout()" style="background:none; border:1px solid #444; color:#fff; padding:5px 15px; border-radius:5px; font-size:0.7rem;">Cerrar Sesión</button>
+        </div>
+        <div style="padding: 10px; font-weight: bold; border-bottom: 1px solid #222;">MIS VIDEOS</div>
+        <div class="profile-grid" id="profile-grid"></div>
+        <div class="bottom-nav">
+            <div class="nav-item" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
+            <div class="nav-item" onclick="document.getElementById('file-input').click()">
+                <div class="plus-btn"><i class="fas fa-plus" style="color:#000; font-size:1rem"></i></div>
+            </div>
+            <div class="nav-item active" style="color:#d4af37"><i class="fas fa-user"></i>Perfil</div>
+        </div>
+    </div>
+
+    <!-- PANTALLA SUBIDA -->
     <div id="upload-screen" class="screen">
-        <h2 style="font-family:'Oswald'; color:#d4af37; margin-bottom:20px; text-align:center;">NUEVO POST</h2>
         <div class="preview-box" id="preview-box"></div>
-        <textarea id="post-desc" rows="3" placeholder="Escribe algo sobre este video..."></textarea>
-        <button class="btn-main" onclick="startUpload()">Publicar en La Mely</button>
-        <p onclick="location.reload()" style="text-align:center; margin-top:20px; color:#888; cursor:pointer;">Cancelar</p>
+        <textarea id="post-desc" rows="3" placeholder="Descripción..."></textarea>
+        <button class="btn-main" onclick="startUpload()">Publicar</button>
+        <p onclick="showScreen('feed')" style="text-align:center; margin-top:20px; color:#888;">Cancelar</p>
     </div>
 
     <input type="file" id="file-input" accept="video/*,image/*" style="display:none">
@@ -134,28 +153,99 @@
         async function init() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
-                const { data } = await _supabase.from('perfiles').select('username').eq('id', session.user.id).single();
+                const { data } = await _supabase.from('perfiles').select('*').eq('id', session.user.id).single();
                 currentUser = data ? data.username : "Anonimo";
-                document.getElementById('feed-screen').style.display = 'block';
+                document.getElementById('prof-user').innerText = "@" + currentUser;
+                document.getElementById('prof-email').innerText = session.user.email;
+                showScreen('feed');
                 loadFeed();
+                loadUserPosts();
                 setupRealtime();
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
             }
         }
 
-        // --- REALTIME CORREGIDO ---
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+            document.getElementById(screenId + '-screen').style.display = 'flex';
+            if(screenId === 'profile') loadUserPosts();
+        }
+
+        async function loadFeed() {
+            const { data } = await _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
+            const container = document.getElementById('feed-container');
+            container.innerHTML = "";
+            data?.forEach(post => renderPost(post));
+            initObserver();
+        }
+
+        async function loadUserPosts() {
+            const { data } = await _supabase.from('publicaciones').select('*').eq('usuario', currentUser).order('created_at', { ascending: false });
+            const grid = document.getElementById('profile-grid');
+            grid.innerHTML = "";
+            data?.forEach(post => {
+                const div = document.createElement('div');
+                div.className = 'grid-item';
+                div.innerHTML = post.tipo === 'video' ? `<video src="${post.url}"></video>` : `<img src="${post.url}">`;
+                grid.appendChild(div);
+            });
+        }
+
+        function renderPost(post, isNew = false) {
+            const container = document.getElementById('feed-container');
+            if (document.getElementById(`post-${post.id}`)) return;
+            const card = document.createElement('div');
+            card.className = 'post-card';
+            card.id = `post-${post.id}`;
+            card.innerHTML = `
+                ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop playsinline></video>
+                <div class="progress-container"><div class="progress-bar" id="bar-${post.id}"></div></div>` : `<img class="video-player" src="${post.url}">`}
+                <div class="ui-info"><h2>@${post.usuario}</h2><p>${post.descripcion || ''}</p></div>
+            `;
+            if (isNew) {
+                container.prepend(card);
+                container.scrollTo({top: 0, behavior: 'smooth'});
+            } else container.appendChild(card);
+            if (post.tipo === 'video') setupVideoControls(card);
+        }
+
+        function setupVideoControls(card) {
+            const video = card.querySelector('video');
+            const bar = card.querySelector('.progress-bar');
+            video.onclick = () => video.paused ? video.play() : video.pause();
+            video.ontimeupdate = () => bar.style.width = (video.currentTime / video.duration) * 100 + "%";
+        }
+
+        function initObserver() {
+            const obs = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    const v = entry.target.querySelector('video');
+                    if (v) entry.isIntersecting ? v.play() : (v.pause(), v.currentTime = 0);
+                });
+            }, { threshold: 0.8 });
+            document.querySelectorAll('.post-card').forEach(c => obs.observe(c));
+        }
+
         function setupRealtime() {
-            _supabase.channel('publicaciones-realtime')
-            .on('postgres_changes', { event: 'UPDATE', table: 'publicaciones' }, (payload) => {
-                // Si el estado cambia a aprobado, lo metemos arriba
-                if (payload.new.estado === 'aprobado') {
-                    renderPost(payload.new, true);
-                    // Mover scroll al inicio para ver el nuevo video
-                    document.getElementById('feed-container').scrollTo({top: 0, behavior: 'smooth'});
-                }
-            })
-            .subscribe();
+            _supabase.channel('public').on('postgres_changes', { event: 'UPDATE', table: 'publicaciones' }, payload => {
+                if (payload.new.estado === 'aprobado') renderPost(payload.new, true);
+            }).subscribe();
+        }
+
+        async function handleAuth(type) {
+            const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
+            const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
+            if (type === 'reg') {
+                const u = document.getElementById('r-user').value;
+                const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
+                if (error) return alert(error.message);
+                await _supabase.from('perfiles').insert([{ id: data.user.id, username: u, email: e }]);
+                alert("¡Listo! Inicia sesión."); location.reload();
+            } else {
+                const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
+                if (error) return alert("Error"); location.reload();
+            }
         }
 
         function toggleAuth(isReg) {
@@ -163,142 +253,28 @@
             document.getElementById('reg-form').style.display = isReg ? 'block' : 'none';
         }
 
-        async function handleAuth(type) {
-            if (type === 'reg') {
-                const u = document.getElementById('r-user').value.trim();
-                const e = document.getElementById('r-email').value.trim();
-                const p = document.getElementById('r-pass').value;
-                const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
-                if (error) return alert(error.message);
-                await _supabase.from('perfiles').insert([{ id: data.user.id, username: u, email: e }]);
-                alert("¡Registrado! Ahora inicia sesión."); location.reload();
-            } else {
-                const e = document.getElementById('email').value;
-                const p = document.getElementById('pass').value;
-                const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
-                if (error) return alert("Acceso denegado.");
-                location.reload();
-            }
-        }
-
         async function logout() { await _supabase.auth.signOut(); location.reload(); }
-
-        async function loadFeed() {
-            const { data } = await _supabase.from('publicaciones')
-                .select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
-            
-            const container = document.getElementById('feed-container');
-            container.innerHTML = "";
-            data?.forEach(post => renderPost(post));
-            initObserver();
-        }
-
-        function renderPost(post, isNew = false) {
-            const container = document.getElementById('feed-container');
-            if (document.getElementById(`post-${post.id}`)) return;
-
-            const card = document.createElement('div');
-            card.className = 'post-card';
-            card.id = `post-${post.id}`;
-            card.innerHTML = `
-                ${post.tipo === 'video' 
-                    ? `<video class="video-player" src="${post.url}" loop playsinline></video>
-                       <i class="fas fa-play status-icon"></i>
-                       <div class="progress-container">
-                           <div class="progress-bar" id="bar-${post.id}"></div>
-                           <input type="range" class="seek-input" min="0" max="100" value="0" oninput="seekVideo(this, '${post.id}')">
-                       </div>` 
-                    : `<img class="video-player" src="${post.url}">`}
-                <div class="ui-info">
-                    <h2>@${post.usuario}</h2>
-                    <p>${post.descripcion || ''}</p>
-                </div>
-            `;
-            if (isNew) container.prepend(card); else container.appendChild(card);
-            if (post.tipo === 'video') setupVideoControls(card);
-            
-            // Refrescar el observer si hay contenido nuevo
-            if (isNew) initObserver();
-        }
-
-        function setupVideoControls(card) {
-            const video = card.querySelector('video');
-            const icon = card.querySelector('.status-icon');
-            const bar = card.querySelector('.progress-bar');
-            const range = card.querySelector('.seek-input');
-
-            video.onclick = () => {
-                if (video.paused) {
-                    video.play();
-                    icon.className = "fas fa-play status-icon";
-                } else {
-                    video.pause();
-                    icon.className = "fas fa-pause status-icon";
-                }
-                icon.style.opacity = "1";
-                setTimeout(() => icon.style.opacity = "0", 400);
-            };
-
-            video.ontimeupdate = () => {
-                const p = (video.currentTime / video.duration) * 100;
-                bar.style.width = p + "%";
-                range.value = p;
-            };
-        }
-
-        window.seekVideo = (el, id) => {
-            const v = document.querySelector(`#post-${id} video`);
-            if(v) v.currentTime = (el.value / 100) * v.duration;
-        };
-
-        function initObserver() {
-            const obs = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
-                    const v = entry.target.querySelector('video');
-                    if (v) {
-                        if (entry.isIntersecting) v.play();
-                        else { v.pause(); v.currentTime = 0; }
-                    }
-                });
-            }, { threshold: 0.6 }); // Threshold ajustado para mejor respuesta
-            document.querySelectorAll('.post-card').forEach(c => obs.observe(c));
-        }
 
         document.getElementById('file-input').onchange = (e) => {
             selectedFile = e.target.files[0];
             if (selectedFile) {
                 const url = URL.createObjectURL(selectedFile);
-                document.getElementById('preview-box').innerHTML = selectedFile.type.includes('video') 
-                    ? `<video src="${url}" autoplay muted loop style="height:100%"></video>` 
-                    : `<img src="${url}" style="height:100%; object-fit:contain">`;
-                document.getElementById('feed-screen').style.display = 'none';
-                document.getElementById('upload-screen').style.display = 'flex';
+                document.getElementById('preview-box').innerHTML = selectedFile.type.includes('video') ? `<video src="${url}" autoplay muted loop style="height:100%"></video>` : `<img src="${url}" style="height:100%">`;
+                showScreen('upload');
             }
         };
 
         async function startUpload() {
             document.getElementById('loading').style.display = 'flex';
-            const fExt = selectedFile.name.split('.').pop();
-            const fName = `${Date.now()}.${fExt}`;
-
-            const { data: sData, error: sErr } = await _supabase.storage.from('mely_media').upload(fName, selectedFile, { contentType: selectedFile.type });
-            if (sErr) { alert(sErr.message); return location.reload(); }
-
+            const fName = Date.now() + "_" + selectedFile.name;
+            await _supabase.storage.from('mely_media').upload(fName, selectedFile);
             const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
-            
-            await _supabase.from('publicaciones').insert([{
-                usuario: currentUser,
-                url: urlData.publicUrl,
-                tipo: selectedFile.type.includes('video') ? 'video' : 'imagen',
-                descripcion: document.getElementById('post-desc').value,
-                estado: 'pendiente'
-            }]);
-
-            alert("¡Listo! El admin lo revisará.");
-            location.reload();
+            await _supabase.from('publicaciones').insert([{ usuario: currentUser, url: urlData.publicUrl, tipo: selectedFile.type.includes('video') ? 'video' : 'imagen', descripcion: document.getElementById('post-desc').value, estado: 'pendiente' }]);
+            alert("Enviado a revisión."); location.reload();
         }
 
         init();
     </script>
+    <style> @keyframes spin { to { transform: rotate(360deg); } } </style>
 </body>
 </html>
