@@ -11,72 +11,47 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
-
         #app-viewport { width: 100%; height: calc(100dvh - 65px); position: relative; overflow: hidden; }
-
         #feed-screen { width: 100%; height: 100%; display: block; }
         #feed-container { 
             width: 100%; height: 100%; overflow-y: scroll; 
             snap-type: y mandatory; scroll-behavior: smooth; scrollbar-width: none; overscroll-behavior-y: contain; 
         }
         #feed-container::-webkit-scrollbar { display: none; }
-
-        .post-card { 
-            width: 100%; height: 100%; snap-align: start; snap-stop: always; 
-            position: relative; background: #000; display: flex; align-items: center; justify-content: center;
-        }
+        .post-card { width: 100%; height: 100%; snap-align: start; snap-stop: always; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
         .video-player { width: 100%; height: 100%; object-fit: cover; }
-
-        /* UI INFO Y AVATAR */
         .ui-info { position: absolute; bottom: 40px; left: 15px; z-index: 10; text-shadow: 2px 2px 8px rgba(0,0,0,1); max-width: 70%; }
         .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.4rem; margin-bottom: 5px; cursor: pointer; display: inline-block; }
-        
         .side-actions { position: absolute; right: 10px; bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 20; }
         .action-item { display: flex; flex-direction: column; align-items: center; color: #fff; font-size: 0.75rem; font-weight: bold; }
         .action-btn { background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer; transition: 0.2s; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
         .action-btn.active { color: #ff0050 !important; transform: scale(1.1); }
-        
-        /* BOTÓN AVATAR EN FEED */
         .user-avatar-btn { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #fff; overflow: hidden; background: #333; margin-bottom: 5px; cursor: pointer; position: relative; }
         .user-avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
         .user-avatar-btn::after { content: '+'; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); background: #ff0050; color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 1px solid #000; }
-
         .btn-delete { color: #ff4444 !important; font-size: 1.8rem !important; margin-top: 5px; opacity: 0.8; }
-
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.1); z-index: 20; }
         .progress-bar { height: 100%; background: #d4af37; width: 0%; }
-
-        /* NAVEGACION */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; }
         .nav-item.active { color: #fff; }
         .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 3px; }
-        
         .plus-btn { width: 45px; height: 30px; background: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
         .plus-btn::before { content:''; position:absolute; left:-3px; width:100%; height:100%; background:#20f3ea; border-radius:10px; z-index:-1; }
         .plus-btn::after { content:''; position:absolute; right:-3px; width:100%; height:100%; background:#ff0050; border-radius:10px; z-index:-1; }
-
-        /* PERFIL */
         .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: #000; z-index: 1500; overflow-y: auto; }
         .profile-header { padding: 30px 20px; text-align: center; background: #000; position: relative; }
         .btn-back { position: absolute; top: 20px; left: 20px; font-size: 1.5rem; color: #fff; background: none; border: none; cursor: pointer; }
-        
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
         .grid-item { aspect-ratio: 9/16; background: #111; position: relative; overflow: hidden; cursor: pointer; }
         .grid-item video, .grid-item img { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* MINIATURA VISTAS */
         .grid-views { position: absolute; bottom: 5px; left: 5px; font-size: 0.75rem; color: #fff; font-weight: bold; text-shadow: 1px 1px 3px #000; z-index: 5; display: flex; align-items: center; gap: 4px; }
-
         .profile-tabs-nav { display: flex; border-top: 1px solid #222; border-bottom: 1px solid #111; }
         .tab-btn { flex: 1; padding: 12px; background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; position: relative; }
         .tab-btn.active { color: #fff; }
         .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 2px; background: #d4af37; }
-
-        /* MODAL VISOR */
         #viewer-modal { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; }
         .viewer-close { position: absolute; top: 20px; left: 20px; font-size: 2rem; z-index: 3100; color: #fff; cursor: pointer; }
-
         #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; flex-direction: column; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
@@ -154,7 +129,7 @@
 
         let currentUser = null;
         let selectedFile = null;
-        let viewingUser = null; // Para saber qué perfil estamos viendo
+        let viewingUser = null; 
 
         async function init() {
             const { data: { session } } = await _supabase.auth.getSession();
@@ -176,12 +151,8 @@
             document.getElementById('feed-screen').style.display = id === 'feed' ? 'block' : 'none';
             document.getElementById('nav-home').classList.toggle('active', id === 'feed');
             document.getElementById('nav-profile-btn').classList.toggle('active', id === 'profile');
-            
-            if(id === 'profile') {
-                document.getElementById('profile-screen').style.display = 'flex';
-            } else if(id === 'upload') {
-                document.getElementById('upload-screen').style.display = 'flex';
-            }
+            if(id === 'profile') document.getElementById('profile-screen').style.display = 'flex';
+            else if(id === 'upload') document.getElementById('upload-screen').style.display = 'flex';
         }
 
         function goToMyProfile() {
@@ -200,7 +171,7 @@
             document.getElementById('prof-user').innerText = "@" + username;
             document.getElementById('btn-back-profile').style.display = 'block';
             document.getElementById('btn-logout').style.display = 'none';
-            document.getElementById('profile-tabs').style.display = 'none'; // No ver likes de otros
+            document.getElementById('profile-tabs').style.display = 'none';
             showScreen('profile');
             loadUserPosts('posts');
         }
@@ -214,7 +185,6 @@
         async function loadUserPosts(filterType = 'posts') {
             const grid = document.getElementById('profile-grid');
             grid.innerHTML = "<p style='grid-column:1/4; text-align:center; padding:20px; color:#555;'>Cargando...</p>";
-            
             let data = [];
             if(filterType === 'posts') {
                 const { data: posts } = await _supabase.from('publicaciones').select('*').eq('usuario', viewingUser).eq('estado', 'aprobado').order('created_at', { ascending: false });
@@ -224,26 +194,64 @@
                 const { data: likedData } = await _supabase.from('likes').select('publicaciones(*)').eq('user_id', session.user.id);
                 data = likedData ? likedData.map(l => l.publicaciones).filter(p => p !== null) : [];
             }
-
             grid.innerHTML = "";
             data?.forEach(post => {
                 const item = document.createElement('div');
                 item.className = 'grid-item';
                 item.onclick = () => openViewer(post);
-                item.innerHTML = `
-                    ${post.tipo === 'video' ? `<video src="${post.url}#t=0.1" muted></video>` : `<img src="${post.url}">`}
-                    <div class="grid-views"><i class="fas fa-play"></i> ${post.vistas || 0}</div>
-                `;
+                item.innerHTML = `${post.tipo === 'video' ? `<video src="${post.url}#t=0.1" muted></video>` : `<img src="${post.url}">`}<div class="grid-views"><i class="fas fa-play"></i> ${post.vistas || 0}</div>`;
                 grid.appendChild(item);
             });
         }
 
+        // --- NUEVA LÓGICA DE FEED EXCLUSIVO ---
         async function loadFeed() {
-            const { data } = await _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
+            // 1. Obtener los IDs que el usuario ya ha visto (guardados en localStorage para persistencia rápida)
+            let seenIds = JSON.parse(localStorage.getItem(`seen_posts_${currentUser}`)) || [];
+            
+            // 2. Consultar videos aprobados que NO sean del usuario actual y que NO estén en la lista de vistos
+            let query = _supabase.from('publicaciones')
+                .select('*')
+                .eq('estado', 'aprobado')
+                .neq('usuario', currentUser); // Excluir mis propios videos
+
+            if (seenIds.length > 0) {
+                query = query.not('id', 'in', `(${seenIds.join(',')})`); // Excluir vistos
+            }
+
+            const { data, error } = await query.order('created_at', { ascending: false }).limit(20);
+
             const container = document.getElementById('feed-container');
             container.innerHTML = "";
-            data?.forEach(post => renderPost(post, container));
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = "<div style='padding:100px 20px; text-align:center;'><i class='fas fa-check-circle' style='font-size:3rem; color:#d4af37;'></i><h2 style='margin-top:15px;'>¡Estás al día!</h2><p style='color:#666;'>Has visto todas las publicaciones nuevas.</p><button onclick='clearSeenHistory()' style='margin-top:20px; background:none; border:1px solid #333; color:#d4af37; padding:10px; border-radius:5px;'>Ver de nuevo</button></div>";
+                return;
+            }
+
+            data.forEach(post => renderPost(post, container));
             initObserver();
+        }
+
+        // Función para limpiar historial si el usuario quiere volver a ver todo
+        function clearSeenHistory() {
+            localStorage.removeItem(`seen_posts_${currentUser}`);
+            location.reload();
+        }
+
+        async function markView(postId) {
+            if(sessionStorage.getItem(`view_${postId}`)) return;
+            sessionStorage.setItem(`view_${postId}`, 'true');
+            
+            // Incrementar vistas en DB
+            await _supabase.rpc('increment_vistas', { post_id: postId.toString() });
+
+            // AGREGAR AL HISTORIAL DE "YA VISTO" PARA EL FEED
+            let seenIds = JSON.parse(localStorage.getItem(`seen_posts_${currentUser}`)) || [];
+            if (!seenIds.includes(postId)) {
+                seenIds.push(postId);
+                localStorage.setItem(`seen_posts_${currentUser}`, JSON.stringify(seenIds));
+            }
         }
 
         function renderPost(post, container, isNew = false) {
@@ -252,31 +260,26 @@
             card.className = 'post-card';
             card.id = `post-${post.id}`;
             card.setAttribute('data-id', post.id);
-
             card.innerHTML = `
                 ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop playsinline></video>` : `<img class="video-player" src="${post.url}">`}
                 <div class="side-actions">
                     <div class="user-avatar-btn" onclick="goToUserProfile('${post.usuario}')">
-                        <img src="https://ui-avatars.com/api/?name=${post.usuario}&background=random&color=fff" alt="avatar">
+                        <img src="https://ui-avatars.com/api/?name=${post.usuario}&background=random&color=fff">
                     </div>
                     <div class="action-item">
                         <button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button>
                         <span class="likes-count" id="likes-${post.id}">${post.likes || 0}</span>
                     </div>
                     <div class="action-item">
-                        <button class="action-btn" onclick="alert('Muy pronto...')"><i class="fas fa-comment-dots"></i></button>
+                        <button class="action-btn" onclick="alert('Comentarios próximamente')"><i class="fas fa-comment-dots"></i></button>
                         <span id="comm-count-${post.id}">${post.comentarios_count || 0}</span>
                     </div>
                     <div class="action-item">
                         <i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i>
                         <span class="vistas-count" id="vistas-${post.id}">${post.vistas || 0}</span>
                     </div>
-                    ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
-                <div class="ui-info">
-                    <h2 onclick="goToUserProfile('${post.usuario}')">@${post.usuario}</h2>
-                    <p>${post.descripcion || ''}</p>
-                </div>
+                <div class="ui-info"><h2 onclick="goToUserProfile('${post.usuario}')">@${post.usuario}</h2><p>${post.descripcion || ''}</p></div>
                 <div class="progress-container"><div class="progress-bar" id="bar-${post.id}"></div></div>
             `;
             isNew ? container.prepend(card) : container.appendChild(card);
@@ -308,12 +311,6 @@
             if (!session || !btn) return;
             const { data } = await _supabase.from('likes').select('id').eq('user_id', session.user.id).eq('post_id', Number(postId)).maybeSingle();
             if (data) btn.classList.add('active');
-        }
-
-        async function markView(postId) {
-            if(sessionStorage.getItem(`view_${postId}`)) return;
-            sessionStorage.setItem(`view_${postId}`, 'true');
-            await _supabase.rpc('increment_vistas', { post_id: postId.toString() });
         }
 
         function setupVideo(card, postId) {
@@ -365,9 +362,7 @@
                 const u = document.getElementById('r-user').value;
                 const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
                 if(!error && data.user) await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
-            } else {
-                await _supabase.auth.signInWithPassword({ email: e, password: p });
-            }
+            } else { await _supabase.auth.signInWithPassword({ email: e, password: p }); }
             location.reload();
         }
 
