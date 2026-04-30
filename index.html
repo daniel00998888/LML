@@ -8,108 +8,122 @@
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* --- RESET Y ESTRUCTURA CRÍTICA PARA EL DESLIZAMIENTO --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body, html { 
-            width: 100%; 
-            height: 100%; 
-            overflow: hidden; /* Evita que la página rebote */
-            background: #000; 
-            color: #fff; 
-            font-family: 'Montserrat', sans-serif; 
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
 
-        /* CONTENEDOR PRINCIPAL: Aquí ocurre la magia del deslizamiento */
+        /* --- PANTALLAS --- */
+        .screen { position: fixed; inset: 0; width: 100%; height: 100%; display: none; flex-direction: column; }
+
+        /* --- AUTH SCREEN --- */
+        #auth-screen { background: #000; align-items: center; justify-content: center; z-index: 2000; }
+        .auth-box { width: 85%; max-width: 350px; text-align: center; background: #111; padding: 30px; border-radius: 25px; border: 1px solid #222; }
+        .logo { font-family: 'Oswald'; font-size: 3.5rem; color: #d4af37; margin-bottom: 20px; letter-spacing: 5px; }
+        input, textarea { width: 100%; padding: 15px; margin-bottom: 12px; background: #222; border: 1px solid #333; color: #fff; border-radius: 12px; font-family: 'Montserrat'; }
+        .btn-main { width: 100%; padding: 16px; background: #d4af37; color: #000; border: none; border-radius: 50px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+        .btn-main:active { transform: scale(0.95); }
+
+        /* --- FEED TIKTOK (Snap Scroll) --- */
+        #feed-screen { display: none; }
         #feed-container { 
             width: 100%; 
-            height: 100dvh; /* Altura dinámica para móviles */
+            height: calc(100vh - 65px); 
             overflow-y: scroll; 
-            snap-type: y mandatory; /* Obliga al deslizamiento de un solo golpe */
-            scroll-snap-stop: always;
-            scrollbar-width: none;
+            snap-type: y mandatory; 
+            scroll-behavior: smooth;
+            scrollbar-width: none; 
         }
         #feed-container::-webkit-scrollbar { display: none; }
 
         .post-card { 
             width: 100%; 
-            height: 100dvh; 
+            height: calc(100vh - 65px); 
             snap-align: start; 
             snap-stop: always; 
             position: relative; 
+            background: #000;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #000;
         }
 
-        video, img { width: 100%; height: 100%; object-fit: cover; }
+        .video-player { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
 
-        /* --- INTERFAZ DE USUARIO --- */
-        .ui-info { position: absolute; bottom: 100px; left: 15px; z-index: 10; pointer-events: none; }
-        .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.6rem; text-shadow: 2px 2px 5px #000; }
+        /* --- UI CONTROLES --- */
+        .ui-info { position: absolute; bottom: 50px; left: 15px; pointer-events: none; z-index: 10; text-shadow: 2px 2px 10px rgba(0,0,0,1); }
+        .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.5rem; margin-bottom: 5px; }
+        
+        .status-icon { position: absolute; font-size: 4rem; color: rgba(255,255,255,0.4); opacity: 0; pointer-events: none; z-index: 15; }
 
-        .side-bar { position: absolute; right: 10px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; z-index: 10; }
-        .side-btn { background: none; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; text-shadow: 2px 2px 5px #000; }
+        /* BARRA DE PROGRESO */
+        .progress-container { position: absolute; bottom: 0; width: 100%; height: 5px; background: rgba(255,255,255,0.1); z-index: 20; }
+        .progress-bar { height: 100%; background: #d4af37; width: 0%; transition: width 0.1s linear; }
+        .seek-input { position: absolute; top: -10px; width: 100%; height: 25px; opacity: 0; cursor: pointer; z-index: 21; }
 
-        /* --- BARRA DE NAVEGACIÓN --- */
-        .bottom-nav { 
-            position: fixed; bottom: 0; width: 100%; height: 70px; 
-            background: linear-gradient(transparent, #000); 
-            display: flex; justify-content: space-around; align-items: center; z-index: 100; 
-        }
-        .nav-item { color: #fff; font-size: 1.4rem; cursor: pointer; opacity: 0.7; transition: 0.3s; }
-        .nav-item.active { opacity: 1; color: #d4af37; }
+        /* --- NAVEGACION --- */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; }
+        .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 3px; }
+        .plus-btn { width: 45px; height: 30px; background: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
+        .plus-btn::before { content:''; position:absolute; left:-3px; width:100%; height:100%; background:#20f3ea; border-radius:10px; z-index:-1; }
+        .plus-btn::after { content:''; position:absolute; right:-3px; width:100%; height:100%; background:#ff0050; border-radius:10px; z-index:-1; }
 
-        /* --- PANTALLAS (AUTH / UPLOAD / EDITOR) --- */
-        .screen-overlay { 
-            position: fixed; inset: 0; background: #000; z-index: 1000; 
-            display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
-        }
-        input, textarea { 
-            width: 100%; max-width: 400px; padding: 15px; margin: 10px 0; 
-            background: #111; border: 1px solid #333; color: #fff; border-radius: 10px; 
-        }
-        .btn-gold { 
-            width: 100%; max-width: 400px; padding: 15px; background: #d4af37; 
-            color: #000; border: none; border-radius: 50px; font-weight: bold; cursor: pointer;
-        }
+        /* --- UPLOAD SCREEN --- */
+        #upload-screen { background: #000; padding: 20px; z-index: 1500; }
+        .preview-box { width: 100%; height: 50vh; background: #111; border-radius: 20px; overflow: hidden; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; border: 1px dashed #d4af37; }
+
+        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; display: none; align-items: center; justify-content: center; flex-direction: column; }
     </style>
 </head>
 <body>
 
-    <!-- FEED PRINCIPAL -->
-    <div id="feed-container"></div>
-
-    <!-- NAVEGACIÓN -->
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="location.reload()"><i class="fas fa-home"></i></div>
-        <div class="nav-item" onclick="openUpload()"><i class="fas fa-plus-square"></i></div>
-        <div class="nav-item" id="user-btn" onclick="toggleAuth()"><i class="fas fa-user"></i></div>
+    <!-- CARGA -->
+    <div id="loading">
+        <div style="border:4px solid #d4af37; border-top:4px solid transparent; width:50px; height:50px; border-radius:50%; animation:spin 1s linear infinite"></div>
+        <p style="margin-top:15px; color:#d4af37; font-weight:bold;">SUBIENDO A LA MELY...</p>
     </div>
 
-    <!-- PANTALLA AUTH (Login / Registro) -->
-    <div id="auth-screen" class="screen-overlay">
-        <h1 style="font-family:'Oswald'; color:#d4af37; font-size:3rem;">LA MELY</h1>
-        <div id="auth-box" style="width:100%; text-align:center;">
-            <input type="text" id="reg-user" placeholder="Nombre de Usuario (Solo registro)">
-            <input type="email" id="auth-email" placeholder="Correo">
-            <input type="password" id="auth-pass" placeholder="Contraseña">
-            <button class="btn-gold" onclick="handleAuth('login')">INICIAR SESIÓN</button>
-            <p style="margin:15px; font-size:0.8rem; color:#888;" onclick="handleAuth('signup')">¿No tienes cuenta? Regístrate aquí</p>
-            <button class="btn-gold" style="background:#444; color:#fff;" onclick="closeScreens()">CANCELAR</button>
+    <!-- PANTALLA AUTH -->
+    <div id="auth-screen" class="screen">
+        <div class="logo">LA MELY</div>
+        <div class="auth-box" id="login-form">
+            <h2>ACCESO</h2><br>
+            <input type="email" id="email" placeholder="Correo electrónico">
+            <input type="password" id="pass" placeholder="Contraseña">
+            <button class="btn-main" onclick="handleAuth('login')">Entrar</button>
+            <p style="margin-top:20px; color:#666" onclick="toggleAuth(true)">¿Eres nuevo? <span style="color:#d4af37">Regístrate</span></p>
+        </div>
+        <div class="auth-box" id="reg-form" style="display:none">
+            <h2>REGISTRO</h2><br>
+            <input type="text" id="r-user" placeholder="Nombre de Usuario">
+            <input type="email" id="r-email" placeholder="Correo electrónico">
+            <input type="password" id="r-pass" placeholder="Contraseña (mín. 6)">
+            <button class="btn-main" onclick="handleAuth('reg')">Crear Cuenta</button>
+            <p style="margin-top:20px; color:#666" onclick="toggleAuth(false)">¿Ya tienes cuenta? <span style="color:#d4af37">Inicia Sesión</span></p>
         </div>
     </div>
 
-    <!-- EDITOR DE POST (Antes de subir) -->
-    <div id="editor-screen" class="screen-overlay">
-        <h2 style="color:#d4af37; margin-bottom:15px;">PUBLICAR NUEVO</h2>
-        <div id="preview-container" style="width:150px; height:200px; background:#222; border-radius:10px; margin-bottom:15px; overflow:hidden;"></div>
-        <textarea id="post-desc" placeholder="Escribe algo sobre este video..."></textarea>
-        <button class="btn-gold" id="upload-btn" onclick="uploadToSupabase()">SUBIR AHORA</button>
-        <button class="btn-gold" style="background:#444; color:#fff; margin-top:10px;" onclick="closeScreens()">DESCARTAR</button>
+    <!-- PANTALLA FEED -->
+    <div id="feed-screen" class="screen">
+        <div id="feed-container"></div>
+        <div class="bottom-nav">
+            <div class="nav-item" onclick="location.reload()"><i class="fas fa-home"></i>Inicio</div>
+            <div class="nav-item" onclick="document.getElementById('file-input').click()">
+                <div class="plus-btn"><i class="fas fa-plus" style="color:#000; font-size:1rem"></i></div>
+            </div>
+            <div class="nav-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Salir</div>
+        </div>
     </div>
 
-    <input type="file" id="file-input" accept="video/*,image/*" style="display:none" onchange="preparePost(this)">
+    <!-- PANTALLA SUBIDA -->
+    <div id="upload-screen" class="screen">
+        <h2 style="font-family:'Oswald'; color:#d4af37; margin-bottom:20px; text-align:center;">NUEVO POST</h2>
+        <div class="preview-box" id="preview-box"></div>
+        <textarea id="post-desc" rows="3" placeholder="Escribe algo sobre este video..."></textarea>
+        <button class="btn-main" onclick="startUpload()">Publicar en La Mely</button>
+        <p onclick="location.reload()" style="text-align:center; margin-top:20px; color:#888; cursor:pointer;">Cancelar</p>
+    </div>
+
+    <input type="file" id="file-input" accept="video/*,image/*" style="display:none">
 
     <script>
         const SB_URL = 'https://meiwuluwrdjszxeyoqtt.supabase.co';
@@ -119,149 +133,171 @@
         let currentUser = null;
         let selectedFile = null;
 
+        // --- INICIO ---
         async function init() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
                 const { data } = await _supabase.from('perfiles').select('username').eq('id', session.user.id).single();
-                currentUser = data?.username || "usuario";
-                document.getElementById('user-btn').innerHTML = '<i class="fas fa-sign-out-alt"></i>';
-                document.getElementById('user-btn').onclick = () => _supabase.auth.signOut().then(() => location.reload());
+                currentUser = data ? data.username : "Anonimo";
+                document.getElementById('feed-screen').style.display = 'block';
+                loadFeed();
+                setupRealtime();
+            } else {
+                document.getElementById('auth-screen').style.display = 'flex';
             }
-            await loadFeed();
-            setupRealtime();
         }
 
-        // --- SISTEMA DE CARGA Y DESLIZAMIENTO ---
+        // --- REALTIME ---
+        function setupRealtime() {
+            _supabase.channel('custom-all-channel')
+            .on('postgres_changes', { event: 'UPDATE', table: 'publicaciones', filter: 'estado=eq.aprobado' }, (payload) => {
+                renderPost(payload.new, true);
+            })
+            .subscribe();
+        }
+
+        // --- AUTH ---
+        function toggleAuth(isReg) {
+            document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
+            document.getElementById('reg-form').style.display = isReg ? 'block' : 'none';
+        }
+
+        async function handleAuth(type) {
+            if (type === 'reg') {
+                const u = document.getElementById('r-user').value.trim();
+                const e = document.getElementById('r-email').value.trim();
+                const p = document.getElementById('r-pass').value;
+                const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
+                if (error) return alert(error.message);
+                await _supabase.from('perfiles').insert([{ id: data.user.id, username: u, email: e }]);
+                alert("¡Registrado! Ahora inicia sesión."); location.reload();
+            } else {
+                const e = document.getElementById('email').value;
+                const p = document.getElementById('pass').value;
+                const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
+                if (error) return alert("Acceso denegado.");
+                location.reload();
+            }
+        }
+
+        async function logout() { await _supabase.auth.signOut(); location.reload(); }
+
+        // --- FEED ---
         async function loadFeed() {
             const { data } = await _supabase.from('publicaciones')
-                .select('*')
-                .eq('estado', 'aprobado')
-                .order('created_at', { ascending: false });
+                .select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
             
             const container = document.getElementById('feed-container');
             container.innerHTML = "";
             data?.forEach(post => renderPost(post));
-            setupObserver();
+            initObserver();
         }
 
-        function renderPost(post, prepend = false) {
+        function renderPost(post, isNew = false) {
             const container = document.getElementById('feed-container');
+            if (document.getElementById(`post-${post.id}`)) return;
+
             const card = document.createElement('div');
             card.className = 'post-card';
             card.id = `post-${post.id}`;
             card.innerHTML = `
                 ${post.tipo === 'video' 
-                    ? `<video src="${post.url}" loop playsinline onclick="togglePlay(this)"></video>` 
-                    : `<img src="${post.url}">`}
-                <div class="side-bar">
-                    <button class="side-btn"><i class="fas fa-heart"></i></button>
-                    <button class="side-btn"><i class="fas fa-comment"></i></button>
-                    <button class="side-btn"><i class="fas fa-share"></i></button>
-                </div>
+                    ? `<video class="video-player" src="${post.url}" loop playsinline></video>
+                       <i class="fas fa-play status-icon"></i>
+                       <div class="progress-container">
+                           <div class="progress-bar" id="bar-${post.id}"></div>
+                           <input type="range" class="seek-input" min="0" max="100" value="0" oninput="seekVideo(this, '${post.id}')">
+                       </div>` 
+                    : `<img class="video-player" src="${post.url}">`}
                 <div class="ui-info">
                     <h2>@${post.usuario}</h2>
                     <p>${post.descripcion || ''}</p>
                 </div>
             `;
-            if (prepend) {
-                container.prepend(card);
-                container.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-                container.appendChild(card);
-            }
+            if (isNew) container.prepend(card); else container.appendChild(card);
+            if (post.tipo === 'video') setupVideoControls(card);
         }
 
-        // --- REALTIME (SUBIDA EN TIEMPO REAL) ---
-        function setupRealtime() {
-            _supabase.channel('custom-all-channel')
-            .on('postgres_changes', { event: 'INSERT', table: 'publicaciones', schema: 'public' }, (payload) => {
-                if (payload.new.estado === 'aprobado') renderPost(payload.new, true);
-            })
-            .on('postgres_changes', { event: 'UPDATE', table: 'publicaciones', schema: 'public' }, (payload) => {
-                if (payload.new.estado === 'aprobado') renderPost(payload.new, true);
-            })
-            .subscribe();
+        function setupVideoControls(card) {
+            const video = card.querySelector('video');
+            const icon = card.querySelector('.status-icon');
+            const bar = card.querySelector('.progress-bar');
+            const range = card.querySelector('.seek-input');
+
+            video.onclick = () => {
+                if (video.paused) {
+                    video.play();
+                    icon.className = "fas fa-play status-icon";
+                } else {
+                    video.pause();
+                    icon.className = "fas fa-pause status-icon";
+                }
+                icon.style.opacity = "1";
+                setTimeout(() => icon.style.opacity = "0", 400);
+            };
+
+            video.ontimeupdate = () => {
+                const p = (video.currentTime / video.duration) * 100;
+                bar.style.width = p + "%";
+                range.value = p;
+            };
         }
 
-        // --- FUNCIONES DE AUTH ---
-        async function handleAuth(type) {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-pass').value;
-            const user = document.getElementById('reg-user').value;
+        window.seekVideo = (el, id) => {
+            const v = document.querySelector(`#post-${id} video`);
+            v.currentTime = (el.value / 100) * v.duration;
+        };
 
-            if (type === 'signup') {
-                const { data, error } = await _supabase.auth.signUp({ email, password: pass });
-                if (error) return alert(error.message);
-                await _supabase.from('perfiles').insert({ id: data.user.id, username: user });
-                alert("Cuenta creada. Por favor inicia sesión.");
-            } else {
-                const { error } = await _supabase.auth.signInWithPassword({ email, password: pass });
-                if (error) alert(error.message); else location.reload();
-            }
-        }
-
-        // --- EDITOR Y SUBIDA ---
-        function openUpload() {
-            if (!currentUser) return toggleAuth();
-            document.getElementById('file-input').click();
-        }
-
-        function preparePost(input) {
-            selectedFile = input.files[0];
-            if (!selectedFile) return;
-            
-            const preview = document.getElementById('preview-container');
-            const url = URL.createObjectURL(selectedFile);
-            preview.innerHTML = selectedFile.type.includes('video') 
-                ? `<video src="${url}" muted autoplay loop style="width:100%; height:100%; object-fit:cover;"></video>`
-                : `<img src="${url}" style="width:100%; height:100%; object-fit:cover;">`;
-            
-            document.getElementById('editor-screen').style.display = 'flex';
-        }
-
-        async function uploadToSupabase() {
-            const btn = document.getElementById('upload-btn');
-            btn.innerText = "SUBIENDO...";
-            btn.disabled = true;
-
-            const fileName = `${Date.now()}_${selectedFile.name}`;
-            const { data, error } = await _supabase.storage.from('media').upload(fileName, selectedFile);
-            
-            if (error) return alert("Error al subir archivo");
-
-            const { data: { publicUrl } } = _supabase.storage.from('media').getPublicUrl(fileName);
-
-            await _supabase.from('publicaciones').insert({
-                url: publicUrl,
-                usuario: currentUser,
-                descripcion: document.getElementById('post-desc').value,
-                tipo: selectedFile.type.includes('video') ? 'video' : 'imagen',
-                estado: 'pendiente' // El admin debe aprobarlo para que aparezca en el feed
-            });
-
-            alert("¡Subido! Aparecerá cuando el admin lo apruebe.");
-            location.reload();
-        }
-
-        // --- UTILIDADES ---
-        function togglePlay(v) { v.paused ? v.play() : v.pause(); }
-        function toggleAuth() { document.getElementById('auth-screen').style.display = 'flex'; }
-        function closeScreens() { document.querySelectorAll('.screen-overlay').forEach(s => s.style.display = 'none'); }
-
-        function setupObserver() {
-            const observer = new IntersectionObserver((entries) => {
+        function initObserver() {
+            const obs = new IntersectionObserver(entries => {
                 entries.forEach(entry => {
-                    const video = entry.target.querySelector('video');
-                    if (video) {
-                        if (entry.isIntersecting) video.play();
-                        else { video.pause(); video.currentTime = 0; }
+                    const v = entry.target.querySelector('video');
+                    if (v) {
+                        if (entry.isIntersecting) v.play();
+                        else { v.pause(); v.currentTime = 0; }
                     }
                 });
-            }, { threshold: 0.8 });
-            document.querySelectorAll('.post-card').forEach(card => observer.observe(card));
+            }, { threshold: 0.7 });
+            document.querySelectorAll('.post-card').forEach(c => obs.observe(c));
+        }
+
+        // --- SUBIDA ---
+        document.getElementById('file-input').onchange = (e) => {
+            selectedFile = e.target.files[0];
+            if (selectedFile) {
+                const url = URL.createObjectURL(selectedFile);
+                document.getElementById('preview-box').innerHTML = selectedFile.type.includes('video') 
+                    ? `<video src="${url}" autoplay muted loop style="height:100%"></video>` 
+                    : `<img src="${url}" style="height:100%; object-fit:contain">`;
+                document.getElementById('feed-screen').style.display = 'none';
+                document.getElementById('upload-screen').style.display = 'flex';
+            }
+        };
+
+        async function startUpload() {
+            document.getElementById('loading').style.display = 'flex';
+            const fExt = selectedFile.name.split('.').pop();
+            const fName = `${Date.now()}.${fExt}`;
+
+            const { data: sData, error: sErr } = await _supabase.storage.from('mely_media').upload(fName, selectedFile, { contentType: selectedFile.type });
+            if (sErr) { alert(sErr.message); return location.reload(); }
+
+            const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
+            
+            await _supabase.from('publicaciones').insert([{
+                usuario: currentUser,
+                url: urlData.publicUrl,
+                tipo: selectedFile.type.includes('video') ? 'video' : 'imagen',
+                descripcion: document.getElementById('post-desc').value,
+                estado: 'pendiente'
+            }]);
+
+            alert("¡Listo! El admin lo revisará.");
+            location.reload();
         }
 
         init();
     </script>
+    <style> @keyframes spin { to { transform: rotate(360deg); } } </style>
 </body>
 </html>
