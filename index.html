@@ -196,6 +196,7 @@
                 const { data: posts } = await _supabase.from('publicaciones').select('*').eq('usuario', currentUser).order('created_at', { ascending: false });
                 data = posts;
             } else {
+                // Aquí consultamos la tabla likes y extraemos la data de publicaciones vinculada
                 const { data: likedData } = await _supabase.from('likes').select('publicaciones(*)').eq('user_id', session.user.id);
                 data = likedData ? likedData.map(l => l.publicaciones).filter(p => p !== null) : [];
             }
@@ -233,7 +234,7 @@
                         <span id="likes-${post.id}">${post.likes || 0}</span>
                     </div>
                     <div class="action-item">
-                        <button class="action-btn" onclick="alert('Desarrollando...')"><i class="fas fa-comment-dots"></i></button>
+                        <button class="action-btn" onclick="alert('Muy pronto...')"><i class="fas fa-comment-dots"></i></button>
                         <span id="comm-count-${post.id}">${post.comentarios_count || 0}</span>
                     </div>
                     <div class="action-item">
@@ -248,15 +249,24 @@
             isNew ? container.prepend(card) : container.appendChild(card);
             if (post.tipo === 'video') setupVideo(card, post.id);
             
-            // Verificar si el usuario ya le dio like para pintar el corazón
             checkLikeStatus(post.id, card.querySelector(`#btn-like-${post.id}`));
         }
 
         async function checkLikeStatus(postId, btn) {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session || !btn) return;
-            const { data } = await _supabase.from('likes').select('*').eq('user_id', session.user.id).eq('post_id', postId).single();
+
+            // IMPORTANTE: Convertimos a Number para evitar error 406
+            const cleanPostId = Number(postId);
+
+            const { data } = await _supabase.from('likes')
+                .select('id')
+                .eq('user_id', session.user.id)
+                .eq('post_id', cleanPostId)
+                .maybeSingle();
+
             if (data) btn.classList.add('active');
+            else btn.classList.remove('active');
         }
 
         async function handleLike(postId, btn) {
@@ -264,18 +274,21 @@
             if (!session) return alert("Inicia sesión para dar like");
 
             const isLiked = btn.classList.contains('active');
-            btn.classList.toggle('active');
+            const cleanPostId = Number(postId);
             const countSpan = document.getElementById(`likes-${postId}`);
             let currentCount = parseInt(countSpan.innerText);
 
+            // UI Optimista
+            btn.classList.toggle('active');
+
             if (!isLiked) {
                 countSpan.innerText = currentCount + 1;
-                await _supabase.from('likes').insert([{ user_id: session.user.id, post_id: postId }]);
-                await _supabase.rpc('increment_likes', { post_id: postId.toString() });
+                const { error } = await _supabase.from('likes').insert([{ user_id: session.user.id, post_id: cleanPostId }]);
+                if(!error) await _supabase.rpc('increment_likes', { post_id: postId.toString() });
             } else {
                 countSpan.innerText = Math.max(0, currentCount - 1);
-                await _supabase.from('likes').delete().eq('user_id', session.user.id).eq('post_id', postId);
-                await _supabase.rpc('decrement_likes', { post_id: postId.toString() });
+                const { error } = await _supabase.from('likes').delete().eq('user_id', session.user.id).eq('post_id', cleanPostId);
+                if(!error) await _supabase.rpc('decrement_likes', { post_id: postId.toString() });
             }
         }
 
@@ -335,11 +348,11 @@
             if(type === 'reg'){
                 const u = document.getElementById('r-user').value;
                 const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
-                if(!error) await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
-                else alert(error.message);
+                if(!error && data.user) await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
+                else if(error) alert(error.message);
             } else {
                 const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
-                if(error) alert("Error de acceso");
+                if(error) alert("Error de acceso: " + error.message);
             }
             location.reload();
         }
@@ -377,12 +390,10 @@
         }
 
         function setupRealtime() {
-            _supabase.channel('public').on('postgres_changes', { event: '*', table: 'publicaciones' }, payload => {
-                if (payload.eventType === 'UPDATE') {
-                    const post = payload.new;
-                    const l = document.getElementById(`likes-${post.id}`); if(l) l.innerText = post.likes;
-                    const v = document.getElementById(`vistas-${post.id}`); if(v) v.innerText = post.vistas;
-                }
+            _supabase.channel('public').on('postgres_changes', { event: 'UPDATE', table: 'publicaciones' }, payload => {
+                const post = payload.new;
+                const l = document.getElementById(`likes-${post.id}`); if(l) l.innerText = post.likes;
+                const v = document.getElementById(`vistas-${post.id}`); if(v) v.innerText = post.vistas;
             }).subscribe();
         }
 
