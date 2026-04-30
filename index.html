@@ -320,10 +320,33 @@
         }
 
         function setupRealtime() {
-            _supabase.channel('public').on('postgres_changes', { event: 'UPDATE', table: 'publicaciones' }, payload => {
-                if (payload.new.estado === 'aprobado') renderPost(payload.new, true);
-            }).subscribe();
-        }
+    _supabase.channel('public')
+        .on('postgres_changes', { event: '*', table: 'publicaciones' }, payload => {
+            
+            // 1. Si se aprueba un video nuevo, lo añade al feed
+            if (payload.eventType === 'UPDATE' && payload.old.estado === 'pendiente' && payload.new.estado === 'aprobado') {
+                renderPost(payload.new, true);
+            }
+
+            // 2. Si cambian los likes o vistas de un video que YA existe en pantalla
+            if (payload.eventType === 'UPDATE') {
+                const post = payload.new;
+                
+                // Actualizar Likes
+                const likeCounter = document.getElementById(`likes-${post.id}`);
+                if (likeCounter) likeCounter.innerText = post.likes || 0;
+
+                // Actualizar Vistas
+                const viewCounter = document.getElementById(`vistas-${post.id}`);
+                if (viewCounter) viewCounter.innerText = post.vistas || 0;
+                
+                // Actualizar Comentarios
+                const commCounter = document.getElementById(`comm-count-${post.id}`);
+                if (commCounter) commCounter.innerText = post.comentarios_count || 0;
+            }
+        })
+        .subscribe();
+}
 
         init();
     </script>
