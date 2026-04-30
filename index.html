@@ -11,71 +11,65 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
 
-        /* NAVEGACIÓN INFERIOR (ESTILO TT) */
-        .bottom-nav {
-            position: fixed; bottom: 0; width: 100%; height: 60px;
-            background: #000; border-top: 0.5px solid #333;
-            display: flex; justify-content: space-around; align-items: center; z-index: 200;
-        }
+        /* FEED Y NAV (Igual al anterior) */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 0.5px solid #333; display: flex; justify-content: space-around; align-items: center; z-index: 200; }
         .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; }
-        .nav-item i { font-size: 20px; display: block; margin-bottom: 2px; }
-        .nav-item.active { color: #fff; }
+        .upload-btn-ui { width: 45px; height: 30px; background: #fff; border-radius: 8px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .upload-btn-ui::before { content: ''; position: absolute; left: -3px; width: 100%; height: 100%; background: #20f3ea; border-radius: 8px; z-index: -1; }
+        .upload-btn-ui::after { content: ''; position: absolute; right: -3px; width: 100%; height: 100%; background: #ff0050; border-radius: 8px; z-index: -1; }
+
+        /* PANTALLA DE EDICIÓN (PASO 2) */
+        #edit-screen {
+            position: fixed; inset: 0; background: #000; z-index: 400;
+            display: none; flex-direction: column; padding: 20px;
+        }
+        .preview-container { width: 100%; height: 40%; background: #111; border-radius: 15px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 1px solid #d4af37; }
+        .preview-container img, .preview-container video { max-width: 100%; max-height: 100%; }
+
+        .edit-fields { flex: 1; }
+        input, textarea { width: 100%; padding: 15px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 10px; margin-bottom: 15px; font-family: 'Montserrat'; }
+        .publish-btn { width: 100%; padding: 18px; background: #d4af37; color: #000; border: none; border-radius: 50px; font-weight: 700; font-size: 1.1rem; cursor: pointer; }
         
-        /* BOTÓN MÁGICO + */
-        .upload-center {
-            width: 45px; height: 30px; background: #fff;
-            border-radius: 8px; position: relative; display: flex; align-items: center; justify-content: center;
-        }
-        .upload-center::before { content: ''; position: absolute; left: -3px; width: 100%; height: 100%; background: #20f3ea; border-radius: 8px; z-index: -1; }
-        .upload-center::after { content: ''; position: absolute; right: -3px; width: 100%; height: 100%; background: #ff0050; border-radius: 8px; z-index: -1; }
-        .upload-center i { color: #000; font-size: 18px; }
-
-        /* MODAL DE SUBIDA */
-        #upload-modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            z-index: 300; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
-        }
-        .modal-content { width: 100%; max-width: 400px; background: #1a1a1a; padding: 25px; border-radius: 20px; border: 1px solid #333; }
-        .modal-content h3 { font-family: 'Oswald'; color: #d4af37; margin-bottom: 20px; text-align: center; }
-        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 15px; background: #333; border: none; color: #fff; border-radius: 8px; }
-        .btn-send { width: 100%; padding: 15px; background: #d4af37; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-
-        /* FEED (Lo mismo que antes) */
-        #feed { width: 100%; height: calc(100vh - 60px); overflow-y: scroll; snap-type: y mandatory; scrollbar-width: none; }
-        #feed::-webkit-scrollbar { display: none; }
-        .post-card { width: 100%; height: calc(100vh - 60px); snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
-        .media-content { width: 100%; height: 100%; object-fit: cover; }
-        .ui-overlay { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, transparent 40%); display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; padding-bottom: 40px; pointer-events: none; }
-        .post-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.4rem; }
+        #loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 500; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #d4af37; border-top: 4px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
+    <!-- INPUT OCULTO PARA ABRIR GALERÍA -->
+    <input type="file" id="file-input" accept="video/*,image/*" style="display: none;">
+
     <div id="feed"></div>
 
-    <!-- NAVEGACIÓN TIKTOK -->
     <div class="bottom-nav">
-        <div class="nav-item active"><i class="fas fa-home"></i>Inicio</div>
-        <div class="nav-item"><i class="fas fa-search"></i>Amigos</div>
-        <div class="nav-item" onclick="toggleModal()"><div class="upload-center"><i class="fas fa-plus"></i></div></div>
-        <div class="nav-item"><i class="fas fa-comment-dots"></i>Bandeja</div>
+        <div class="nav-item"><i class="fas fa-home"></i>Inicio</div>
+        <div class="nav-item" onclick="document.getElementById('file-input').click()">
+            <div class="upload-btn-ui"><i class="fas fa-plus" style="color: #000;"></i></div>
+        </div>
         <div class="nav-item"><i class="fas fa-user"></i>Perfil</div>
     </div>
 
-    <!-- MODAL DE SUBIDA -->
-    <div id="upload-modal">
-        <div class="modal-content">
-            <h3>SUBIR A LA MELY</h3>
-            <input type="text" id="u-name" placeholder="Tu Usuario (sin @)">
-            <select id="u-type">
-                <option value="video">Es un Video</option>
-                <option value="imagen">Es una Imagen</option>
-            </select>
-            <input type="text" id="u-url" placeholder="Pega el Link (Google Drive/URL)">
-            <textarea id="u-desc" placeholder="Descripción corta..."></textarea>
-            <button class="btn-send" onclick="sendToReview()">MANDAR A REVISIÓN</button>
-            <p style="text-align: center; margin-top: 15px; color: #888; font-size: 12px; cursor: pointer;" onclick="toggleModal()">Cancelar</p>
+    <!-- PANTALLA DE PASO 2: DESCRIPCIÓN -->
+    <div id="edit-screen">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <i class="fas fa-arrow-left" onclick="location.reload()"></i>
+            <h3 style="font-family: 'Oswald'; color: #d4af37;">NUEVA PUBLICACIÓN</h3>
+            <span></span>
         </div>
+        
+        <div class="preview-container" id="preview-box"></div>
+
+        <div class="edit-fields">
+            <input type="text" id="post-user" placeholder="Tu nombre o @usuario">
+            <textarea id="post-desc" rows="4" placeholder="Escribe una descripción épica..."></textarea>
+            <button class="publish-btn" onclick="uploadContent()">PUBLICAR AHORA</button>
+        </div>
+    </div>
+
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px;">Subiendo a la red...</p>
     </div>
 
     <script>
@@ -83,53 +77,84 @@
         const SB_KEY = 'sb_publishable_gZgGIamNJqf8ir8vvt1OTw_bJ-rosi4';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        function toggleModal() {
-            const modal = document.getElementById('upload-modal');
-            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-        }
+        let selectedFile = null;
 
-        async function sendToReview() {
-            const user = document.getElementById('u-name').value;
-            const type = document.getElementById('u-type').value;
-            const url = document.getElementById('u-url').value;
-            const desc = document.getElementById('u-desc').value;
+        // PASO 1: Detectar elección de archivo
+        document.getElementById('file-input').onchange = function(e) {
+            selectedFile = e.target.files[0];
+            if (selectedFile) {
+                showEditScreen();
+            }
+        };
 
-            if(!user || !url) return alert("Bro, llena los campos");
-
-            const { error } = await _supabase.from('publicaciones').insert([
-                { usuario: user, tipo: type, url: url, descripcion: desc, estado: 'pendiente' }
-            ]);
-
-            if(!error) {
-                alert("¡Enviado! La Mely lo revisará pronto.");
-                toggleModal();
+        function showEditScreen() {
+            document.getElementById('edit-screen').style.display = 'flex';
+            const previewBox = document.getElementById('preview-box');
+            const url = URL.createObjectURL(selectedFile);
+            
+            if (selectedFile.type.includes('video')) {
+                previewBox.innerHTML = `<video src="${url}" autoplay muted loop></video>`;
             } else {
-                alert("Error al enviar");
+                previewBox.innerHTML = `<img src="${url}">`;
             }
         }
 
-        // Cargar Feed (Igual al anterior pero ajustado a la nav)
+        // PASO 2: Subir archivo y datos
+        async function uploadContent() {
+            const user = document.getElementById('post-user').value;
+            const desc = document.getElementById('post-desc').value;
+
+            if (!user || !selectedFile) return alert("Pon tu nombre, bro.");
+
+            document.getElementById('loading-overlay').style.display = 'flex';
+
+            // 1. Subir al Storage
+            const fileName = `${Date.now()}_${selectedFile.name}`;
+            const { data: storageData, error: storageError } = await _supabase.storage
+                .from('mely_media')
+                .upload(fileName, selectedFile);
+
+            if (storageError) {
+                alert("Error al subir archivo");
+                console.error(storageError);
+                return;
+            }
+
+            // 2. Obtener URL Pública
+            const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fileName);
+            const publicUrl = urlData.publicUrl;
+
+            // 3. Guardar en Tabla
+            const type = selectedFile.type.includes('video') ? 'video' : 'imagen';
+            const { error: dbError } = await _supabase.from('publicaciones').insert([
+                { usuario: user, url: publicUrl, tipo: type, descripcion: desc, estado: 'pendiente' }
+            ]);
+
+            if (!dbError) {
+                alert("¡Listo! Espera a que el admin lo apruebe.");
+                location.reload();
+            } else {
+                alert("Error al guardar datos");
+            }
+        }
+
+        // Cargar Feed (Simplificado para el ejemplo)
         async function loadFeed() {
             const { data } = await _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
             const feed = document.getElementById('feed');
-            data.forEach(post => {
+            data?.forEach(post => {
                 const card = document.createElement('div');
                 card.className = 'post-card';
+                card.style = "width: 100%; height: calc(100vh - 65px); snap-align: start; position: relative;";
                 card.innerHTML = `
-                    ${post.tipo === 'video' ? `<video class="media-content" src="${post.url}" loop muted playsinline></video>` : `<img class="media-content" src="${post.url}">`}
-                    <div class="ui-overlay">
-                        <div class="post-info"><h2>@${post.usuario}</h2><p>${post.descripcion}</p></div>
+                    ${post.tipo === 'video' ? `<video style="width:100%;height:100%;object-fit:cover" src="${post.url}" loop muted playsinline autoplay></video>` : `<img style="width:100%;height:100%;object-fit:cover" src="${post.url}">`}
+                    <div style="position:absolute;bottom:20px;left:20px;pointer-events:none;">
+                        <h2 style="font-family:Oswald;color:#d4af37">@${post.usuario}</h2>
+                        <p>${post.descripcion}</p>
                     </div>
                 `;
                 feed.appendChild(card);
             });
-            initObserver();
-        }
-
-        function initObserver() {
-            const vids = document.querySelectorAll('video');
-            const obs = new IntersectionObserver(e => e.forEach(i => i.isIntersecting ? i.target.play() : i.target.pause()), { threshold: 0.6 });
-            vids.forEach(v => obs.observe(v));
         }
         loadFeed();
     </script>
