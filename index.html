@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LA MELY </title>
+    <title>LA MELY | TV</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -11,91 +11,122 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
 
-        /* Contenedor tipo App */
-        #feed {
-            width: 100%; height: 100vh;
-            overflow-y: scroll;
-            snap-type: y mandatory;
-            scrollbar-width: none;
+        /* NAVEGACIÓN INFERIOR (ESTILO TT) */
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; height: 60px;
+            background: #000; border-top: 0.5px solid #333;
+            display: flex; justify-content: space-around; align-items: center; z-index: 200;
         }
+        .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; }
+        .nav-item i { font-size: 20px; display: block; margin-bottom: 2px; }
+        .nav-item.active { color: #fff; }
+        
+        /* BOTÓN MÁGICO + */
+        .upload-center {
+            width: 45px; height: 30px; background: #fff;
+            border-radius: 8px; position: relative; display: flex; align-items: center; justify-content: center;
+        }
+        .upload-center::before { content: ''; position: absolute; left: -3px; width: 100%; height: 100%; background: #20f3ea; border-radius: 8px; z-index: -1; }
+        .upload-center::after { content: ''; position: absolute; right: -3px; width: 100%; height: 100%; background: #ff0050; border-radius: 8px; z-index: -1; }
+        .upload-center i { color: #000; font-size: 18px; }
+
+        /* MODAL DE SUBIDA */
+        #upload-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 300; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-content { width: 100%; max-width: 400px; background: #1a1a1a; padding: 25px; border-radius: 20px; border: 1px solid #333; }
+        .modal-content h3 { font-family: 'Oswald'; color: #d4af37; margin-bottom: 20px; text-align: center; }
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 15px; background: #333; border: none; color: #fff; border-radius: 8px; }
+        .btn-send { width: 100%; padding: 15px; background: #d4af37; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        /* FEED (Lo mismo que antes) */
+        #feed { width: 100%; height: calc(100vh - 60px); overflow-y: scroll; snap-type: y mandatory; scrollbar-width: none; }
         #feed::-webkit-scrollbar { display: none; }
-
-        .post-card {
-            width: 100%; height: 100vh;
-            snap-align: start;
-            position: relative;
-            background: #000;
-            display: flex; align-items: center; justify-content: center;
-        }
-
+        .post-card { width: 100%; height: calc(100vh - 60px); snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; }
         .media-content { width: 100%; height: 100%; object-fit: cover; }
-
-        /* Capa de diseño TikTok */
-        .ui-overlay {
-            position: absolute; inset: 0;
-            background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 40%, transparent 100%);
-            display: flex; flex-direction: column; justify-content: flex-end;
-            padding: 20px; pointer-events: none;
-        }
-
-        .post-info { margin-bottom: 20px; max-width: 80%; }
-        .post-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.5rem; margin-bottom: 5px; }
-        .post-info p { font-size: 0.9rem; color: #eee; }
-
-        /* Barra Lateral de Acciones */
-        .side-bar {
-            position: absolute; right: 15px; bottom: 100px;
-            display: flex; flex-direction: column; gap: 20px;
-            align-items: center; pointer-events: auto;
-        }
-        .action-item { text-align: center; cursor: pointer; }
-        .action-item i { font-size: 28px; color: #fff; margin-bottom: 5px; transition: 0.3s; }
-        .action-item i:active { transform: scale(1.2); color: #d4af37; }
-        .action-item span { font-size: 12px; display: block; }
-
-        header {
-            position: fixed; top: 0; width: 100%; padding: 20px;
-            text-align: center; z-index: 100; font-family: 'Oswald';
-            letter-spacing: 3px; color: rgba(255,255,255,0.6);
-        }
+        .ui-overlay { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, transparent 40%); display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; padding-bottom: 40px; pointer-events: none; }
+        .post-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.4rem; }
     </style>
 </head>
 <body>
-    <header>SIGUIENDO | <strong>PARA TI</strong></header>
+
     <div id="feed"></div>
+
+    <!-- NAVEGACIÓN TIKTOK -->
+    <div class="bottom-nav">
+        <div class="nav-item active"><i class="fas fa-home"></i>Inicio</div>
+        <div class="nav-item"><i class="fas fa-search"></i>Amigos</div>
+        <div class="nav-item" onclick="toggleModal()"><div class="upload-center"><i class="fas fa-plus"></i></div></div>
+        <div class="nav-item"><i class="fas fa-comment-dots"></i>Bandeja</div>
+        <div class="nav-item"><i class="fas fa-user"></i>Perfil</div>
+    </div>
+
+    <!-- MODAL DE SUBIDA -->
+    <div id="upload-modal">
+        <div class="modal-content">
+            <h3>SUBIR A LA MELY</h3>
+            <input type="text" id="u-name" placeholder="Tu Usuario (sin @)">
+            <select id="u-type">
+                <option value="video">Es un Video</option>
+                <option value="imagen">Es una Imagen</option>
+            </select>
+            <input type="text" id="u-url" placeholder="Pega el Link (Google Drive/URL)">
+            <textarea id="u-desc" placeholder="Descripción corta..."></textarea>
+            <button class="btn-send" onclick="sendToReview()">MANDAR A REVISIÓN</button>
+            <p style="text-align: center; margin-top: 15px; color: #888; font-size: 12px; cursor: pointer;" onclick="toggleModal()">Cancelar</p>
+        </div>
+    </div>
 
     <script>
         const SB_URL = 'https://meiwuluwrdjszxeyoqtt.supabase.co';
         const SB_KEY = 'sb_publishable_gZgGIamNJqf8ir8vvt1OTw_bJ-rosi4';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        async function loadFeed() {
-            const container = document.getElementById('feed');
-            const { data } = await _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
+        function toggleModal() {
+            const modal = document.getElementById('upload-modal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+        }
 
+        async function sendToReview() {
+            const user = document.getElementById('u-name').value;
+            const type = document.getElementById('u-type').value;
+            const url = document.getElementById('u-url').value;
+            const desc = document.getElementById('u-desc').value;
+
+            if(!user || !url) return alert("Bro, llena los campos");
+
+            const { error } = await _supabase.from('publicaciones').insert([
+                { usuario: user, tipo: type, url: url, descripcion: desc, estado: 'pendiente' }
+            ]);
+
+            if(!error) {
+                alert("¡Enviado! La Mely lo revisará pronto.");
+                toggleModal();
+            } else {
+                alert("Error al enviar");
+            }
+        }
+
+        // Cargar Feed (Igual al anterior pero ajustado a la nav)
+        async function loadFeed() {
+            const { data } = await _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
+            const feed = document.getElementById('feed');
             data.forEach(post => {
                 const card = document.createElement('div');
                 card.className = 'post-card';
                 card.innerHTML = `
                     ${post.tipo === 'video' ? `<video class="media-content" src="${post.url}" loop muted playsinline></video>` : `<img class="media-content" src="${post.url}">`}
                     <div class="ui-overlay">
-                        <div class="post-info">
-                            <h2>@${post.usuario}</h2>
-                            <p>${post.descripcion}</p>
-                        </div>
-                    </div>
-                    <div class="side-bar">
-                        <div class="action-item"><i class="fas fa-heart"></i><span>Mely</span></div>
-                        <div class="action-item"><i class="fas fa-comment"></i><span>Respeto</span></div>
-                        <div class="action-item"><i class="fas fa-share"></i><span>Enviar</span></div>
+                        <div class="post-info"><h2>@${post.usuario}</h2><p>${post.descripcion}</p></div>
                     </div>
                 `;
-                container.appendChild(card);
+                feed.appendChild(card);
             });
-            initVideos();
+            initObserver();
         }
 
-        function initVideos() {
+        function initObserver() {
             const vids = document.querySelectorAll('video');
             const obs = new IntersectionObserver(e => e.forEach(i => i.isIntersecting ? i.target.play() : i.target.pause()), { threshold: 0.6 });
             vids.forEach(v => obs.observe(v));
