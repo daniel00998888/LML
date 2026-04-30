@@ -11,8 +11,9 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
-        
+
         #app-viewport { width: 100%; height: calc(100dvh - 65px); position: relative; overflow: hidden; }
+
         #feed-screen { width: 100%; height: 100%; display: block; }
         #feed-container { 
             width: 100%; height: 100%; overflow-y: scroll; 
@@ -20,9 +21,13 @@
         }
         #feed-container::-webkit-scrollbar { display: none; }
 
-        /* POSTS UI */
-        .post-card { width: 100%; height: 100%; snap-align: start; snap-stop: always; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
+        .post-card { 
+            width: 100%; height: 100%; snap-align: start; snap-stop: always; 
+            position: relative; background: #000; display: flex; align-items: center; justify-content: center;
+        }
         .video-player { width: 100%; height: 100%; object-fit: cover; }
+
+        /* UI INFO Y AVATAR */
         .ui-info { position: absolute; bottom: 40px; left: 15px; z-index: 10; text-shadow: 2px 2px 8px rgba(0,0,0,1); max-width: 70%; }
         .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.4rem; margin-bottom: 5px; cursor: pointer; display: inline-block; }
         
@@ -31,13 +36,17 @@
         .action-btn { background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer; transition: 0.2s; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
         .action-btn.active { color: #ff0050 !important; transform: scale(1.1); }
         
+        /* BOTÓN AVATAR EN FEED */
         .user-avatar-btn { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #fff; overflow: hidden; background: #333; margin-bottom: 5px; cursor: pointer; position: relative; }
         .user-avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
+        .user-avatar-btn::after { content: '+'; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); background: #ff0050; color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 1px solid #000; }
+
+        .btn-delete { color: #ff4444 !important; font-size: 1.8rem !important; margin-top: 5px; opacity: 0.8; }
 
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.1); z-index: 20; }
         .progress-bar { height: 100%; background: #d4af37; width: 0%; }
 
-        /* NAVIGATION */
+        /* NAVEGACION */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; }
         .nav-item.active { color: #fff; }
@@ -47,52 +56,27 @@
         .plus-btn::before { content:''; position:absolute; left:-3px; width:100%; height:100%; background:#20f3ea; border-radius:10px; z-index:-1; }
         .plus-btn::after { content:''; position:absolute; right:-3px; width:100%; height:100%; background:#ff0050; border-radius:10px; z-index:-1; }
 
-        /* SCREENS */
+        /* PERFIL */
         .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: #000; z-index: 1500; overflow-y: auto; }
-        
-        /* PROFILE IMPROVED */
-        .profile-header { padding: 40px 20px 20px; text-align: center; background: #000; position: relative; }
+        .profile-header { padding: 30px 20px; text-align: center; background: #000; position: relative; }
         .btn-back { position: absolute; top: 20px; left: 20px; font-size: 1.5rem; color: #fff; background: none; border: none; cursor: pointer; }
         
-        /* LA NUEVA BARRA DE PERFIL */
-        .profile-tabs-nav { 
-            display: flex; 
-            position: sticky; 
-            top: 0; 
-            background: #000; 
-            z-index: 10; 
-            border-bottom: 1px solid #111;
-        }
-        .tab-btn { 
-            flex: 1; 
-            padding: 15px; 
-            background: none; 
-            border: none; 
-            color: #555; 
-            font-size: 1.3rem; 
-            cursor: pointer; 
-            transition: 0.3s;
-            position: relative;
-        }
-        .tab-btn.active { color: #fff; }
-        .tab-btn.active::after { 
-            content: ''; 
-            position: absolute; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 2px; 
-            background: #d4af37; 
-        }
-
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
         .grid-item { aspect-ratio: 9/16; background: #111; position: relative; overflow: hidden; cursor: pointer; }
         .grid-item video, .grid-item img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* MINIATURA VISTAS */
         .grid-views { position: absolute; bottom: 5px; left: 5px; font-size: 0.75rem; color: #fff; font-weight: bold; text-shadow: 1px 1px 3px #000; z-index: 5; display: flex; align-items: center; gap: 4px; }
 
+        .profile-tabs-nav { display: flex; border-top: 1px solid #222; border-bottom: 1px solid #111; }
+        .tab-btn { flex: 1; padding: 12px; background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; position: relative; }
+        .tab-btn.active { color: #fff; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 2px; background: #d4af37; }
+
+        /* MODAL VISOR */
         #viewer-modal { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; }
         .viewer-close { position: absolute; top: 20px; left: 20px; font-size: 2rem; z-index: 3100; color: #fff; cursor: pointer; }
-        
+
         #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; flex-direction: column; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
@@ -127,29 +111,21 @@
             <div id="feed-container"></div>
         </div>
 
-        <!-- PROFILE SCREEN -->
         <div id="profile-screen" class="screen">
             <div class="profile-header">
-                <button class="btn-back" id="btn-back-profile" onclick="showScreen('feed')"><i class="fas fa-arrow-left"></i></button>
-                <div style="font-size: 4rem; color: #d4af37; margin-bottom: 10px;"><i class="fas fa-user-circle"></i></div>
+                <button class="btn-back" id="btn-back-profile" onclick="showScreen('feed')" style="display:none;"><i class="fas fa-arrow-left"></i></button>
+                <div style="font-size: 3.5rem; color: #d4af37;"><i class="fas fa-user-circle"></i></div>
                 <h1 id="prof-user" style="font-family:'Oswald'; font-size:1.8rem; color:#d4af37;">@Usuario</h1>
-                <button id="btn-logout" onclick="logout()" style="background:none; border:1px solid #333; color:#888; padding:6px 20px; border-radius:20px; margin-top:15px; cursor:pointer; font-size: 0.8rem;">Cerrar Sesión</button>
+                <button id="btn-logout" onclick="logout()" style="background:none; border:1px solid #333; color:#888; padding:5px 15px; border-radius:5px; margin-top:10px; cursor:pointer;">Cerrar Sesión</button>
             </div>
-            
             <div class="profile-tabs-nav" id="profile-tabs">
-                <button class="tab-btn active" id="tab-posts" onclick="switchProfileTab('posts')">
-                    <i class="fas fa-border-all"></i>
-                </button>
-                <button class="tab-btn" id="tab-likes" onclick="switchProfileTab('likes')">
-                    <i class="fas fa-heart"></i>
-                </button>
+                <button class="tab-btn active" id="tab-posts" onclick="switchProfileTab('posts')"><i class="fas fa-th"></i></button>
+                <button class="tab-btn" id="tab-likes" onclick="switchProfileTab('likes')"><i class="fas fa-heart"></i></button>
             </div>
-
             <div class="profile-grid" id="profile-grid"></div>
-            <div style="height:100px;"></div>
+            <div style="height:80px;"></div>
         </div>
 
-        <!-- UPLOAD SCREEN -->
         <div id="upload-screen" class="screen" style="padding:20px; justify-content: center;">
             <div style="width:100%; height:50vh; background:#111; border-radius:15px; overflow:hidden;" id="preview-box"></div>
             <textarea id="post-desc" style="width:100%; background:#222; border:none; color:#fff; padding:15px; margin-top:15px; border-radius:10px; font-family:inherit; resize:none;" placeholder="Escribe algo sobre este video..."></textarea>
@@ -158,14 +134,12 @@
         </div>
     </div>
 
-    <!-- MAIN NAV -->
     <div class="bottom-nav" id="main-nav" style="display:none;">
         <div class="nav-item active" id="nav-home" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
         <div class="nav-item" onclick="document.getElementById('file-input').click()"><div class="plus-btn"><i class="fas fa-plus" style="color:#000;"></i></div></div>
         <div class="nav-item" id="nav-profile-btn" onclick="goToMyProfile()"><i class="fas fa-user"></i>Perfil</div>
     </div>
 
-    <!-- VIEWER MODAL -->
     <div id="viewer-modal">
         <i class="fas fa-arrow-left viewer-close" onclick="closeViewer()"></i>
         <div id="viewer-content" style="width:100%; height:100%;"></div>
@@ -180,7 +154,7 @@
 
         let currentUser = null;
         let selectedFile = null;
-        let viewingUser = null; 
+        let viewingUser = null; // Para saber qué perfil estamos viendo
 
         async function init() {
             const { data: { session } } = await _supabase.auth.getSession();
@@ -226,7 +200,7 @@
             document.getElementById('prof-user').innerText = "@" + username;
             document.getElementById('btn-back-profile').style.display = 'block';
             document.getElementById('btn-logout').style.display = 'none';
-            document.getElementById('profile-tabs').style.display = 'none';
+            document.getElementById('profile-tabs').style.display = 'none'; // No ver likes de otros
             showScreen('profile');
             loadUserPosts('posts');
         }
@@ -239,70 +213,37 @@
 
         async function loadUserPosts(filterType = 'posts') {
             const grid = document.getElementById('profile-grid');
-            grid.innerHTML = "<p style='grid-column:1/4; text-align:center; padding:50px; color:#333;'>Cargando...</p>";
-            let data = [];
+            grid.innerHTML = "<p style='grid-column:1/4; text-align:center; padding:20px; color:#555;'>Cargando...</p>";
             
+            let data = [];
             if(filterType === 'posts') {
-                const { data: posts } = await _supabase.from('publicaciones')
-                    .select('*')
-                    .eq('usuario', viewingUser)
-                    .eq('estado', 'aprobado')
-                    .order('created_at', { ascending: false });
+                const { data: posts } = await _supabase.from('publicaciones').select('*').eq('usuario', viewingUser).eq('estado', 'aprobado').order('created_at', { ascending: false });
                 data = posts;
             } else {
                 const { data: { session } } = await _supabase.auth.getSession();
-                const { data: likedData } = await _supabase.from('likes')
-                    .select('publicaciones(*)')
-                    .eq('user_id', session.user.id);
+                const { data: likedData } = await _supabase.from('likes').select('publicaciones(*)').eq('user_id', session.user.id);
                 data = likedData ? likedData.map(l => l.publicaciones).filter(p => p !== null) : [];
             }
-            
-            grid.innerHTML = "";
-            if(!data || data.length === 0) {
-                grid.innerHTML = "<p style='grid-column:1/4; text-align:center; padding:50px; color:#333;'>No hay contenido aquí.</p>";
-                return;
-            }
 
-            data.forEach(post => {
+            grid.innerHTML = "";
+            data?.forEach(post => {
                 const item = document.createElement('div');
                 item.className = 'grid-item';
                 item.onclick = () => openViewer(post);
-                item.innerHTML = `${post.tipo === 'video' ? `<video src="${post.url}#t=0.1" muted></video>` : `<img src="${post.url}">`}<div class="grid-views"><i class="fas fa-play"></i> ${post.vistas || 0}</div>`;
+                item.innerHTML = `
+                    ${post.tipo === 'video' ? `<video src="${post.url}#t=0.1" muted></video>` : `<img src="${post.url}">`}
+                    <div class="grid-views"><i class="fas fa-play"></i> ${post.vistas || 0}</div>
+                `;
                 grid.appendChild(item);
             });
         }
 
         async function loadFeed() {
-            let seenIds = JSON.parse(localStorage.getItem(`seen_posts_${currentUser}`)) || [];
-            let query = _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').neq('usuario', currentUser);
-            if (seenIds.length > 0) query = query.not('id', 'in', `(${seenIds.join(',')})`);
-
-            const { data } = await query.order('created_at', { ascending: false }).limit(20);
+            const { data } = await _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
             const container = document.getElementById('feed-container');
             container.innerHTML = "";
-            
-            if (!data || data.length === 0) {
-                container.innerHTML = "<div style='padding:100px 20px; text-align:center;'><i class='fas fa-check-circle' style='font-size:3rem; color:#d4af37;'></i><h2 style='margin-top:15px;'>¡Estás al día!</h2><button onclick='clearSeenHistory()' style='margin-top:20px; background:none; border:1px solid #333; color:#d4af37; padding:10px; border-radius:5px;'>Ver de nuevo</button></div>";
-                return;
-            }
-            data.forEach(post => renderPost(post, container));
+            data?.forEach(post => renderPost(post, container));
             initObserver();
-        }
-
-        function clearSeenHistory() {
-            localStorage.removeItem(`seen_posts_${currentUser}`);
-            location.reload();
-        }
-
-        async function markView(postId) {
-            if(sessionStorage.getItem(`view_${postId}`)) return;
-            sessionStorage.setItem(`view_${postId}`, 'true');
-            await _supabase.rpc('increment_vistas', { post_id: postId.toString() });
-            let seenIds = JSON.parse(localStorage.getItem(`seen_posts_${currentUser}`)) || [];
-            if (!seenIds.includes(postId)) {
-                seenIds.push(postId);
-                localStorage.setItem(`seen_posts_${currentUser}`, JSON.stringify(seenIds));
-            }
         }
 
         function renderPost(post, container, isNew = false) {
@@ -311,22 +252,31 @@
             card.className = 'post-card';
             card.id = `post-${post.id}`;
             card.setAttribute('data-id', post.id);
+
             card.innerHTML = `
                 ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop playsinline></video>` : `<img class="video-player" src="${post.url}">`}
                 <div class="side-actions">
                     <div class="user-avatar-btn" onclick="goToUserProfile('${post.usuario}')">
-                        <img src="https://ui-avatars.com/api/?name=${post.usuario}&background=random&color=fff">
+                        <img src="https://ui-avatars.com/api/?name=${post.usuario}&background=random&color=fff" alt="avatar">
                     </div>
                     <div class="action-item">
                         <button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button>
                         <span class="likes-count" id="likes-${post.id}">${post.likes || 0}</span>
                     </div>
                     <div class="action-item">
-                        <button class="action-btn" onclick="alert('Próximamente')"><i class="fas fa-comment-dots"></i></button>
+                        <button class="action-btn" onclick="alert('Muy pronto...')"><i class="fas fa-comment-dots"></i></button>
                         <span id="comm-count-${post.id}">${post.comentarios_count || 0}</span>
                     </div>
+                    <div class="action-item">
+                        <i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i>
+                        <span class="vistas-count" id="vistas-${post.id}">${post.vistas || 0}</span>
+                    </div>
+                    ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
-                <div class="ui-info"><h2 onclick="goToUserProfile('${post.usuario}')">@${post.usuario}</h2><p>${post.descripcion || ''}</p></div>
+                <div class="ui-info">
+                    <h2 onclick="goToUserProfile('${post.usuario}')">@${post.usuario}</h2>
+                    <p>${post.descripcion || ''}</p>
+                </div>
                 <div class="progress-container"><div class="progress-bar" id="bar-${post.id}"></div></div>
             `;
             isNew ? container.prepend(card) : container.appendChild(card);
@@ -338,14 +288,15 @@
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) return;
             const isLiked = btn.classList.contains('active');
+            const allBtns = document.querySelectorAll(`#btn-like-${postId}`);
             const allCounts = document.querySelectorAll(`#likes-${postId}`);
             if (!isLiked) {
-                btn.classList.add('active');
+                allBtns.forEach(b => b.classList.add('active'));
                 allCounts.forEach(c => c.innerText = parseInt(c.innerText || 0) + 1);
                 await _supabase.from('likes').insert([{ user_id: session.user.id, post_id: Number(postId) }]);
                 await _supabase.rpc('increment_likes', { post_id: postId.toString() });
             } else {
-                btn.classList.remove('active');
+                allBtns.forEach(b => b.classList.remove('active'));
                 allCounts.forEach(c => c.innerText = Math.max(0, parseInt(c.innerText || 0) - 1));
                 await _supabase.from('likes').delete().eq('user_id', session.user.id).eq('post_id', Number(postId));
                 await _supabase.rpc('decrement_likes', { post_id: postId.toString() });
@@ -357,6 +308,12 @@
             if (!session || !btn) return;
             const { data } = await _supabase.from('likes').select('id').eq('user_id', session.user.id).eq('post_id', Number(postId)).maybeSingle();
             if (data) btn.classList.add('active');
+        }
+
+        async function markView(postId) {
+            if(sessionStorage.getItem(`view_${postId}`)) return;
+            sessionStorage.setItem(`view_${postId}`, 'true');
+            await _supabase.rpc('increment_vistas', { post_id: postId.toString() });
         }
 
         function setupVideo(card, postId) {
@@ -394,6 +351,12 @@
             document.getElementById('viewer-content').innerHTML = "";
         }
 
+        async function deletePost(postId, fileUrl) {
+            if(!confirm("¿Eliminar?")) return;
+            await _supabase.from('publicaciones').delete().eq('id', postId);
+            location.reload();
+        }
+
         async function handleAuth(type) {
             const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
             const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
@@ -402,7 +365,9 @@
                 const u = document.getElementById('r-user').value;
                 const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
                 if(!error && data.user) await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
-            } else { await _supabase.auth.signInWithPassword({ email: e, password: p }); }
+            } else {
+                await _supabase.auth.signInWithPassword({ email: e, password: p });
+            }
             location.reload();
         }
 
@@ -441,6 +406,7 @@
             _supabase.channel('public').on('postgres_changes', { event: 'UPDATE', table: 'publicaciones' }, payload => {
                 const post = payload.new;
                 document.querySelectorAll(`#likes-${post.id}`).forEach(c => c.innerText = post.likes);
+                document.querySelectorAll(`#vistas-${post.id}`).forEach(v => v.innerText = post.vistas);
             }).subscribe();
         }
 
