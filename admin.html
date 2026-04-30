@@ -6,163 +6,147 @@
     <title>ADMIN | LA MELY TV</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #080808; color: #fff; font-family: 'Montserrat', sans-serif; padding: 20px; }
+        body { background: #0a0a0a; color: #fff; font-family: 'Montserrat', sans-serif; padding: 20px; }
+        header { text-align: center; margin-bottom: 30px; padding: 20px; border-bottom: 2px solid #d4af37; }
+        header h1 { font-family: 'Oswald'; color: #d4af37; text-transform: uppercase; letter-spacing: 2px; }
         
-        header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #d4af37; padding-bottom: 10px; }
-        header h1 { font-family: 'Oswald'; color: #d4af37; letter-spacing: 3px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .card { background: #151515; border-radius: 15px; overflow: hidden; border: 1px solid #333; display: flex; flex-direction: column; }
+        
+        .media-box { width: 100%; height: 250px; background: #000; }
+        .media-box video, .media-box img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .info { padding: 15px; flex-grow: 1; }
+        .info h3 { color: #d4af37; margin-bottom: 5px; font-family: 'Oswald'; }
+        .info p { font-size: 0.9rem; color: #ccc; }
 
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-            gap: 20px; 
-            max-width: 1200px; 
-            margin: 0 auto; 
-        }
+        .btns { display: flex; padding: 10px; gap: 10px; background: #202020; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .btn-ok { background: #28a745; color: #fff; }
+        .btn-ok:hover { background: #218838; }
+        .btn-no { background: #dc3545; color: #fff; }
+        .btn-no:hover { background: #c82333; }
 
-        .card { 
-            background: #121212; 
-            border-radius: 15px; 
-            overflow: hidden; 
-            border: 1px solid #222;
-            transition: 0.3s;
-        }
-        .card:hover { border-color: #d4af37; }
-
-        .media-container { width: 100%; height: 200px; background: #000; position: relative; }
-        .media-container video, .media-container img { width: 100%; height: 100%; object-fit: cover; }
-
-        .info { padding: 15px; }
-        .info h3 { color: #d4af37; font-size: 1rem; margin-bottom: 5px; }
-        .info p { font-size: 0.85rem; color: #bbb; height: 40px; overflow: hidden; }
-
-        .btns { display: flex; gap: 10px; padding: 15px; background: #1a1a1a; }
-        button { 
-            flex: 1; 
-            padding: 12px; 
-            border: none; 
-            border-radius: 8px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            font-family: 'Montserrat';
-            transition: 0.2s;
-        }
-        .btn-approve { background: #28a745; color: white; }
-        .btn-approve:hover { background: #218838; }
-        .btn-reject { background: #dc3545; color: white; }
-        .btn-reject:hover { background: #c82333; }
-
-        #empty-msg { text-align: center; color: #555; margin-top: 50px; font-size: 1.2rem; display: none; }
+        #msg-vacio { text-align: center; padding: 50px; color: #666; font-size: 1.2rem; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>PANEL DE CONTROL MELY TV</h1>
-        <p style="font-size: 0.8rem; color: #888;">Gestión de contenidos pendientes</p>
-    </header>
+<header>
+    <h1>Panel de Administración - LA MELY</h1>
+</header>
 
-    <div id="empty-msg">No hay nada pendiente por ahora, bro. 😎</div>
-    <div class="grid" id="admin-grid"></div>
+<div id="msg-vacio" style="display:none;">No hay publicaciones pendientes, bro. 🔥</div>
+<div class="grid" id="container"></div>
 
-    <script>
-        // CONFIGURACIÓN SUPABASE
-        const SB_URL = 'https://meiwuluwrdjszxeyoqtt.supabase.co';
-        const SB_KEY = 'sb_publishable_gZgGIamNJqf8ir8vvt1OTw_bJ-rosi4';
-        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+<script>
+    // CONFIGURACIÓN (Verifica que tus claves sean estas)
+    const SB_URL = 'https://meiwuluwrdjszxeyoqtt.supabase.co';
+    const SB_KEY = 'sb_publishable_gZgGIamNJqf8ir8vvt1OTw_bJ-rosi4';
+    const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        async function loadPending() {
-            const grid = document.getElementById('admin-grid');
-            const msg = document.getElementById('empty-msg');
-            grid.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">Cargando...</p>';
+    async function cargarPendientes() {
+        const container = document.getElementById('container');
+        const msg = document.getElementById('msg-vacio');
+        container.innerHTML = "<p>Cargando contenido...</p>";
 
-            // Traemos solo los que están en estado 'pendiente'
-            const { data, error } = await _supabase
-                .from('publicaciones')
-                .select('*')
-                .eq('estado', 'pendiente')
-                .order('created_at', { ascending: true });
+        // 1. Pedimos los datos incluyendo explicitamente el ID
+        const { data, error } = await _supabase
+            .from('publicaciones')
+            .select('*') // Esto trae todas las columnas, incluyendo 'id'
+            .eq('estado', 'pendiente')
+            .order('created_at', { ascending: false });
 
-            if (error) {
-                console.error("Error cargando datos:", error);
-                grid.innerHTML = "Error al conectar con Supabase.";
-                return;
-            }
+        if (error) {
+            console.error("Error Supabase:", error);
+            container.innerHTML = "<p>Error al cargar datos. Revisa la consola.</p>";
+            return;
+        }
 
-            grid.innerHTML = '';
+        if (data.length === 0) {
+            container.innerHTML = "";
+            msg.style.display = "block";
+            return;
+        }
+
+        msg.style.display = "none";
+        container.innerHTML = "";
+
+        data.forEach(post => {
+            // DEBUG: Esto te dirá en la consola si el ID existe realmente
+            console.log("Revisando post:", post.id, post.usuario);
+
+            const card = document.createElement('div');
+            card.className = 'card';
             
-            if (data.length === 0) {
-                msg.style.display = 'block';
-                return;
-            } else {
-                msg.style.display = 'none';
-            }
+            // Verificamos si post.id existe, si no, usamos un aviso
+            const currentID = post.id;
 
-            data.forEach(post => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <div class="media-container">
-                        ${post.tipo === 'video' 
-                            ? `<video src="${post.url}" controls muted></video>` 
-                            : `<img src="${post.url}" onclick="window.open('${post.url}', '_blank')">`}
-                    </div>
-                    <div class="info">
-                        <h3>@${post.usuario}</h3>
-                        <p>${post.descripcion || 'Sin descripción'}</p>
-                    </div>
-                    <div class="btns">
-                        <!-- Pasamos el ID exacto de la fila -->
-                        <button class="btn-approve" onclick="updateStatus('${post.id}', 'aprobado')">
-                            <i class="fas fa-check"></i> APROBAR
-                        </button>
-                        <button class="btn-reject" onclick="deleteItem('${post.id}')">
-                            <i class="fas fa-trash"></i> BORRAR
-                        </button>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
+            card.innerHTML = `
+                <div class="media-box">
+                    ${post.tipo === 'video' 
+                        ? `<video src="${post.url}" controls></video>` 
+                        : `<img src="${post.url}">`}
+                </div>
+                <div class="info">
+                    <h3>@${post.usuario || 'Anónimo'}</h3>
+                    <p>${post.descripcion || 'Sin descripción...'}</p>
+                    <small style="color:#555">ID: ${currentID}</small>
+                </div>
+                <div class="btns">
+                    <button class="btn-ok" onclick="cambiarEstado('${currentID}', 'aprobado')">Aprobar</button>
+                    <button class="btn-no" onclick="eliminarPost('${currentID}')">Eliminar</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    // FUNCION PARA APROBAR (PATCH)
+    async function cambiarEstado(idRecibido, nuevoEstado) {
+        if (!idRecibido || idRecibido === 'undefined' || idRecibido === 'null') {
+            alert("Error: Esta publicación no tiene un ID válido en la base de datos.");
+            return;
         }
 
-        // FUNCIÓN PARA APROBAR
-        async function updateStatus(id, nuevoEstado) {
-            if (!id) return alert("ID no encontrado");
+        const { error } = await _supabase
+            .from('publicaciones')
+            .update({ estado: nuevoEstado })
+            .eq('id', idRecibido); // Aquí es donde fallaba antes
 
-            const { error } = await _supabase
-                .from('publicaciones')
-                .update({ estado: nuevoEstado })
-                .eq('id', id);
-
-            if (error) {
-                alert("Error al actualizar: " + error.message);
-            } else {
-                alert("¡Contenido aprobado!");
-                loadPending(); // Refrescar lista
-            }
+        if (error) {
+            alert("Error al actualizar: " + error.message);
+        } else {
+            alert("¡Publicación aprobada!");
+            cargarPendientes();
         }
+    }
 
-        // FUNCIÓN PARA BORRAR (RECHAZAR)
-        async function deleteItem(id) {
-            if (!confirm("¿Seguro que quieres eliminar esta publicación permanentemente?")) return;
+    // FUNCION PARA BORRAR (DELETE)
+    async function eliminarPost(idRecibido) {
+        if (!idRecibido || idRecibido === 'undefined') return;
 
-            const { error } = await _supabase
-                .from('publicaciones')
-                .delete()
-                .eq('id', id);
+        const confirmar = confirm("¿Seguro que quieres borrar esto?");
+        if (!confirmar) return;
 
-            if (error) {
-                alert("Error al borrar: " + error.message);
-            } else {
-                alert("Publicación eliminada.");
-                loadPending();
-            }
+        const { error } = await _supabase
+            .from('publicaciones')
+            .delete()
+            .eq('id', idRecibido);
+
+        if (error) {
+            alert("Error al borrar: " + error.message);
+        } else {
+            alert("Publicación eliminada.");
+            cargarPendientes();
         }
+    }
 
-        // Ejecutar al cargar
-        loadPending();
-    </script>
+    // Arrancar la carga
+    cargarPendientes();
+</script>
+
 </body>
 </html>
