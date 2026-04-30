@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LA MELY | TV</title>
-    <link rel="icon" href="data:,">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -30,16 +29,11 @@
         .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.4rem; margin-bottom: 5px; }
         
         .side-actions { position: absolute; right: 10px; bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 20; }
-        .action-item { display: flex; flex-direction: column; align-items: center; color: #fff; font-size: 0.75rem; font-weight: bold; }
-        .action-btn { background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer; transition: 0.2s; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
-        .action-btn.active { color: #ff0050; transform: scale(1.1); }
-        .btn-delete { color: #ff4444 !important; font-size: 1.8rem !important; margin-top: 5px; opacity: 0.8; }
+        .action-btn { background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
+        .btn-delete { color: #ff4444 !important; font-size: 1.8rem !important; }
 
-        .progress-container { position: absolute; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.1); z-index: 20; }
-        .progress-bar { height: 100%; background: #d4af37; width: 0%; }
-
-        /* --- NAVEGACION --- */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        /* --- NAVEGACION (Fija siempre) --- */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 2000; }
         .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; }
         .nav-item.active { color: #fff; }
         .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 3px; }
@@ -49,47 +43,63 @@
         .plus-btn::after { content:''; position:absolute; right:-3px; width:100%; height:100%; background:#ff0050; border-radius:10px; z-index:-1; }
 
         /* --- PANTALLAS --- */
-        .screen { position: fixed; inset: 0; display: none; flex-direction: column; background: #000; z-index: 1500; overflow-y: auto; }
+        .screen { position: fixed; top: 0; left: 0; width: 100%; height: calc(100dvh - 65px); display: none; flex-direction: column; background: #000; z-index: 100; overflow-y: auto; }
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
-        .grid-item { aspect-ratio: 9/16; background: #111; position: relative; overflow: hidden; cursor: pointer; }
+        .grid-item { aspect-ratio: 9/16; background: #111; overflow: hidden; cursor: pointer; }
         .grid-item video, .grid-item img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* MODAL VISOR */
+        /* MODAL VISOR (Por encima de la nav) */
         #viewer-modal { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; }
-        .viewer-close { position: absolute; top: 20px; left: 20px; font-size: 2rem; z-index: 3100; text-shadow: 0 0 10px #000; color: #fff; cursor: pointer; }
+        .viewer-close { position: absolute; top: 20px; left: 20px; font-size: 2rem; z-index: 3100; color: #fff; cursor: pointer; }
+        
+        /* Ajuste para que el post se vea bien en el visor */
+        #viewer-content .post-card { height: 100dvh !important; }
 
         #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; flex-direction: column; }
-        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <div id="loading">
         <div style="border:4px solid #d4af37; border-top:4px solid transparent; width:50px; height:50px; border-radius:50%; animation:spin 1s linear infinite"></div>
-        <p style="margin-top:15px; color:#d4af37; font-weight:bold;">SINCRONIZANDO...</p>
     </div>
 
     <!-- AUTH -->
-    <div id="auth-screen" class="screen" style="align-items:center; justify-content:center; z-index:2000;">
-        <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; margin-bottom:20px; letter-spacing:5px;">LA MELY</div>
-        <div id="login-form" style="width:85%; max-width:350px; text-align:center;">
+    <div id="auth-screen" class="screen" style="display:flex; height:100dvh; z-index:5000; align-items:center; justify-content:center;">
+        <div id="login-form" style="width:85%; text-align:center;">
+            <h1 style="font-family:'Oswald'; color:#d4af37; font-size:3rem; margin-bottom:20px;">LA MELY</h1>
             <input type="email" id="email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
             <input type="password" id="pass" placeholder="Contraseña" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
-            <button onclick="handleAuth('login')" style="width:100%; padding:16px; background:#d4af37; border:none; border-radius:50px; font-weight:800; text-transform:uppercase; cursor:pointer;">Entrar</button>
-            <p style="margin-top:20px; color:#666" onclick="toggleAuth(true)">¿Nuevo aquí? <span style="color:#d4af37">Regístrate</span></p>
-        </div>
-        <div id="reg-form" style="display:none; width:85%; max-width:350px; text-align:center;">
-            <input type="text" id="r-user" placeholder="Nombre de usuario" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
-            <input type="email" id="r-email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
-            <input type="password" id="r-pass" placeholder="Contraseña" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
-            <button onclick="handleAuth('reg')" style="width:100%; padding:16px; background:#d4af37; border:none; border-radius:50px; font-weight:800; text-transform:uppercase; cursor:pointer;">Crear Cuenta</button>
-            <p style="margin-top:20px; color:#666" onclick="toggleAuth(false)">¿Ya tienes cuenta? <span style="color:#d4af37">Inicia Sesión</span></p>
+            <button onclick="handleAuth('login')" style="width:100%; padding:16px; background:#d4af37; border:none; border-radius:50px; font-weight:800; cursor:pointer;">ENTRAR</button>
         </div>
     </div>
 
-    <!-- FEED -->
-    <div id="feed-screen" style="display:block;">
-        <div id="feed-container"></div>
+    <!-- MAIN APP -->
+    <div id="main-content">
+        <!-- FEED -->
+        <div id="feed-screen" style="display:block;">
+            <div id="feed-container"></div>
+        </div>
+
+        <!-- PERFIL -->
+        <div id="profile-screen" class="screen">
+            <div style="padding: 40px 20px; text-align: center;">
+                <div style="width:80px; height:80px; background:#222; border-radius:50%; margin: 0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:2rem; color:#d4af37;"><i class="fas fa-user"></i></div>
+                <h1 id="prof-user" style="font-family:'Oswald'; color:#d4af37;">@Usuario</h1>
+                <button onclick="logout()" style="color:#666; background:none; border:none; margin-top:10px;">Cerrar Sesión</button>
+            </div>
+            <div class="profile-grid" id="profile-grid"></div>
+        </div>
+
+        <!-- SUBIDA -->
+        <div id="upload-screen" class="screen" style="padding:20px;">
+            <div id="preview-box" style="width:100%; aspect-ratio:9/16; background:#111; border-radius:15px; overflow:hidden;"></div>
+            <textarea id="post-desc" style="width:100%; background:#222; color:#fff; padding:15px; margin-top:15px; border-radius:10px; border:none;" placeholder="Descripción..."></textarea>
+            <button onclick="startUpload()" style="margin-top:15px; width:100%; padding:18px; background:#d4af37; border:none; border-radius:12px; font-weight:bold;">PUBLICAR</button>
+            <button onclick="location.reload()" style="background:none; border:none; color:#888; margin-top:15px; width:100%;">Cancelar</button>
+        </div>
+
+        <!-- BARRA NAVEGACION -->
         <div class="bottom-nav">
             <div class="nav-item active" id="nav-home" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
             <div class="nav-item" onclick="document.getElementById('file-input').click()"><div class="plus-btn"><i class="fas fa-plus" style="color:#000;"></i></div></div>
@@ -97,29 +107,10 @@
         </div>
     </div>
 
-    <!-- PERFIL -->
-    <div id="profile-screen" class="screen">
-        <div style="padding: 40px 20px; text-align: center; background: #000;">
-            <div class="profile-avatar"><i class="fas fa-user"></i></div>
-            <h1 id="prof-user" style="font-family:'Oswald'; font-size:1.8rem; color:#d4af37;">@Usuario</h1>
-            <button onclick="logout()" style="background:none; border:1px solid #333; color:#888; padding:5px 15px; border-radius:5px; margin-top:15px; cursor:pointer;">Cerrar Sesión</button>
-        </div>
-        <div class="profile-grid" id="profile-grid"></div>
-        <div style="height:80px;"></div>
-    </div>
-
-    <!-- VISOR -->
+    <!-- MODAL VISOR -->
     <div id="viewer-modal">
         <i class="fas fa-arrow-left viewer-close" onclick="closeViewer()"></i>
-        <div id="viewer-content" style="width:100%; height:100%;"></div>
-    </div>
-
-    <!-- SUBIDA -->
-    <div id="upload-screen" class="screen" style="padding:20px; justify-content: center;">
-        <div style="width:100%; height:50vh; background:#111; border-radius:15px; overflow:hidden;" id="preview-box"></div>
-        <textarea id="post-desc" style="width:100%; background:#222; border:none; color:#fff; padding:15px; margin-top:15px; border-radius:10px; font-family:inherit; resize:none;" placeholder="Escribe algo sobre este video..."></textarea>
-        <button style="margin-top:15px; width:100%; padding:18px; background:#d4af37; border:none; border-radius:12px; font-weight:bold; color:#000; cursor:pointer;" onclick="startUpload()">PUBLICAR AHORA</button>
-        <button onclick="location.reload()" style="background:none; border:none; color:#888; margin-top:15px; width:100%; cursor:pointer;">Cancelar</button>
+        <div id="viewer-content"></div>
     </div>
 
     <input type="file" id="file-input" accept="video/*,image/*" style="display:none">
@@ -136,25 +127,25 @@
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
                 const { data } = await _supabase.from('perfiles').select('username').eq('id', session.user.id).single();
-                currentUser = data?.username || "Anonimo";
+                currentUser = data?.username || "usuario";
                 document.getElementById('prof-user').innerText = "@" + currentUser;
                 document.getElementById('auth-screen').style.display = 'none';
                 loadFeed();
-                setupRealtime();
-            } else {
-                document.getElementById('auth-screen').style.display = 'flex';
             }
         }
 
         function showScreen(id) {
+            // Ocultar todas las pantallas extra
             document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
-            document.getElementById('feed-screen').style.display = id === 'feed' ? 'block' : 'none';
-            document.getElementById('nav-home').classList.toggle('active', id === 'feed');
+            // Controlar el feed
+            document.getElementById('feed-screen').style.display = (id === 'feed') ? 'block' : 'none';
+            // Mostrar la seleccionada si no es feed
+            if(id !== 'feed') document.getElementById(id + '-screen').style.display = 'flex';
             
-            if(id !== 'feed') {
-                const screen = document.getElementById(id + '-screen');
-                if(screen) screen.style.display = 'flex';
-            }
+            // Actualizar botones nav
+            document.getElementById('nav-home').classList.toggle('active', id === 'feed');
+            document.getElementById('nav-profile-btn').classList.toggle('active', id === 'profile');
+
             if(id === 'profile') loadUserPosts();
         }
 
@@ -169,7 +160,6 @@
         async function loadUserPosts() {
             const { data } = await _supabase.from('publicaciones').select('*').eq('usuario', currentUser).order('created_at', { ascending: false });
             const grid = document.getElementById('profile-grid');
-            if(!grid) return;
             grid.innerHTML = "";
             data?.forEach(post => {
                 const item = document.createElement('div');
@@ -180,141 +170,57 @@
             });
         }
 
-        function renderPost(post, container, isNew = false) {
-            if (document.getElementById(`post-${post.id}`)) return;
+        function renderPost(post, container) {
             const card = document.createElement('div');
             card.className = 'post-card';
             card.id = `post-${post.id}`;
             card.setAttribute('data-id', post.id);
-
             const isOwner = post.usuario === currentUser;
 
             card.innerHTML = `
                 ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop playsinline></video>` : `<img class="video-player" src="${post.url}">`}
                 <div class="side-actions">
-                    <div class="action-item">
-                        <button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button>
-                        <span id="likes-${post.id}">${post.likes || 0}</span>
-                    </div>
-                    <div class="action-item">
-                        <button class="action-btn" onclick="alert('Desarrollando...')"><i class="fas fa-comment-dots"></i></button>
-                        <span id="comm-count-${post.id}">${post.comentarios_count || 0}</span>
-                    </div>
-                    <div class="action-item">
-                        <i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i>
-                        <span id="vistas-${post.id}">${post.vistas || 0}</span>
-                    </div>
+                    <div class="action-item"><button class="action-btn" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button><span>${post.likes || 0}</span></div>
                     ${isOwner ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
-                <div class="ui-info">
-                    <h2>@${post.usuario}</h2>
-                    <p>${post.descripcion || ''}</p>
-                </div>
-                <div class="progress-container"><div class="progress-bar" id="bar-${post.id}"></div></div>
+                <div class="ui-info"><h2>@${post.usuario}</h2><p>${post.descripcion || ''}</p></div>
             `;
-            isNew ? container.prepend(card) : container.appendChild(card);
-            if (post.tipo === 'video') setupVideo(card, post.id);
+            container.appendChild(card);
         }
 
-        async function handleLike(postId, btn) {
-            if(btn.classList.contains('active')) return;
-            btn.classList.add('active');
-            await _supabase.rpc('increment_likes', { post_id: postId.toString() });
-        }
-
-        async function markView(postId) {
-            const key = `view_${postId}`;
-            if(sessionStorage.getItem(key)) return;
-            sessionStorage.setItem(key, 'true');
-            await _supabase.rpc('increment_vistas', { post_id: postId.toString() });
-        }
-
-        async function deletePost(postId, fileUrl) {
-            if(!confirm("¿Eliminar este contenido permanentemente?")) return;
-            document.getElementById('loading').style.display = 'flex';
-            try {
-                await _supabase.from('publicaciones').delete().eq('id', postId);
-                const fileName = fileUrl.split('/').pop();
-                await _supabase.storage.from('mely_media').remove([fileName]);
-                location.reload();
-            } catch(e) { alert("Error al borrar"); }
-        }
-
-        function setupVideo(card, postId) {
-            const v = card.querySelector('video');
-            const bar = card.querySelector('.progress-bar');
-            if(!v) return;
-            v.onclick = () => v.paused ? v.play() : v.pause();
-            v.ontimeupdate = () => bar.style.width = (v.currentTime / v.duration) * 100 + "%";
-        }
-
-        function initObserver() {
-            const obs = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
-                    const id = entry.target.getAttribute('data-id');
-                    const v = entry.target.querySelector('video');
-                    if (entry.isIntersecting) {
-                        if(v) v.play().catch(()=>{});
-                        markView(id);
-                    } else if(v) {
-                        v.pause(); v.currentTime = 0;
-                    }
-                });
-            }, { threshold: 0.7 });
-            document.querySelectorAll('.post-card').forEach(c => obs.observe(c));
-        }
-
-        // --- VISOR CORREGIDO (SIN ERROR DE NULL) ---
         function openViewer(post) {
             const modal = document.getElementById('viewer-modal');
             const content = document.getElementById('viewer-content');
-            if(!modal || !content) return;
-
             modal.style.display = 'block';
             content.innerHTML = "";
             renderPost(post, content);
-            
-            const card = content.querySelector('.post-card');
-            if(card) {
-                card.style.height = '100dvh';
-                const v = card.querySelector('video');
-                if(v) { v.muted = false; v.play(); }
-            }
+            const v = content.querySelector('video');
+            if(v) { v.muted = false; v.play(); }
         }
 
         function closeViewer() {
-            const modal = document.getElementById('viewer-modal');
-            if(modal) modal.style.display = 'none';
+            document.getElementById('viewer-modal').style.display = 'none';
             document.getElementById('viewer-content').innerHTML = "";
         }
 
         async function handleAuth(type) {
-            const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
-            const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
-            document.getElementById('loading').style.display = 'flex';
-            
-            if(type === 'reg'){
-                const u = document.getElementById('r-user').value;
-                const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
-                if(error) { alert(error.message); document.getElementById('loading').style.display = 'none'; return; }
-                await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
-            } else {
-                const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
-                if(error) { alert("Error al entrar"); document.getElementById('loading').style.display = 'none'; return; }
-            }
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('pass').value;
+            const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
+            if(error) alert("Error"); else location.reload();
+        }
+
+        async function deletePost(id, url) {
+            if(!confirm("¿Borrar?")) return;
+            await _supabase.from('publicaciones').delete().eq('id', id);
             location.reload();
         }
 
-        function toggleAuth(isReg) {
-            document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
-            document.getElementById('reg-form').style.display = isReg ? 'block' : 'none';
-        }
-
-        async function logout() { await _supabase.auth.signOut(); location.reload(); }
+        function logout() { _supabase.auth.signOut(); location.reload(); }
 
         document.getElementById('file-input').onchange = (e) => {
             selectedFile = e.target.files[0];
-            if(selectedFile){
+            if(selectedFile) {
                 const url = URL.createObjectURL(selectedFile);
                 document.getElementById('preview-box').innerHTML = selectedFile.type.includes('video') ? `<video src="${url}" autoplay muted loop style="width:100%; height:100%; object-fit:cover;"></video>` : `<img src="${url}" style="width:100%; height:100%; object-fit:cover;">`;
                 showScreen('upload');
@@ -322,29 +228,27 @@
         };
 
         async function startUpload() {
-            if(!selectedFile) return;
             document.getElementById('loading').style.display = 'flex';
             const fName = Date.now() + "_" + selectedFile.name;
             await _supabase.storage.from('mely_media').upload(fName, selectedFile);
-            const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
+            const { data } = _supabase.storage.from('mely_media').getPublicUrl(fName);
             await _supabase.from('publicaciones').insert([{ 
-                usuario: currentUser, url: urlData.publicUrl, 
+                usuario: currentUser, url: data.publicUrl, 
                 tipo: selectedFile.type.includes('video') ? 'video' : 'imagen', 
                 descripcion: document.getElementById('post-desc').value, 
-                estado: 'pendiente', likes: 0, vistas: 0, comentarios_count: 0 
+                estado: 'pendiente' 
             }]);
-            alert("Enviado a revisión.");
             location.reload();
         }
 
-        function setupRealtime() {
-            _supabase.channel('public').on('postgres_changes', { event: '*', table: 'publicaciones' }, payload => {
-                if (payload.eventType === 'UPDATE') {
-                    const post = payload.new;
-                    const l = document.getElementById(`likes-${post.id}`); if(l) l.innerText = post.likes;
-                    const v = document.getElementById(`vistas-${post.id}`); if(v) v.innerText = post.vistas;
-                }
-            }).subscribe();
+        function initObserver() {
+            const obs = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    const v = entry.target.querySelector('video');
+                    if (v) entry.isIntersecting ? v.play() : v.pause();
+                });
+            }, { threshold: 0.8 });
+            document.querySelectorAll('.post-card').forEach(c => obs.observe(c));
         }
 
         init();
