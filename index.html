@@ -150,23 +150,44 @@
         };
 
         async function startUpload() {
-            document.getElementById('loading').style.display = 'flex';
-            const fName = `${Date.now()}_${selectedFile.name}`;
-            const { data: sData, error: sErr } = await _supabase.storage.from('mely_media').upload(fName, selectedFile);
-            
-            if (sErr) return alert("Error al subir");
+    if (!selectedFile) return alert("Selecciona un video primero");
+    
+    document.getElementById('loading').style.display = 'flex';
+    const fName = `${Date.now()}_${selectedFile.name.replace(/\s/g, '_')}`; // Quitamos espacios
 
-            const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
-            await _supabase.from('publicaciones').insert([{
-                usuario: currentUser,
-                url: urlData.publicUrl,
-                tipo: selectedFile.type.includes('video') ? 'video' : 'imagen',
-                descripcion: document.getElementById('post-desc').value,
-                estado: 'pendiente'
-            }]);
-            alert("Enviado para aprobación!");
-            location.reload();
-        }
+    // 1. Subida al Storage con configuración extra
+    const { data: sData, error: sErr } = await _supabase.storage
+        .from('mely_media')
+        .upload(fName, selectedFile, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: selectedFile.type // Esto le dice a Supabase que es un video/imagen real
+        });
+    
+    if (sErr) {
+        document.getElementById('loading').style.display = 'none';
+        console.error("Error completo:", sErr);
+        return alert("Error al subir: " + sErr.message);
+    }
+
+    // 2. Obtener URL y guardar en base de datos
+    const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
+    
+    const { error: dbErr } = await _supabase.from('publicaciones').insert([{
+        usuario: currentUser,
+        url: urlData.publicUrl,
+        tipo: selectedFile.type.includes('video') ? 'video' : 'imagen',
+        descripcion: document.getElementById('post-desc').value,
+        estado: 'pendiente'
+    }]);
+
+    if(dbErr) {
+        alert("Subió el archivo pero no guardó los datos.");
+    } else {
+        alert("¡Enviado para aprobación!");
+        location.reload();
+    }
+}
 
         async function loadFeed() {
             const { data } = await _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
