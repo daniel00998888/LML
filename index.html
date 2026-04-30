@@ -36,7 +36,7 @@
         .side-actions { position: absolute; right: 10px; bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 20; }
         .action-item { display: flex; flex-direction: column; align-items: center; color: #fff; font-size: 0.75rem; font-weight: bold; }
         .action-btn { background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer; transition: 0.2s; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
-        .action-btn.active { color: #ff0050; transform: scale(1.1); }
+        .action-btn.active { color: #ff0050 !important; transform: scale(1.1); }
         .btn-delete { color: #ff4444 !important; font-size: 1.8rem !important; margin-top: 5px; opacity: 0.8; }
 
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.1); z-index: 20; }
@@ -112,14 +112,9 @@
                 <button onclick="logout()" style="background:none; border:1px solid #333; color:#888; padding:5px 15px; border-radius:5px; margin-top:10px; cursor:pointer;">Cerrar Sesión</button>
             </div>
 
-            <!-- BARRA DE PESTAÑAS -->
             <div class="profile-tabs-nav">
-                <button class="tab-btn active" id="tab-posts" onclick="switchProfileTab('posts')">
-                    <i class="fas fa-th"></i>
-                </button>
-                <button class="tab-btn" id="tab-likes" onclick="switchProfileTab('likes')">
-                    <i class="fas fa-heart"></i>
-                </button>
+                <button class="tab-btn active" id="tab-posts" onclick="switchProfileTab('posts')"><i class="fas fa-th"></i></button>
+                <button class="tab-btn" id="tab-likes" onclick="switchProfileTab('likes')"><i class="fas fa-heart"></i></button>
             </div>
 
             <div class="profile-grid" id="profile-grid"></div>
@@ -135,14 +130,12 @@
         </div>
     </div>
 
-    <!-- NAVEGACION GLOBAL -->
     <div class="bottom-nav" id="main-nav" style="display:none;">
         <div class="nav-item active" id="nav-home" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
         <div class="nav-item" onclick="document.getElementById('file-input').click()"><div class="plus-btn"><i class="fas fa-plus" style="color:#000;"></i></div></div>
         <div class="nav-item" id="nav-profile-btn" onclick="showScreen('profile')"><i class="fas fa-user"></i>Perfil</div>
     </div>
 
-    <!-- VISOR MODAL -->
     <div id="viewer-modal">
         <i class="fas fa-arrow-left viewer-close" onclick="closeViewer()"></i>
         <div id="viewer-content" style="width:100%; height:100%;"></div>
@@ -157,7 +150,6 @@
 
         let currentUser = null;
         let selectedFile = null;
-        let currentProfileTab = 'posts';
 
         async function init() {
             const { data: { session } } = await _supabase.auth.getSession();
@@ -180,7 +172,6 @@
             document.getElementById('feed-screen').style.display = id === 'feed' ? 'block' : 'none';
             document.getElementById('nav-home').classList.toggle('active', id === 'feed');
             document.getElementById('nav-profile-btn').classList.toggle('active', id === 'profile');
-            
             if(id !== 'feed') {
                 const screen = document.getElementById(id + '-screen');
                 if(screen) screen.style.display = 'flex';
@@ -188,9 +179,7 @@
             if(id === 'profile') switchProfileTab('posts');
         }
 
-        // --- GESTIÓN DE PESTAÑAS DEL PERFIL ---
         async function switchProfileTab(tab) {
-            currentProfileTab = tab;
             document.getElementById('tab-posts').classList.toggle('active', tab === 'posts');
             document.getElementById('tab-likes').classList.toggle('active', tab === 'likes');
             loadUserPosts(tab);
@@ -200,27 +189,19 @@
             const grid = document.getElementById('profile-grid');
             if(!grid) return;
             grid.innerHTML = "<p style='grid-column:1/4; text-align:center; padding:20px; color:#555;'>Cargando...</p>";
-
-            let query = _supabase.from('publicaciones').select('*');
+            const { data: { session } } = await _supabase.auth.getSession();
+            let data = [];
 
             if(filterType === 'posts') {
-                // Mis publicaciones
-                query = query.eq('usuario', currentUser);
+                const { data: posts } = await _supabase.from('publicaciones').select('*').eq('usuario', currentUser).order('created_at', { ascending: false });
+                data = posts;
             } else {
-                // Publicaciones que me gustan (Basado en likes > 0 para este ejemplo)
-                // Nota: Aquí lo ideal es tener una tabla 'likes' vinculada al user_id
-                query = query.gt('likes', 0).eq('estado', 'aprobado'); 
+                const { data: likedData } = await _supabase.from('likes').select('publicaciones(*)').eq('user_id', session.user.id);
+                data = likedData ? likedData.map(l => l.publicaciones).filter(p => p !== null) : [];
             }
 
-            const { data } = await query.order('created_at', { ascending: false });
-            
             grid.innerHTML = "";
-            if(!data || data.length === 0) {
-                grid.innerHTML = "<p style='grid-column:1/4; text-align:center; padding:40px; color:#555;'>No hay nada aquí todavía.</p>";
-                return;
-            }
-
-            data.forEach(post => {
+            data?.forEach(post => {
                 const item = document.createElement('div');
                 item.className = 'grid-item';
                 item.onclick = () => openViewer(post);
@@ -244,8 +225,6 @@
             card.id = `post-${post.id}`;
             card.setAttribute('data-id', post.id);
 
-            const isOwner = post.usuario === currentUser;
-
             card.innerHTML = `
                 ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop playsinline></video>` : `<img class="video-player" src="${post.url}">`}
                 <div class="side-actions">
@@ -261,40 +240,57 @@
                         <i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i>
                         <span id="vistas-${post.id}">${post.vistas || 0}</span>
                     </div>
-                    ${isOwner ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
+                    ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
-                <div class="ui-info">
-                    <h2>@${post.usuario}</h2>
-                    <p>${post.descripcion || ''}</p>
-                </div>
+                <div class="ui-info"><h2>@${post.usuario}</h2><p>${post.descripcion || ''}</p></div>
                 <div class="progress-container"><div class="progress-bar" id="bar-${post.id}"></div></div>
             `;
             isNew ? container.prepend(card) : container.appendChild(card);
             if (post.tipo === 'video') setupVideo(card, post.id);
+            
+            // Verificar si el usuario ya le dio like para pintar el corazón
+            checkLikeStatus(post.id, card.querySelector(`#btn-like-${post.id}`));
+        }
+
+        async function checkLikeStatus(postId, btn) {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session || !btn) return;
+            const { data } = await _supabase.from('likes').select('*').eq('user_id', session.user.id).eq('post_id', postId).single();
+            if (data) btn.classList.add('active');
         }
 
         async function handleLike(postId, btn) {
-            if(btn.classList.contains('active')) return;
-            btn.classList.add('active');
-            await _supabase.rpc('increment_likes', { post_id: postId.toString() });
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (!session) return alert("Inicia sesión para dar like");
+
+            const isLiked = btn.classList.contains('active');
+            btn.classList.toggle('active');
+            const countSpan = document.getElementById(`likes-${postId}`);
+            let currentCount = parseInt(countSpan.innerText);
+
+            if (!isLiked) {
+                countSpan.innerText = currentCount + 1;
+                await _supabase.from('likes').insert([{ user_id: session.user.id, post_id: postId }]);
+                await _supabase.rpc('increment_likes', { post_id: postId.toString() });
+            } else {
+                countSpan.innerText = Math.max(0, currentCount - 1);
+                await _supabase.from('likes').delete().eq('user_id', session.user.id).eq('post_id', postId);
+                await _supabase.rpc('decrement_likes', { post_id: postId.toString() });
+            }
         }
 
         async function markView(postId) {
-            const key = `view_${postId}`;
-            if(sessionStorage.getItem(key)) return;
-            sessionStorage.setItem(key, 'true');
+            if(sessionStorage.getItem(`view_${postId}`)) return;
+            sessionStorage.setItem(`view_${postId}`, 'true');
             await _supabase.rpc('increment_vistas', { post_id: postId.toString() });
         }
 
         async function deletePost(postId, fileUrl) {
-            if(!confirm("¿Eliminar este contenido permanentemente?")) return;
+            if(!confirm("¿Eliminar permanentemente?")) return;
             document.getElementById('loading').style.display = 'flex';
-            try {
-                await _supabase.from('publicaciones').delete().eq('id', postId);
-                const fileName = fileUrl.split('/').pop();
-                await _supabase.storage.from('mely_media').remove([fileName]);
-                location.reload();
-            } catch(e) { alert("Error al borrar"); }
+            await _supabase.from('publicaciones').delete().eq('id', postId);
+            await _supabase.storage.from('mely_media').remove([fileUrl.split('/').pop()]);
+            location.reload();
         }
 
         function setupVideo(card, postId) {
@@ -310,12 +306,8 @@
                 entries.forEach(entry => {
                     const id = entry.target.getAttribute('data-id');
                     const v = entry.target.querySelector('video');
-                    if (entry.isIntersecting) {
-                        if(v) v.play().catch(()=>{});
-                        markView(id);
-                    } else if(v) {
-                        v.pause(); v.currentTime = 0;
-                    }
+                    if (entry.isIntersecting) { if(v) v.play().catch(()=>{}); markView(id); } 
+                    else if(v) { v.pause(); v.currentTime = 0; }
                 });
             }, { threshold: 0.7 });
             document.querySelectorAll('#feed-container .post-card').forEach(c => obs.observe(c));
@@ -324,7 +316,6 @@
         function openViewer(post) {
             const modal = document.getElementById('viewer-modal');
             const content = document.getElementById('viewer-content');
-            if(!modal || !content) return;
             modal.style.display = 'block';
             content.innerHTML = "";
             renderPost(post, content, true);
@@ -341,15 +332,14 @@
             const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
             const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
             document.getElementById('loading').style.display = 'flex';
-            
             if(type === 'reg'){
                 const u = document.getElementById('r-user').value;
                 const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
-                if(error) { alert(error.message); document.getElementById('loading').style.display = 'none'; return; }
-                await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
+                if(!error) await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
+                else alert(error.message);
             } else {
                 const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
-                if(error) { alert("Error al entrar"); document.getElementById('loading').style.display = 'none'; return; }
+                if(error) alert("Error de acceso");
             }
             location.reload();
         }
