@@ -2,81 +2,120 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LA MELY | Infinite Style</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LA MELY | Estilo Sin Fronteras</title>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <style>
+        /* RESET PARA UNIFORMIDAD EN TODOS LOS NAVEGADORES */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent;
+        }
+
         :root {
             --gold: #d4af37;
             --dark-bg: #0d0d0d;
             --text: #ffffff;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             background-color: var(--dark-bg);
             color: var(--text);
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Montserrat', Helvetica, Arial, sans-serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
         header {
-            padding: 3rem 1rem;
+            padding: 5vw 1rem;
             text-align: center;
             border-bottom: 2px solid var(--gold);
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
         }
 
         h1 {
             font-family: 'Oswald', sans-serif;
-            font-size: clamp(3rem, 12vw, 6rem);
+            font-size: clamp(2.5rem, 12vw, 6rem);
             color: var(--gold);
-            letter-spacing: 10px;
+            letter-spacing: clamp(5px, 2vw, 15px);
+            text-transform: uppercase;
+            line-height: 1;
         }
 
-        /* Contenedor del Carrusel */
+        /* CONTENEDOR ESCALABLE */
         .carousel-wrapper {
-            width: 100%;
+            width: 95%;
             max-width: 1100px;
             margin: 40px auto;
             position: relative;
-            overflow: hidden; /* Oculta lo que está fuera del cuadro */
-            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            aspect-ratio: 16 / 9; /* Estándar profesional */
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            background: #111;
+        }
+
+        /* Soporte para navegadores antiguos sin aspect-ratio */
+        @supports not (aspect-ratio: 16/9) {
+            .carousel-wrapper { padding-top: 56.25%; height: 0; }
+            .carousel-track { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         }
 
         .carousel-track {
             display: flex;
             height: 100%;
-            /* La transición se maneja por JS para evitar saltos en el clon */
+            will-change: transform;
         }
 
         .carousel-slide {
             min-width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
         }
 
         .nav-btn {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             color: var(--gold);
             border: 1px solid var(--gold);
-            width: 50px;
-            height: 50px;
+            width: clamp(40px, 8vw, 60px);
+            height: clamp(40px, 8vw, 60px);
             border-radius: 50%;
             cursor: pointer;
             z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
         }
 
-        .prev { left: 20px; }
-        .next { right: 20px; }
+        .nav-btn:hover { background: var(--gold); color: #000; }
+        .prev { left: 15px; }
+        .next { right: 15px; }
 
+        footer {
+            padding: 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            letter-spacing: 3px;
+            color: #555;
+        }
+
+        /* Ajuste para móviles vertical */
         @media (max-width: 480px) {
             .carousel-wrapper { aspect-ratio: 4 / 5; }
+            @supports not (aspect-ratio: 4/5) { .carousel-wrapper { padding-top: 125%; } }
         }
     </style>
 </head>
@@ -88,19 +127,21 @@
 
     <div class="carousel-wrapper">
         <div class="carousel-track" id="track">
-            <!-- Tus fotos originales -->
+            <!-- Tus fotos cargadas en el repositorio -->
             <img src="Sebas008.png" class="carousel-slide" alt="1">
             <img src="sebas007.png" class="carousel-slide" alt="2">
             <img src="cristian.png" class="carousel-slide" alt="3">
             <img src="angel00.png" class="carousel-slide" alt="4">
             <img src="iker007.png" class="carousel-slide" alt="5">
-            
-            
         </div>
 
         <button class="nav-btn prev" id="prevBtn">&#10094;</button>
         <button class="nav-btn next" id="nextBtn">&#10095;</button>
     </div>
+
+    <footer>
+        &copy; 2026 LA MELY | EXCELENCIA URBANA
+    </footer>
 
     <script>
     const track = document.getElementById('track');
@@ -108,7 +149,7 @@
     const nextBtn = document.getElementById('nextBtn');
     const prevBtn = document.getElementById('prevBtn');
 
-    // 1. Configuración de Clones para el efecto infinito
+    // 1. CLONACIÓN PARA BUCLE INFINITO
     const firstClone = slides[0].cloneNode(true);
     const lastClone = slides[slides.length - 1].cloneNode(true);
     track.appendChild(firstClone);
@@ -116,29 +157,30 @@
 
     let index = 1;
     const size = 100;
-    let autoPlayTimer; // Aquí guardamos el temporizador
+    let autoPlayTimer; 
+    let isMoving = false;
 
-    track.style.transform = `translateX(${-index * size}%)`;
+    // Posición inicial
+    track.style.transform = `translateX(-100%)`;
 
-    // 2. Función para mover el carrusel
     function move(dir) {
-        if (dir === 1 && index >= track.children.length - 1) return;
-        if (dir === -1 && index <= 0) return;
+        if (isMoving) return; // Evita doble clic rápido que rompa el loop
+        isMoving = true;
         
         index += dir;
         track.style.transition = "transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)";
         track.style.transform = `translateX(${-index * size}%)`;
         
-        // CADA VEZ QUE SE MUEVE, REINICIAMOS EL TIEMPO DE ESPERA
         resetAutoPlay();
     }
 
-    // 3. Lógica del "Salto Invisible" (Infinito)
+    // Lógica del Salto Invisible
     track.addEventListener('transitionend', () => {
+        isMoving = false;
         if (track.children[index] === firstClone) {
             track.style.transition = "none";
             index = 1;
-            track.style.transform = `translateX(${-index * size}%)`;
+            track.style.transform = `translateX(-100%)`;
         }
         if (track.children[index] === lastClone) {
             track.style.transition = "none";
@@ -147,32 +189,29 @@
         }
     });
 
-    // 4. EL CEREBRO: Control de inactividad
+    // CONTROL DE INACTIVIDAD (5 SEGUNDOS)
     function startAutoPlay() {
         autoPlayTimer = setInterval(() => {
-            // Desliza solo hacia la derecha
-            index++;
-            track.style.transition = "transform 0.6s ease-in-out";
-            track.style.transform = `translateX(${-index * size}%)`;
-        }, 3000); // Se mueve cada 3 segundos una vez que inicia
+            if (!isMoving) {
+                index++;
+                track.style.transition = "transform 0.6s ease-in-out";
+                track.style.transform = `translateX(${-index * size}%)`;
+            }
+        }, 3000); 
     }
 
     function resetAutoPlay() {
-        clearInterval(autoPlayTimer); // Detenemos el movimiento automático
-        
-        // Esperamos 5 segundos de inactividad antes de volver a empezar
+        clearInterval(autoPlayTimer);
         clearTimeout(window.idleTimeout);
-        window.idleTimeout = setTimeout(() => {
-            startAutoPlay();
-        }, 5000); 
+        // Reinicia la cuenta: si pasan 5 segundos sin clics, arranca el auto-play
+        window.idleTimeout = setTimeout(startAutoPlay, 5000); 
     }
 
-    // Eventos de botones
     nextBtn.addEventListener('click', () => move(1));
     prevBtn.addEventListener('click', () => move(-1));
 
-    // Arrancamos el temporizador por primera vez
+    // Inicio inicial del temporizador
     resetAutoPlay();
-</script>
+    </script>
 </body>
 </html>
