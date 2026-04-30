@@ -12,7 +12,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
 
-        /* --- FEED TIKTOK --- */
+        /* --- FEED TIKTOK (Magnetismo) --- */
         #feed-container { 
             width: 100%; height: calc(100dvh - 65px); overflow-y: scroll; 
             snap-type: y mandatory; scroll-behavior: smooth; scrollbar-width: none; overscroll-behavior-y: contain; 
@@ -31,9 +31,9 @@
         .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.4rem; margin-bottom: 5px; }
         
         .side-actions { position: absolute; right: 10px; bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 20; }
-        .action-item { display: flex; flex-direction: column; align-items: center; color: #fff; font-size: 0.7rem; font-weight: bold; }
-        .action-btn { background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; transition: 0.2s; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
-        .action-btn.active { color: #ff0050; transform: scale(1.2); }
+        .action-item { display: flex; flex-direction: column; align-items: center; color: #fff; font-size: 0.75rem; font-weight: bold; }
+        .action-btn { background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer; transition: 0.2s; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
+        .action-btn.active { color: #ff0050; transform: scale(1.1); }
 
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.1); z-index: 20; }
         .progress-bar { height: 100%; background: #d4af37; width: 0%; }
@@ -56,14 +56,15 @@
         .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: #222; margin: 0 auto 15px; border: 2px solid #d4af37; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: #d4af37; overflow: hidden; }
         .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
-        .grid-item { aspect-ratio: 9/16; background: #111; position: relative; }
+        .grid-item { aspect-ratio: 9/16; background: #111; position: relative; overflow: hidden; }
         .grid-item video, .grid-item img { width: 100%; height: 100%; object-fit: cover; }
-        .grid-stats { position: absolute; bottom: 5px; left: 5px; font-size: 0.7rem; color: #fff; display: flex; align-items: center; gap: 5px; }
+        .grid-stats { position: absolute; bottom: 5px; left: 5px; font-size: 0.7rem; color: #fff; display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.3); padding: 2px 5px; border-radius: 3px; }
 
         /* MODALES */
         #viewer-modal { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; }
         .viewer-close { position: absolute; top: 20px; left: 20px; font-size: 2rem; z-index: 3100; text-shadow: 0 0 10px #000; }
 
+        /* CARGA */
         #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; flex-direction: column; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
@@ -72,20 +73,20 @@
 
     <div id="loading">
         <div style="border:4px solid #d4af37; border-top:4px solid transparent; width:50px; height:50px; border-radius:50%; animation:spin 1s linear infinite"></div>
-        <p style="margin-top:15px; color:#d4af37; font-weight:bold;">CARGANDO...</p>
+        <p style="margin-top:15px; color:#d4af37; font-weight:bold;">SINCRONIZANDO...</p>
     </div>
 
-    <!-- PANTALLA AUTH -->
+    <!-- AUTH -->
     <div id="auth-screen" class="screen" style="align-items:center; justify-content:center; z-index:2000;">
         <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; margin-bottom:20px; letter-spacing:5px;">LA MELY</div>
         <div id="login-form" style="width:85%; max-width:350px; text-align:center;">
             <input type="email" id="email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
             <input type="password" id="pass" placeholder="Contraseña" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
             <button onclick="handleAuth('login')" style="width:100%; padding:16px; background:#d4af37; border:none; border-radius:50px; font-weight:800; text-transform:uppercase;">Entrar</button>
-            <p style="margin-top:20px; color:#666" onclick="toggleAuth(true)">¿Nuevo? <span style="color:#d4af37">Regístrate</span></p>
+            <p style="margin-top:20px; color:#666" onclick="toggleAuth(true)">¿Nuevo aquí? <span style="color:#d4af37">Regístrate</span></p>
         </div>
         <div id="reg-form" style="display:none; width:85%; max-width:350px; text-align:center;">
-            <input type="text" id="r-user" placeholder="Usuario" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
+            <input type="text" id="r-user" placeholder="Nombre de usuario" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
             <input type="email" id="r-email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
             <input type="password" id="r-pass" placeholder="Contraseña" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
             <button onclick="handleAuth('reg')" style="width:100%; padding:16px; background:#d4af37; border:none; border-radius:50px; font-weight:800; text-transform:uppercase;">Crear Cuenta</button>
@@ -93,7 +94,7 @@
         </div>
     </div>
 
-    <!-- PANTALLA FEED -->
+    <!-- FEED -->
     <div id="feed-screen" style="display:block;">
         <div id="feed-container"></div>
         <div class="bottom-nav">
@@ -103,12 +104,12 @@
         </div>
     </div>
 
-    <!-- PANTALLA PERFIL -->
+    <!-- PERFIL -->
     <div id="profile-screen" class="screen">
         <div class="profile-header">
             <div class="profile-avatar" id="prof-avatar"><i class="fas fa-user"></i></div>
             <h1 id="prof-user" style="font-family:'Oswald'; font-size:1.8rem; color:#d4af37;">@Usuario</h1>
-            <button onclick="logout()" style="background:none; border:1px solid #333; color:#888; padding:5px 15px; border-radius:5px; margin-top:15px;">Salir</button>
+            <button onclick="logout()" style="background:none; border:1px solid #333; color:#888; padding:5px 15px; border-radius:5px; margin-top:15px;">Cerrar Sesión</button>
         </div>
         <div class="profile-grid" id="profile-grid"></div>
         <div style="height:80px;"></div>
@@ -128,8 +129,8 @@
     <!-- SUBIDA -->
     <div id="upload-screen" class="screen" style="padding:20px;">
         <div style="width:100%; height:50vh; background:#111; border-radius:15px; overflow:hidden;" id="preview-box"></div>
-        <textarea id="post-desc" style="width:100%; background:#222; border:none; color:#fff; padding:15px; margin-top:15px; border-radius:10px; font-family:inherit;" placeholder="¿Qué estás pensando?"></textarea>
-        <button class="btn-main" style="margin-top:15px; width:100%; padding:15px; background:#d4af37; border:none; border-radius:10px; font-weight:bold;" onclick="startUpload()">PUBLICAR</button>
+        <textarea id="post-desc" style="width:100%; background:#222; border:none; color:#fff; padding:15px; margin-top:15px; border-radius:10px; font-family:inherit;" placeholder="Escribe algo sobre este video..."></textarea>
+        <button class="btn-main" style="margin-top:15px; width:100%; padding:18px; background:#d4af37; border:none; border-radius:12px; font-weight:bold; color:#000;" onclick="startUpload()">PUBLICAR AHORA</button>
         <button onclick="location.reload()" style="background:none; border:none; color:#888; margin-top:15px; width:100%;">Cancelar</button>
     </div>
 
@@ -195,15 +196,14 @@
             card.id = `post-${post.id}`;
             card.innerHTML = `
                 ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop playsinline></video>` : `<img class="video-player" src="${post.url}">`}
-                
                 <div class="side-actions">
                     <div class="action-item">
-    <button class="action-btn" onclick="alert('Comentarios próximamente')"><i class="fas fa-comment-dots"></i></button>
-    <span id="comm-count-${post.id}">${post.comentarios_count || 0}</span>
-</div>
+                        <button class="action-btn" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button>
+                        <span id="likes-${post.id}">${post.likes || 0}</span>
+                    </div>
                     <div class="action-item">
-                        <button class="action-btn" onclick="alert('Comentarios próximamente')"><i class="fas fa-comment-dots"></i></button>
-                        <span>${post.comentarios_count || 0}</span>
+                        <button class="action-btn" onclick="alert('Comentarios en desarrollo')"><i class="fas fa-comment-dots"></i></button>
+                        <span id="comm-count-${post.id}">${post.comentarios_count || 0}</span>
                     </div>
                     <div class="action-item">
                         <button class="action-btn"><i class="fas fa-share"></i></button>
@@ -213,7 +213,6 @@
                         <span id="vistas-${post.id}">${post.vistas || 0}</span>
                     </div>
                 </div>
-
                 <div class="ui-info">
                     <h2>@${post.usuario}</h2>
                     <p>${post.descripcion || ''}</p>
@@ -226,44 +225,52 @@
         }
 
         async function handleLike(postId, btn) {
-    if(btn.classList.contains('active')) return;
-    btn.classList.add('active');
-    
-    // Cambiamos el contador visualmente rápido
-    const counter = document.getElementById(`likes-${postId}`);
-    counter.innerText = parseInt(counter.innerText) + 1;
+            if(btn.classList.contains('active')) return;
+            btn.classList.add('active');
+            const counter = document.getElementById(`likes-${postId}`);
+            counter.innerText = parseInt(counter.innerText) + 1;
+            await _supabase.rpc('increment_likes', { post_id: postId.toString() });
+        }
 
-    // Llamada a Supabase
-    const { error } = await _supabase.rpc('increment_likes', { post_id: postId });
-    
-    if (error) console.error("Error al dar like:", error.message);
-}
         async function markView(postId) {
-            const key = `viewed_${postId}`;
-            if(localStorage.getItem(key)) return; // Solo una vista por sesión local
-            
-            localStorage.setItem(key, 'true');
-            const counter = document.getElementById(`vistas-${postId}`);
-            if(counter) counter.innerText = parseInt(counter.innerText) + 1;
-            
-            await _supabase.rpc('increment_vistas', { post_id: postId });
+            const key = `view_${postId}`;
+            if(sessionStorage.getItem(key)) return;
+            sessionStorage.setItem(key, 'true');
+            await _supabase.rpc('increment_vistas', { post_id: postId.toString() });
         }
 
         function setupVideo(card, postId) {
             const v = card.querySelector('video');
             const bar = card.querySelector('.progress-bar');
             v.onclick = () => v.paused ? v.play() : v.pause();
-            v.onplay = () => markView(postId); // Se cuenta la vista al darle play
+            v.onplay = () => markView(postId);
             v.ontimeupdate = () => bar.style.width = (v.currentTime / v.duration) * 100 + "%";
+        }
+
+        function setupRealtime() {
+            _supabase.channel('public').on('postgres_changes', { event: '*', table: 'publicaciones' }, payload => {
+                if (payload.eventType === 'UPDATE') {
+                    const post = payload.new;
+                    if (payload.old.estado === 'pendiente' && post.estado === 'aprobado') renderPost(post, true);
+                    
+                    // Actualización de contadores en vivo para todos
+                    const l = document.getElementById(`likes-${post.id}`);
+                    if(l) l.innerText = post.likes || 0;
+                    const v = document.getElementById(`vistas-${post.id}`);
+                    if(v) v.innerText = post.vistas || 0;
+                    const c = document.getElementById(`comm-count-${post.id}`);
+                    if(c) c.innerText = post.comentarios_count || 0;
+                }
+            }).subscribe();
         }
 
         function initObserver() {
             const obs = new IntersectionObserver(entries => {
                 entries.forEach(entry => {
                     const v = entry.target.querySelector('video');
-                    if (v) entry.isIntersecting ? v.play() : (v.pause(), v.currentTime = 0);
+                    if (v) entry.isIntersecting ? v.play().catch(()=>{} ) : (v.pause(), v.currentTime = 0);
                 });
-            }, { threshold: 0.8 });
+            }, { threshold: 0.7 });
             document.querySelectorAll('.post-card').forEach(c => obs.observe(c));
         }
 
@@ -278,7 +285,6 @@
 
         function closeViewer() { document.getElementById('viewer-modal').style.display = 'none'; }
 
-        // --- AUTH & UPLOAD (Simplificado) ---
         async function handleAuth(type) {
             const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
             const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
@@ -290,7 +296,7 @@
                 location.reload();
             } else {
                 const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
-                if(error) alert("Error"); else location.reload();
+                if(error) alert("Credenciales incorrectas"); else location.reload();
             }
         }
 
@@ -311,42 +317,21 @@
         };
 
         async function startUpload() {
+            if(!selectedFile) return;
             document.getElementById('loading').style.display = 'flex';
             const fName = Date.now() + "_" + selectedFile.name;
             await _supabase.storage.from('mely_media').upload(fName, selectedFile);
             const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
-            await _supabase.from('publicaciones').insert([{ usuario: currentUser, url: urlData.publicUrl, tipo: selectedFile.type.includes('video') ? 'video' : 'imagen', descripcion: document.getElementById('post-desc').value, estado: 'pendiente', likes: 0, vistas: 0, comentarios_count: 0 }]);
-            alert("Enviado para aprobación"); location.reload();
+            await _supabase.from('publicaciones').insert([{ 
+                usuario: currentUser, 
+                url: urlData.publicUrl, 
+                tipo: selectedFile.type.includes('video') ? 'video' : 'imagen', 
+                descripcion: document.getElementById('post-desc').value, 
+                estado: 'pendiente', likes: 0, vistas: 0, comentarios_count: 0 
+            }]);
+            alert("Video enviado a moderación. ¡Gracias por compartir!");
+            location.reload();
         }
-
-        function setupRealtime() {
-    _supabase.channel('public')
-        .on('postgres_changes', { event: '*', table: 'publicaciones' }, payload => {
-            
-            // 1. Si se aprueba un video nuevo, lo añade al feed
-            if (payload.eventType === 'UPDATE' && payload.old.estado === 'pendiente' && payload.new.estado === 'aprobado') {
-                renderPost(payload.new, true);
-            }
-
-            // 2. Si cambian los likes o vistas de un video que YA existe en pantalla
-            if (payload.eventType === 'UPDATE') {
-                const post = payload.new;
-                
-                // Actualizar Likes
-                const likeCounter = document.getElementById(`likes-${post.id}`);
-                if (likeCounter) likeCounter.innerText = post.likes || 0;
-
-                // Actualizar Vistas
-                const viewCounter = document.getElementById(`vistas-${post.id}`);
-                if (viewCounter) viewCounter.innerText = post.vistas || 0;
-                
-                // Actualizar Comentarios
-                const commCounter = document.getElementById(`comm-count-${post.id}`);
-                if (commCounter) commCounter.innerText = post.comentarios_count || 0;
-            }
-        })
-        .subscribe();
-}
 
         init();
     </script>
