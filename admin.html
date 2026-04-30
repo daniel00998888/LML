@@ -2,61 +2,166 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>ADMIN | LA MELY</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMIN | LA MELY TV</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #1a1a1a; color: white; font-family: sans-serif; padding: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        .card { background: #2a2a2a; padding: 15px; border-radius: 10px; border: 1px solid #d4af37; }
-        video, img { width: 100%; height: 150px; object-fit: cover; border-radius: 5px; }
-        .btns { display: flex; justify-content: space-between; margin-top: 10px; }
-        button { padding: 10px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #080808; color: #fff; font-family: 'Montserrat', sans-serif; padding: 20px; }
+        
+        header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #d4af37; padding-bottom: 10px; }
+        header h1 { font-family: 'Oswald'; color: #d4af37; letter-spacing: 3px; }
+
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 20px; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+        }
+
+        .card { 
+            background: #121212; 
+            border-radius: 15px; 
+            overflow: hidden; 
+            border: 1px solid #222;
+            transition: 0.3s;
+        }
+        .card:hover { border-color: #d4af37; }
+
+        .media-container { width: 100%; height: 200px; background: #000; position: relative; }
+        .media-container video, .media-container img { width: 100%; height: 100%; object-fit: cover; }
+
+        .info { padding: 15px; }
+        .info h3 { color: #d4af37; font-size: 1rem; margin-bottom: 5px; }
+        .info p { font-size: 0.85rem; color: #bbb; height: 40px; overflow: hidden; }
+
+        .btns { display: flex; gap: 10px; padding: 15px; background: #1a1a1a; }
+        button { 
+            flex: 1; 
+            padding: 12px; 
+            border: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-family: 'Montserrat';
+            transition: 0.2s;
+        }
         .btn-approve { background: #28a745; color: white; }
+        .btn-approve:hover { background: #218838; }
         .btn-reject { background: #dc3545; color: white; }
+        .btn-reject:hover { background: #c82333; }
+
+        #empty-msg { text-align: center; color: #555; margin-top: 50px; font-size: 1.2rem; display: none; }
     </style>
 </head>
 <body>
-    <h1>Panel de Control - Pendientes</h1>
+
+    <header>
+        <h1>PANEL DE CONTROL MELY TV</h1>
+        <p style="font-size: 0.8rem; color: #888;">Gestión de contenidos pendientes</p>
+    </header>
+
+    <div id="empty-msg">No hay nada pendiente por ahora, bro. 😎</div>
     <div class="grid" id="admin-grid"></div>
 
     <script>
+        // CONFIGURACIÓN SUPABASE
         const SB_URL = 'https://meiwuluwrdjszxeyoqtt.supabase.co';
         const SB_KEY = 'sb_publishable_gZgGIamNJqf8ir8vvt1OTw_bJ-rosi4';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         async function loadPending() {
             const grid = document.getElementById('admin-grid');
+            const msg = document.getElementById('empty-msg');
+            grid.innerHTML = '<p style="text-align:center; grid-column: 1/-1;">Cargando...</p>';
+
+            // Traemos solo los que están en estado 'pendiente'
+            const { data, error } = await _supabase
+                .from('publicaciones')
+                .select('*')
+                .eq('estado', 'pendiente')
+                .order('created_at', { ascending: true });
+
+            if (error) {
+                console.error("Error cargando datos:", error);
+                grid.innerHTML = "Error al conectar con Supabase.";
+                return;
+            }
+
             grid.innerHTML = '';
-            const { data } = await _supabase.from('publicaciones').select('*').eq('estado', 'pendiente');
+            
+            if (data.length === 0) {
+                msg.style.display = 'block';
+                return;
+            } else {
+                msg.style.display = 'none';
+            }
 
             data.forEach(post => {
-                const div = document.createElement('div');
-                div.className = 'card';
-                div.innerHTML = `
-                    ${post.tipo === 'video' ? `<video src="${post.url}" muted></video>` : `<img src="${post.url}">`}
-                    <p><strong>@${post.usuario}</strong></p>
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="media-container">
+                        ${post.tipo === 'video' 
+                            ? `<video src="${post.url}" controls muted></video>` 
+                            : `<img src="${post.url}" onclick="window.open('${post.url}', '_blank')">`}
+                    </div>
+                    <div class="info">
+                        <h3>@${post.usuario}</h3>
+                        <p>${post.descripcion || 'Sin descripción'}</p>
+                    </div>
                     <div class="btns">
-                        <button class="btn-approve" onclick="updatePost(${post.id}, 'aprobado')">APROBAR</button>
-                        <button class="btn-reject" onclick="deletePost(${post.id})">RECHAZAR</button>
+                        <!-- Pasamos el ID exacto de la fila -->
+                        <button class="btn-approve" onclick="updateStatus('${post.id}', 'aprobado')">
+                            <i class="fas fa-check"></i> APROBAR
+                        </button>
+                        <button class="btn-reject" onclick="deleteItem('${post.id}')">
+                            <i class="fas fa-trash"></i> BORRAR
+                        </button>
                     </div>
                 `;
-                grid.appendChild(div);
+                grid.appendChild(card);
             });
         }
 
-        async function updatePost(id, nuevoEstado) {
-            await _supabase.from('publicaciones').update({ estado: nuevoEstado }).eq('id', id);
-            alert("¡Publicación Aprobada!");
-            loadPending();
+        // FUNCIÓN PARA APROBAR
+        async function updateStatus(id, nuevoEstado) {
+            if (!id) return alert("ID no encontrado");
+
+            const { error } = await _supabase
+                .from('publicaciones')
+                .update({ estado: nuevoEstado })
+                .eq('id', id);
+
+            if (error) {
+                alert("Error al actualizar: " + error.message);
+            } else {
+                alert("¡Contenido aprobado!");
+                loadPending(); // Refrescar lista
+            }
         }
 
-        async function deletePost(id) {
-            if(confirm("¿Seguro que quieres borrarlo?")) {
-                await _supabase.from('publicaciones').delete().eq('id', id);
+        // FUNCIÓN PARA BORRAR (RECHAZAR)
+        async function deleteItem(id) {
+            if (!confirm("¿Seguro que quieres eliminar esta publicación permanentemente?")) return;
+
+            const { error } = await _supabase
+                .from('publicaciones')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                alert("Error al borrar: " + error.message);
+            } else {
+                alert("Publicación eliminada.");
                 loadPending();
             }
         }
 
+        // Ejecutar al cargar
         loadPending();
     </script>
 </body>
