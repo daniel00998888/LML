@@ -3,188 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LA MELY TV | Oficial</title>
-    <!-- Supabase SDK -->
+    <title>LA MELY </title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* RESET CROSS-BROWSER */
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body, html {
-            width: 100%; height: 100%;
-            background-color: #000;
-            color: #fff;
-            font-family: 'Montserrat', sans-serif;
-            overflow: hidden;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
 
-        /* FEED VERTICAL TIKTOK STYLE */
+        /* Contenedor tipo App */
         #feed {
-            width: 100%;
-            height: 100vh;
+            width: 100%; height: 100vh;
             overflow-y: scroll;
             snap-type: y mandatory;
-            scroll-behavior: smooth;
-            -ms-overflow-style: none; /* Ocultar scrollbar IE/Edge */
-            scrollbar-width: none; /* Ocultar scrollbar Firefox */
+            scrollbar-width: none;
         }
-        #feed::-webkit-scrollbar { display: none; } /* Ocultar scrollbar Chrome/Safari */
+        #feed::-webkit-scrollbar { display: none; }
 
         .post-card {
-            width: 100%;
-            height: 100vh;
+            width: 100%; height: 100vh;
             snap-align: start;
             position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             background: #000;
+            display: flex; align-items: center; justify-content: center;
         }
 
-        .media-content {
-            width: 100%;
-            height: 100%;
-            object-fit: contain; /* Mantiene proporción sin estirar */
-            max-width: 100vw;
+        .media-content { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Capa de diseño TikTok */
+        .ui-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 40%, transparent 100%);
+            display: flex; flex-direction: column; justify-content: flex-end;
+            padding: 20px; pointer-events: none;
         }
 
-        /* INFO OVERLAY */
-        .post-overlay {
-            position: absolute;
-            bottom: 40px;
-            left: 20px;
-            right: 80px;
-            z-index: 5;
-            pointer-events: none;
-        }
+        .post-info { margin-bottom: 20px; max-width: 80%; }
+        .post-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.5rem; margin-bottom: 5px; }
+        .post-info p { font-size: 0.9rem; color: #eee; }
 
-        .post-overlay h2 {
-            font-family: 'Oswald', sans-serif;
-            color: #d4af37;
-            font-size: 1.8rem;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
+        /* Barra Lateral de Acciones */
+        .side-bar {
+            position: absolute; right: 15px; bottom: 100px;
+            display: flex; flex-direction: column; gap: 20px;
+            align-items: center; pointer-events: auto;
         }
+        .action-item { text-align: center; cursor: pointer; }
+        .action-item i { font-size: 28px; color: #fff; margin-bottom: 5px; transition: 0.3s; }
+        .action-item i:active { transform: scale(1.2); color: #d4af37; }
+        .action-item span { font-size: 12px; display: block; }
 
-        .post-overlay p {
-            font-size: 0.95rem;
-            line-height: 1.4;
-            text-shadow: 1px 1px 4px rgba(0,0,0,0.9);
-        }
-
-        /* HEADER */
         header {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            padding: 20px;
-            text-align: center;
-            z-index: 100;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
-        }
-
-        header h1 {
-            font-family: 'Oswald', sans-serif;
-            color: #d4af37;
-            letter-spacing: 4px;
-            font-size: 1.4rem;
-        }
-
-        /* ESTADO DE CARGA */
-        #loader {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #d4af37;
-            font-family: 'Oswald';
-            text-transform: uppercase;
+            position: fixed; top: 0; width: 100%; padding: 20px;
+            text-align: center; z-index: 100; font-family: 'Oswald';
+            letter-spacing: 3px; color: rgba(255,255,255,0.6);
         }
     </style>
 </head>
 <body>
-
-    <header>
-        <h1>LA MELY | TV</h1>
-    </header>
-
-    <div id="loader">Cargando Estilo...</div>
+    <header>SIGUIENDO | <strong>PARA TI</strong></header>
     <div id="feed"></div>
 
     <script>
-        // CONEXIÓN CON TU PROYECTO
-        const SUPABASE_URL = 'https://meiwuluwrdjszxeyoqtt.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_gZgGIamNJqf8ir8vvt1OTw_bJ-rosi4';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SB_URL = 'https://meiwuluwrdjszxeyoqtt.supabase.co';
+        const SB_KEY = 'sb_publishable_gZgGIamNJqf8ir8vvt1OTw_bJ-rosi4';
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        async function fetchPosts() {
-            const feedContainer = document.getElementById('feed');
-            const loader = document.getElementById('loader');
-
-            // CONSULTA: Solo los aprobados por ti en el Dashboard
-            const { data, error } = await _supabase
-                .from('publicaciones')
-                .select('*')
-                .eq('estado', 'aprobado')
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                console.error('Error:', error);
-                loader.innerText = 'Error al conectar con Supabase';
-                return;
-            }
-
-            if (data.length === 0) {
-                loader.innerText = 'No hay videos aprobados todavía';
-                return;
-            }
-
-            loader.style.display = 'none';
+        async function loadFeed() {
+            const container = document.getElementById('feed');
+            const { data } = await _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
 
             data.forEach(post => {
                 const card = document.createElement('div');
                 card.className = 'post-card';
-
-                const isVideo = post.tipo === 'video';
-                const mediaElement = isVideo 
-                    ? `<video class="media-content" src="${post.url}" loop muted playsinline></video>`
-                    : `<img class="media-content" src="${post.url}" alt="Post">`;
-
                 card.innerHTML = `
-                    ${mediaElement}
-                    <div class="post-overlay">
-                        <h2>@${post.usuario}</h2>
-                        <p>${post.descripcion || ''}</p>
+                    ${post.tipo === 'video' ? `<video class="media-content" src="${post.url}" loop muted playsinline></video>` : `<img class="media-content" src="${post.url}">`}
+                    <div class="ui-overlay">
+                        <div class="post-info">
+                            <h2>@${post.usuario}</h2>
+                            <p>${post.descripcion}</p>
+                        </div>
+                    </div>
+                    <div class="side-bar">
+                        <div class="action-item"><i class="fas fa-heart"></i><span>Mely</span></div>
+                        <div class="action-item"><i class="fas fa-comment"></i><span>Respeto</span></div>
+                        <div class="action-item"><i class="fas fa-share"></i><span>Enviar</span></div>
                     </div>
                 `;
-                feedContainer.appendChild(card);
+                container.appendChild(card);
             });
-
-            setupVideoObserver();
+            initVideos();
         }
 
-        // REPRODUCCIÓN AUTOMÁTICA AL HACER SCROLL
-        function setupVideoObserver() {
-            const videos = document.querySelectorAll('video');
-            const options = { threshold: 0.7 };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.play().catch(e => console.log("Auto-play bloqueado"));
-                    } else {
-                        entry.target.pause();
-                    }
-                });
-            }, options);
-
-            videos.forEach(video => observer.observe(video));
+        function initVideos() {
+            const vids = document.querySelectorAll('video');
+            const obs = new IntersectionObserver(e => e.forEach(i => i.isIntersecting ? i.target.play() : i.target.pause()), { threshold: 0.6 });
+            vids.forEach(v => obs.observe(v));
         }
-
-        // Ejecutar al cargar
-        fetchPosts();
+        loadFeed();
     </script>
 </body>
 </html>
