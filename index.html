@@ -22,21 +22,22 @@
         .btn-main { width: 100%; padding: 16px; background: #d4af37; color: #000; border: none; border-radius: 50px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
         .btn-main:active { transform: scale(0.95); }
 
-        /* --- FEED TIKTOK (Snap Scroll) --- */
-        #feed-screen { display: none; }
+        /* --- FEED TIKTOK (Snap Scroll Corregido) --- */
+        #feed-screen { display: none; height: 100%; }
         #feed-container { 
             width: 100%; 
-            height: calc(100vh - 65px); 
+            height: 100dvh; /* Altura dinámica real */
             overflow-y: scroll; 
             snap-type: y mandatory; 
             scroll-behavior: smooth;
             scrollbar-width: none; 
+            padding-bottom: 65px; /* Espacio para la nav */
         }
         #feed-container::-webkit-scrollbar { display: none; }
 
         .post-card { 
             width: 100%; 
-            height: calc(100vh - 65px); 
+            height: calc(100dvh - 65px); /* Ajuste exacto al área visible */
             snap-align: start; 
             snap-stop: always; 
             position: relative; 
@@ -72,17 +73,16 @@
         .preview-box { width: 100%; height: 50vh; background: #111; border-radius: 20px; overflow: hidden; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; border: 1px dashed #d4af37; }
 
         #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <!-- CARGA -->
     <div id="loading">
         <div style="border:4px solid #d4af37; border-top:4px solid transparent; width:50px; height:50px; border-radius:50%; animation:spin 1s linear infinite"></div>
         <p style="margin-top:15px; color:#d4af37; font-weight:bold;">SUBIENDO A LA MELY...</p>
     </div>
 
-    <!-- PANTALLA AUTH -->
     <div id="auth-screen" class="screen">
         <div class="logo">LA MELY</div>
         <div class="auth-box" id="login-form">
@@ -102,7 +102,6 @@
         </div>
     </div>
 
-    <!-- PANTALLA FEED -->
     <div id="feed-screen" class="screen">
         <div id="feed-container"></div>
         <div class="bottom-nav">
@@ -114,7 +113,6 @@
         </div>
     </div>
 
-    <!-- PANTALLA SUBIDA -->
     <div id="upload-screen" class="screen">
         <h2 style="font-family:'Oswald'; color:#d4af37; margin-bottom:20px; text-align:center;">NUEVO POST</h2>
         <div class="preview-box" id="preview-box"></div>
@@ -133,7 +131,6 @@
         let currentUser = null;
         let selectedFile = null;
 
-        // --- INICIO ---
         async function init() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
@@ -147,16 +144,20 @@
             }
         }
 
-        // --- REALTIME ---
+        // --- REALTIME CORREGIDO ---
         function setupRealtime() {
-            _supabase.channel('custom-all-channel')
-            .on('postgres_changes', { event: 'UPDATE', table: 'publicaciones', filter: 'estado=eq.aprobado' }, (payload) => {
-                renderPost(payload.new, true);
+            _supabase.channel('publicaciones-realtime')
+            .on('postgres_changes', { event: 'UPDATE', table: 'publicaciones' }, (payload) => {
+                // Si el estado cambia a aprobado, lo metemos arriba
+                if (payload.new.estado === 'aprobado') {
+                    renderPost(payload.new, true);
+                    // Mover scroll al inicio para ver el nuevo video
+                    document.getElementById('feed-container').scrollTo({top: 0, behavior: 'smooth'});
+                }
             })
             .subscribe();
         }
 
-        // --- AUTH ---
         function toggleAuth(isReg) {
             document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
             document.getElementById('reg-form').style.display = isReg ? 'block' : 'none';
@@ -182,7 +183,6 @@
 
         async function logout() { await _supabase.auth.signOut(); location.reload(); }
 
-        // --- FEED ---
         async function loadFeed() {
             const { data } = await _supabase.from('publicaciones')
                 .select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
@@ -216,6 +216,9 @@
             `;
             if (isNew) container.prepend(card); else container.appendChild(card);
             if (post.tipo === 'video') setupVideoControls(card);
+            
+            // Refrescar el observer si hay contenido nuevo
+            if (isNew) initObserver();
         }
 
         function setupVideoControls(card) {
@@ -245,7 +248,7 @@
 
         window.seekVideo = (el, id) => {
             const v = document.querySelector(`#post-${id} video`);
-            v.currentTime = (el.value / 100) * v.duration;
+            if(v) v.currentTime = (el.value / 100) * v.duration;
         };
 
         function initObserver() {
@@ -257,11 +260,10 @@
                         else { v.pause(); v.currentTime = 0; }
                     }
                 });
-            }, { threshold: 0.7 });
+            }, { threshold: 0.6 }); // Threshold ajustado para mejor respuesta
             document.querySelectorAll('.post-card').forEach(c => obs.observe(c));
         }
 
-        // --- SUBIDA ---
         document.getElementById('file-input').onchange = (e) => {
             selectedFile = e.target.files[0];
             if (selectedFile) {
@@ -298,6 +300,5 @@
 
         init();
     </script>
-    <style> @keyframes spin { to { transform: rotate(360deg); } } </style>
 </body>
 </html>
