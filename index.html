@@ -12,9 +12,11 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
 
-        /* --- CONTENEDORES PRINCIPALES --- */
-        #main-wrapper { width: 100%; height: calc(100dvh - 65px); position: relative; }
+        /* --- CONTENEDOR PRINCIPAL --- */
+        #app-viewport { width: 100%; height: calc(100dvh - 65px); position: relative; overflow: hidden; }
 
+        /* --- FEED TIKTOK --- */
+        #feed-screen { width: 100%; height: 100%; display: block; }
         #feed-container { 
             width: 100%; height: 100%; overflow-y: scroll; 
             snap-type: y mandatory; scroll-behavior: smooth; scrollbar-width: none; overscroll-behavior-y: contain; 
@@ -40,8 +42,8 @@
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.1); z-index: 20; }
         .progress-bar { height: 100%; background: #d4af37; width: 0%; }
 
-        /* --- NAVEGACION (SIEMPRE FUERA) --- */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 2000; }
+        /* --- NAVEGACION GLOBAL --- */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; }
         .nav-item.active { color: #fff; }
         .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 3px; }
@@ -51,16 +53,16 @@
         .plus-btn::after { content:''; position:absolute; right:-3px; width:100%; height:100%; background:#ff0050; border-radius:10px; z-index:-1; }
 
         /* --- PANTALLAS --- */
-        .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: #000; z-index: 100; overflow-y: auto; padding-bottom: 20px; }
+        .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: #000; z-index: 1500; overflow-y: auto; }
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
         .grid-item { aspect-ratio: 9/16; background: #111; position: relative; overflow: hidden; cursor: pointer; }
         .grid-item video, .grid-item img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* MODAL VISOR CORREGIDO */
-        #viewer-modal { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; }
-        .viewer-close { position: absolute; top: 20px; left: 20px; font-size: 2rem; z-index: 5100; text-shadow: 0 0 10px #000; color: #fff; cursor: pointer; }
+        /* MODAL VISOR */
+        #viewer-modal { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; }
+        .viewer-close { position: absolute; top: 20px; left: 20px; font-size: 2rem; z-index: 3100; text-shadow: 0 0 10px #000; color: #fff; cursor: pointer; }
 
-        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; flex-direction: column; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
@@ -71,40 +73,8 @@
         <p style="margin-top:15px; color:#d4af37; font-weight:bold;">SINCRONIZANDO...</p>
     </div>
 
-    <!-- NAVEGACIÓN GLOBAL (NO DESAPARECE) -->
-    <div class="bottom-nav" id="global-nav" style="display:none;">
-        <div class="nav-item active" id="nav-home" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
-        <div class="nav-item" onclick="document.getElementById('file-input').click()"><div class="plus-btn"><i class="fas fa-plus" style="color:#000;"></i></div></div>
-        <div class="nav-item" id="nav-profile-btn" onclick="showScreen('profile')"><i class="fas fa-user"></i>Perfil</div>
-    </div>
-
-    <div id="main-wrapper">
-        <!-- FEED SCREEN -->
-        <div id="feed-screen" style="height:100%; width:100%;">
-            <div id="feed-container"></div>
-        </div>
-
-        <!-- PERFIL SCREEN -->
-        <div id="profile-screen" class="screen">
-            <div style="padding: 40px 20px; text-align: center; background: #000;">
-                <div style="font-size: 3rem; color: #d4af37; margin-bottom: 10px;"><i class="fas fa-user-circle"></i></div>
-                <h1 id="prof-user" style="font-family:'Oswald'; font-size:1.8rem; color:#d4af37;">@Usuario</h1>
-                <button onclick="logout()" style="background:none; border:1px solid #333; color:#888; padding:5px 15px; border-radius:5px; margin-top:15px; cursor:pointer;">Cerrar Sesión</button>
-            </div>
-            <div class="profile-grid" id="profile-grid"></div>
-        </div>
-
-        <!-- UPLOAD SCREEN -->
-        <div id="upload-screen" class="screen" style="padding:20px; z-index: 1500;">
-            <div style="width:100%; height:50vh; background:#111; border-radius:15px; overflow:hidden;" id="preview-box"></div>
-            <textarea id="post-desc" style="width:100%; background:#222; border:none; color:#fff; padding:15px; margin-top:15px; border-radius:10px; font-family:inherit; resize:none;" placeholder="Escribe algo..."></textarea>
-            <button style="margin-top:15px; width:100%; padding:18px; background:#d4af37; border:none; border-radius:12px; font-weight:bold; color:#000; cursor:pointer;" onclick="startUpload()">PUBLICAR AHORA</button>
-            <button onclick="location.reload()" style="background:none; border:none; color:#888; margin-top:15px; width:100%; cursor:pointer;">Cancelar</button>
-        </div>
-    </div>
-
-    <!-- AUTH SCREEN -->
-    <div id="auth-screen" class="screen" style="display:none; align-items:center; justify-content:center; z-index:8000;">
+    <!-- AUTH (Siempre encima si no hay sesión) -->
+    <div id="auth-screen" class="screen" style="display:flex; align-items:center; justify-content:center; z-index:9000;">
         <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; margin-bottom:20px; letter-spacing:5px;">LA MELY</div>
         <div id="login-form" style="width:85%; max-width:350px; text-align:center;">
             <input type="email" id="email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
@@ -121,7 +91,41 @@
         </div>
     </div>
 
-    <!-- VISOR MODAL CORREGIDO -->
+    <!-- VIEWPORT PRINCIPAL -->
+    <div id="app-viewport">
+        <!-- FEED -->
+        <div id="feed-screen">
+            <div id="feed-container"></div>
+        </div>
+
+        <!-- PERFIL -->
+        <div id="profile-screen" class="screen">
+            <div style="padding: 40px 20px; text-align: center; background: #000;">
+                <div style="font-size: 3rem; color: #d4af37; margin-bottom: 10px;"><i class="fas fa-user-circle"></i></div>
+                <h1 id="prof-user" style="font-family:'Oswald'; font-size:1.8rem; color:#d4af37;">@Usuario</h1>
+                <button onclick="logout()" style="background:none; border:1px solid #333; color:#888; padding:5px 15px; border-radius:5px; margin-top:15px; cursor:pointer;">Cerrar Sesión</button>
+            </div>
+            <div class="profile-grid" id="profile-grid"></div>
+            <div style="height:80px;"></div>
+        </div>
+
+        <!-- SUBIDA -->
+        <div id="upload-screen" class="screen" style="padding:20px; justify-content: center;">
+            <div style="width:100%; height:50vh; background:#111; border-radius:15px; overflow:hidden;" id="preview-box"></div>
+            <textarea id="post-desc" style="width:100%; background:#222; border:none; color:#fff; padding:15px; margin-top:15px; border-radius:10px; font-family:inherit; resize:none;" placeholder="Escribe algo sobre este video..."></textarea>
+            <button style="margin-top:15px; width:100%; padding:18px; background:#d4af37; border:none; border-radius:12px; font-weight:bold; color:#000; cursor:pointer;" onclick="startUpload()">PUBLICAR AHORA</button>
+            <button onclick="location.reload()" style="background:none; border:none; color:#888; margin-top:15px; width:100%; cursor:pointer;">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- NAVEGACION GLOBAL -->
+    <div class="bottom-nav" id="main-nav" style="display:none;">
+        <div class="nav-item active" id="nav-home" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
+        <div class="nav-item" onclick="document.getElementById('file-input').click()"><div class="plus-btn"><i class="fas fa-plus" style="color:#000;"></i></div></div>
+        <div class="nav-item" id="nav-profile-btn" onclick="showScreen('profile')"><i class="fas fa-user"></i>Perfil</div>
+    </div>
+
+    <!-- VISOR MODAL -->
     <div id="viewer-modal">
         <i class="fas fa-arrow-left viewer-close" onclick="closeViewer()"></i>
         <div id="viewer-content" style="width:100%; height:100%;"></div>
@@ -144,36 +148,29 @@
                 currentUser = data?.username || "Anonimo";
                 document.getElementById('prof-user').innerText = "@" + currentUser;
                 document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('global-nav').style.display = 'flex';
+                document.getElementById('main-nav').style.display = 'flex';
                 loadFeed();
                 setupRealtime();
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
-                document.getElementById('global-nav').style.display = 'none';
+                document.getElementById('main-nav').style.display = 'none';
             }
         }
 
         function showScreen(id) {
-            // Ocultar todas las pantallas .screen
+            // Ocultar pantallas .screen
             document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+            // Controlar Feed
+            document.getElementById('feed-screen').style.display = id === 'feed' ? 'block' : 'none';
+            // Controlar Botones Nav
+            document.getElementById('nav-home').classList.toggle('active', id === 'feed');
+            document.getElementById('nav-profile-btn').classList.toggle('active', id === 'profile');
             
-            // Lógica especial para Feed (que no es .screen)
-            const feed = document.getElementById('feed-screen');
-            feed.style.display = (id === 'feed') ? 'block' : 'none';
-
-            // Mostrar la pantalla seleccionada
             if(id !== 'feed') {
                 const screen = document.getElementById(id + '-screen');
                 if(screen) screen.style.display = 'flex';
             }
-
-            // Actualizar botones de navegación
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            if(id === 'feed') document.getElementById('nav-home').classList.add('active');
-            if(id === 'profile') {
-                document.getElementById('nav-profile-btn').classList.add('active');
-                loadUserPosts();
-            }
+            if(id === 'profile') loadUserPosts();
         }
 
         async function loadFeed() {
@@ -187,6 +184,7 @@
         async function loadUserPosts() {
             const { data } = await _supabase.from('publicaciones').select('*').eq('usuario', currentUser).order('created_at', { ascending: false });
             const grid = document.getElementById('profile-grid');
+            if(!grid) return;
             grid.innerHTML = "";
             data?.forEach(post => {
                 const item = document.createElement('div');
@@ -198,6 +196,7 @@
         }
 
         function renderPost(post, container, isNew = false) {
+            if (!isNew && document.getElementById(`post-${post.id}`)) return;
             const card = document.createElement('div');
             card.className = 'post-card';
             card.id = `post-${post.id}`;
@@ -210,11 +209,15 @@
                 <div class="side-actions">
                     <div class="action-item">
                         <button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button>
-                        <span>${post.likes || 0}</span>
+                        <span id="likes-${post.id}">${post.likes || 0}</span>
                     </div>
                     <div class="action-item">
-                        <button class="action-btn" onclick="alert('Muy pronto...')"><i class="fas fa-comment-dots"></i></button>
-                        <span>${post.comentarios_count || 0}</span>
+                        <button class="action-btn" onclick="alert('Desarrollando...')"><i class="fas fa-comment-dots"></i></button>
+                        <span id="comm-count-${post.id}">${post.comentarios_count || 0}</span>
+                    </div>
+                    <div class="action-item">
+                        <i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i>
+                        <span id="vistas-${post.id}">${post.vistas || 0}</span>
                     </div>
                     ${isOwner ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
@@ -225,26 +228,34 @@
                 <div class="progress-container"><div class="progress-bar" id="bar-${post.id}"></div></div>
             `;
             isNew ? container.prepend(card) : container.appendChild(card);
-            if (post.tipo === 'video') setupVideo(card);
+            if (post.tipo === 'video') setupVideo(card, post.id);
         }
 
-        function openViewer(post) {
-            const modal = document.getElementById('viewer-modal');
-            const content = document.getElementById('viewer-content');
-            modal.style.display = 'block';
-            content.innerHTML = "";
-            renderPost(post, content);
-            
-            const v = content.querySelector('video');
-            if(v) { v.muted = false; v.play(); }
+        async function handleLike(postId, btn) {
+            if(btn.classList.contains('active')) return;
+            btn.classList.add('active');
+            await _supabase.rpc('increment_likes', { post_id: postId.toString() });
         }
 
-        function closeViewer() {
-            document.getElementById('viewer-modal').style.display = 'none';
-            document.getElementById('viewer-content').innerHTML = "";
+        async function markView(postId) {
+            const key = `view_${postId}`;
+            if(sessionStorage.getItem(key)) return;
+            sessionStorage.setItem(key, 'true');
+            await _supabase.rpc('increment_vistas', { post_id: postId.toString() });
         }
 
-        function setupVideo(card) {
+        async function deletePost(postId, fileUrl) {
+            if(!confirm("¿Eliminar este contenido permanentemente?")) return;
+            document.getElementById('loading').style.display = 'flex';
+            try {
+                await _supabase.from('publicaciones').delete().eq('id', postId);
+                const fileName = fileUrl.split('/').pop();
+                await _supabase.storage.from('mely_media').remove([fileName]);
+                location.reload();
+            } catch(e) { alert("Error al borrar"); }
+        }
+
+        function setupVideo(card, postId) {
             const v = card.querySelector('video');
             const bar = card.querySelector('.progress-bar');
             if(!v) return;
@@ -255,22 +266,38 @@
         function initObserver() {
             const obs = new IntersectionObserver(entries => {
                 entries.forEach(entry => {
+                    const id = entry.target.getAttribute('data-id');
                     const v = entry.target.querySelector('video');
                     if (entry.isIntersecting) {
                         if(v) v.play().catch(()=>{});
+                        markView(id);
                     } else if(v) {
-                        v.pause();
+                        v.pause(); v.currentTime = 0;
                     }
                 });
             }, { threshold: 0.7 });
             document.querySelectorAll('#feed-container .post-card').forEach(c => obs.observe(c));
         }
 
-        // --- AUTH & UPLOAD (IGUAL QUE ANTES PERO MÁS SEGURO) ---
+        function openViewer(post) {
+            const modal = document.getElementById('viewer-modal');
+            const content = document.getElementById('viewer-content');
+            if(!modal || !content) return;
+            modal.style.display = 'block';
+            content.innerHTML = "";
+            renderPost(post, content, true);
+            const v = content.querySelector('video');
+            if(v) { v.muted = false; v.play(); }
+        }
+
+        function closeViewer() {
+            document.getElementById('viewer-modal').style.display = 'none';
+            document.getElementById('viewer-content').innerHTML = "";
+        }
+
         async function handleAuth(type) {
             const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
             const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
-            if(!e || !p) return alert("Llena los campos");
             document.getElementById('loading').style.display = 'flex';
             
             if(type === 'reg'){
@@ -311,13 +338,20 @@
                 usuario: currentUser, url: urlData.publicUrl, 
                 tipo: selectedFile.type.includes('video') ? 'video' : 'imagen', 
                 descripcion: document.getElementById('post-desc').value, 
-                estado: 'aprobado', likes: 0, vistas: 0 
+                estado: 'pendiente', likes: 0, vistas: 0, comentarios_count: 0 
             }]);
+            alert("Enviado a revisión.");
             location.reload();
         }
 
         function setupRealtime() {
-            _supabase.channel('public').on('postgres_changes', { event: '*', table: 'publicaciones' }, () => {}).subscribe();
+            _supabase.channel('public').on('postgres_changes', { event: '*', table: 'publicaciones' }, payload => {
+                if (payload.eventType === 'UPDATE') {
+                    const post = payload.new;
+                    const l = document.getElementById(`likes-${post.id}`); if(l) l.innerText = post.likes;
+                    const v = document.getElementById(`vistas-${post.id}`); if(v) v.innerText = post.vistas;
+                }
+            }).subscribe();
         }
 
         init();
