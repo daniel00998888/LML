@@ -198,9 +198,9 @@
                 
                 <div class="side-actions">
                     <div class="action-item">
-                        <button class="action-btn" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button>
-                        <span id="likes-${post.id}">${post.likes || 0}</span>
-                    </div>
+    <button class="action-btn" onclick="alert('Comentarios próximamente')"><i class="fas fa-comment-dots"></i></button>
+    <span id="comm-count-${post.id}">${post.comentarios_count || 0}</span>
+</div>
                     <div class="action-item">
                         <button class="action-btn" onclick="alert('Comentarios próximamente')"><i class="fas fa-comment-dots"></i></button>
                         <span>${post.comentarios_count || 0}</span>
