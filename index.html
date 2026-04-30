@@ -99,29 +99,24 @@
 
     <!-- VIEWPORT PRINCIPAL -->
     <div id="app-viewport">
-        <!-- FEED -->
         <div id="feed-screen">
             <div id="feed-container"></div>
         </div>
 
-        <!-- PERFIL -->
         <div id="profile-screen" class="screen">
             <div style="padding: 30px 20px; text-align: center; background: #000;">
                 <div style="font-size: 3.5rem; color: #d4af37; margin-bottom: 5px;"><i class="fas fa-user-circle"></i></div>
                 <h1 id="prof-user" style="font-family:'Oswald'; font-size:1.8rem; color:#d4af37;">@Usuario</h1>
                 <button onclick="logout()" style="background:none; border:1px solid #333; color:#888; padding:5px 15px; border-radius:5px; margin-top:10px; cursor:pointer;">Cerrar Sesión</button>
             </div>
-
             <div class="profile-tabs-nav">
                 <button class="tab-btn active" id="tab-posts" onclick="switchProfileTab('posts')"><i class="fas fa-th"></i></button>
                 <button class="tab-btn" id="tab-likes" onclick="switchProfileTab('likes')"><i class="fas fa-heart"></i></button>
             </div>
-
             <div class="profile-grid" id="profile-grid"></div>
             <div style="height:80px;"></div>
         </div>
 
-        <!-- SUBIDA -->
         <div id="upload-screen" class="screen" style="padding:20px; justify-content: center;">
             <div style="width:100%; height:50vh; background:#111; border-radius:15px; overflow:hidden;" id="preview-box"></div>
             <textarea id="post-desc" style="width:100%; background:#222; border:none; color:#fff; padding:15px; margin-top:15px; border-radius:10px; font-family:inherit; resize:none;" placeholder="Escribe algo sobre este video..."></textarea>
@@ -230,7 +225,7 @@
                 <div class="side-actions">
                     <div class="action-item">
                         <button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button>
-                        <span id="likes-${post.id}">${post.likes || 0}</span>
+                        <span class="likes-count" id="likes-${post.id}">${post.likes || 0}</span>
                     </div>
                     <div class="action-item">
                         <button class="action-btn" onclick="alert('Muy pronto...')"><i class="fas fa-comment-dots"></i></button>
@@ -238,7 +233,7 @@
                     </div>
                     <div class="action-item">
                         <i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i>
-                        <span id="vistas-${post.id}">${post.vistas || 0}</span>
+                        <span class="vistas-count" id="vistas-${post.id}">${post.vistas || 0}</span>
                     </div>
                     ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
@@ -266,22 +261,28 @@
 
             const isLiked = btn.classList.contains('active');
             const cleanPostId = Number(postId);
-            const countSpan = document.getElementById(`likes-${postId}`);
-            let currentCount = parseInt(countSpan.innerText || 0);
-
-            btn.classList.toggle('active');
+            
+            // Sincronizar todos los botones del mismo post en la pantalla (Feed + Visor)
+            const allBtns = document.querySelectorAll(`#btn-like-${postId}`);
+            const allCounts = document.querySelectorAll(`#likes-${postId}`);
 
             if (!isLiked) {
-                if(countSpan) countSpan.innerText = currentCount + 1;
+                // DAR LIKE
+                allBtns.forEach(b => b.classList.add('active'));
+                allCounts.forEach(c => c.innerText = parseInt(c.innerText || 0) + 1);
+                
                 const { error } = await _supabase.from('likes').insert([{ user_id: session.user.id, post_id: cleanPostId }]);
                 if(!error) await _supabase.rpc('increment_likes', { post_id: postId.toString() });
             } else {
-                if(countSpan) countSpan.innerText = Math.max(0, currentCount - 1);
+                // QUITAR LIKE
+                allBtns.forEach(b => b.classList.remove('active'));
+                allCounts.forEach(c => c.innerText = Math.max(0, parseInt(c.innerText || 0) - 1));
+                
                 const { error } = await _supabase.from('likes').delete().eq('user_id', session.user.id).eq('post_id', cleanPostId);
                 if(!error) {
                     await _supabase.rpc('decrement_likes', { post_id: postId.toString() });
                     
-                    // Lógica para quitar del perfil en tiempo real si estamos en pestaña Likes
+                    // Si estamos en la pestaña de Likes del perfil, cerramos y refrescamos esa cuadrícula
                     const tabLikes = document.getElementById('tab-likes');
                     if (tabLikes && tabLikes.classList.contains('active')) {
                         closeViewer();
@@ -391,8 +392,10 @@
         function setupRealtime() {
             _supabase.channel('public').on('postgres_changes', { event: 'UPDATE', table: 'publicaciones' }, payload => {
                 const post = payload.new;
-                const l = document.getElementById(`likes-${post.id}`); if(l) l.innerText = post.likes;
-                const v = document.getElementById(`vistas-${post.id}`); if(v) v.innerText = post.vistas;
+                const counts = document.querySelectorAll(`#likes-${post.id}`);
+                counts.forEach(c => c.innerText = post.likes);
+                const vistas = document.querySelectorAll(`#vistas-${post.id}`);
+                vistas.forEach(v => v.innerText = post.vistas);
             }).subscribe();
         }
 
