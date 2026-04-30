@@ -3,79 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LA MELY | Estilo Sin Fronteras</title>
+    <title>LA MELY | Global Scale Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <style>
-        /* RESET PARA UNIFORMIDAD EN TODOS LOS NAVEGADORES */
+        /* 1. RESET ULTRA-COMPATIBLE */
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background-color: #0d0d0d;
+            -webkit-text-size-adjust: 100%; /* Evita cambios de texto en iPhone horizontal */
+        }
+
         * { 
             margin: 0; 
             padding: 0; 
-            box-sizing: border-box; 
-            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box !important; /* Prioridad máxima al cálculo de tamaño */
         }
 
         :root {
             --gold: #d4af37;
-            --dark-bg: #0d0d0d;
             --text: #ffffff;
         }
 
         body {
-            background-color: var(--dark-bg);
             color: var(--text);
-            font-family: 'Montserrat', Helvetica, Arial, sans-serif;
-            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
             display: flex;
             flex-direction: column;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
         }
 
         header {
-            padding: 5vw 1rem;
+            padding: 4vh 1rem;
             text-align: center;
             border-bottom: 2px solid var(--gold);
-            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+            background: #111;
         }
 
         h1 {
             font-family: 'Oswald', sans-serif;
             font-size: clamp(2.5rem, 12vw, 6rem);
             color: var(--gold);
-            letter-spacing: clamp(5px, 2vw, 15px);
+            letter-spacing: 5px;
             text-transform: uppercase;
-            line-height: 1;
         }
 
-        /* CONTENEDOR ESCALABLE */
+        /* 2. CONTENEDOR CON DIMENSIONES FORZADAS */
         .carousel-wrapper {
-            width: 95%;
+            width: 90%;
             max-width: 1100px;
-            margin: 40px auto;
+            margin: 2rem auto;
             position: relative;
             overflow: hidden;
-            aspect-ratio: 16 / 9; /* Estándar profesional */
-            border-radius: 8px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
-            background: #111;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border: 1px solid #222;
         }
 
-        /* Soporte para navegadores antiguos sin aspect-ratio */
-        @supports not (aspect-ratio: 16/9) {
-            .carousel-wrapper { padding-top: 56.25%; height: 0; }
-            .carousel-track { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        }
-
-        .carousel-track {
-            display: flex;
-            height: 100%;
-            will-change: transform;
+        /* Fallback para navegadores que no escalan bien el aspect-ratio */
+        @media screen and (min-width: 0px) {
+            .carousel-track {
+                display: flex;
+                height: 100%;
+                width: 100%;
+                transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            }
         }
 
         .carousel-slide {
-            min-width: 100%;
+            min-width: 100% !important; /* Evita que el navegador la encoja */
+            width: 100%;
             height: 100%;
+            flex-shrink: 0; /* CRÍTICO: impide que la imagen se colapse en Safari/Brave */
             object-fit: cover;
+            object-position: center;
             display: block;
         }
 
@@ -83,39 +86,25 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.7);
             color: var(--gold);
             border: 1px solid var(--gold);
-            width: clamp(40px, 8vw, 60px);
-            height: clamp(40px, 8vw, 60px);
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             cursor: pointer;
-            z-index: 10;
+            z-index: 100;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            transition: all 0.3s ease;
         }
 
-        .nav-btn:hover { background: var(--gold); color: #000; }
-        .prev { left: 15px; }
-        .next { right: 15px; }
+        .prev { left: 10px; }
+        .next { right: 10px; }
 
-        footer {
-            padding: 2rem;
-            text-align: center;
-            font-size: 0.8rem;
-            letter-spacing: 3px;
-            color: #555;
-        }
-
-        /* Ajuste para móviles vertical */
-        @media (max-width: 480px) {
-            .carousel-wrapper { aspect-ratio: 4 / 5; }
-            @supports not (aspect-ratio: 4/5) { .carousel-wrapper { padding-top: 125%; } }
+        @media (max-width: 600px) {
+            .carousel-wrapper { aspect-ratio: 1 / 1; } /* Cuadrado en móvil */
+            h1 { font-size: 15vw; letter-spacing: 2px; }
         }
     </style>
 </head>
@@ -127,91 +116,75 @@
 
     <div class="carousel-wrapper">
         <div class="carousel-track" id="track">
-            <!-- Tus fotos cargadas en el repositorio -->
-            <img src="Sebas008.png" class="carousel-slide" alt="1">
-            <img src="sebas007.png" class="carousel-slide" alt="2">
-            <img src="cristian.png" class="carousel-slide" alt="3">
-            <img src="angel00.png" class="carousel-slide" alt="4">
-            <img src="iker007.png" class="carousel-slide" alt="5">
+            <img src="Sebas008.png" class="carousel-slide">
+            <img src="sebas007.png" class="carousel-slide">
+            <img src="cristian.png" class="carousel-slide">
+            <img src="angel00.png" class="carousel-slide">
+            <img src="iker007.png" class="carousel-slide">
         </div>
 
         <button class="nav-btn prev" id="prevBtn">&#10094;</button>
         <button class="nav-btn next" id="nextBtn">&#10095;</button>
     </div>
 
-    <footer>
-        &copy; 2026 LA MELY | EXCELENCIA URBANA
-    </footer>
-
     <script>
-    const track = document.getElementById('track');
-    const slides = document.querySelectorAll('.carousel-slide');
-    const nextBtn = document.getElementById('nextBtn');
-    const prevBtn = document.getElementById('prevBtn');
-
-    // 1. CLONACIÓN PARA BUCLE INFINITO
-    const firstClone = slides[0].cloneNode(true);
-    const lastClone = slides[slides.length - 1].cloneNode(true);
-    track.appendChild(firstClone);
-    track.insertBefore(lastClone, slides[0]);
-
-    let index = 1;
-    const size = 100;
-    let autoPlayTimer; 
-    let isMoving = false;
-
-    // Posición inicial
-    track.style.transform = `translateX(-100%)`;
-
-    function move(dir) {
-        if (isMoving) return; // Evita doble clic rápido que rompa el loop
-        isMoving = true;
+        const track = document.getElementById('track');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
         
-        index += dir;
-        track.style.transition = "transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)";
-        track.style.transform = `translateX(${-index * size}%)`;
+        // Clonación dinámica (funciona sin importar cuántas fotos subas)
+        const slides = document.querySelectorAll('.carousel-slide');
+        const firstClone = slides[0].cloneNode(true);
+        const lastClone = slides[slides.length - 1].cloneNode(true);
         
-        resetAutoPlay();
-    }
+        track.appendChild(firstClone);
+        track.insertBefore(lastClone, slides[0]);
 
-    // Lógica del Salto Invisible
-    track.addEventListener('transitionend', () => {
-        isMoving = false;
-        if (track.children[index] === firstClone) {
-            track.style.transition = "none";
-            index = 1;
-            track.style.transform = `translateX(-100%)`;
-        }
-        if (track.children[index] === lastClone) {
-            track.style.transition = "none";
-            index = track.children.length - 2;
-            track.style.transform = `translateX(${-index * size}%)`;
-        }
-    });
+        let index = 1;
+        let isMoving = false;
+        let autoPlay;
 
-    // CONTROL DE INACTIVIDAD (5 SEGUNDOS)
-    function startAutoPlay() {
-        autoPlayTimer = setInterval(() => {
-            if (!isMoving) {
-                index++;
-                track.style.transition = "transform 0.6s ease-in-out";
-                track.style.transform = `translateX(${-index * size}%)`;
+        // Forzamos posición inicial sin animar
+        track.style.transition = "none";
+        track.style.transform = `translateX(-100%)`;
+
+        function move(dir) {
+            if (isMoving) return;
+            isMoving = true;
+            index += dir;
+            track.style.transition = "transform 0.6s ease-in-out";
+            track.style.transform = `translateX(${-index * 100}%)`;
+            resetTimer();
+        }
+
+        track.addEventListener('transitionend', () => {
+            isMoving = false;
+            if (index >= track.children.length - 1) {
+                track.style.transition = "none";
+                index = 1;
+                track.style.transform = `translateX(-100%)`;
+            } else if (index <= 0) {
+                track.style.transition = "none";
+                index = track.children.length - 2;
+                track.style.transform = `translateX(${-index * 100}%)`;
             }
-        }, 3000); 
-    }
+        });
 
-    function resetAutoPlay() {
-        clearInterval(autoPlayTimer);
-        clearTimeout(window.idleTimeout);
-        // Reinicia la cuenta: si pasan 5 segundos sin clics, arranca el auto-play
-        window.idleTimeout = setTimeout(startAutoPlay, 5000); 
-    }
+        function startAuto() {
+            autoPlay = setInterval(() => move(1), 3000);
+        }
 
-    nextBtn.addEventListener('click', () => move(1));
-    prevBtn.addEventListener('click', () => move(-1));
+        function resetTimer() {
+            clearInterval(autoPlay);
+            clearTimeout(window.idle);
+            window.idle = setTimeout(startAuto, 5000);
+        }
 
-    // Inicio inicial del temporizador
-    resetAutoPlay();
+        nextBtn.onclick = () => move(1);
+        prevBtn.onclick = () => move(-1);
+
+        // Iniciar sistema
+        resetTimer();
     </script>
 </body>
 </html>
