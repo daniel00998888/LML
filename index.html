@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* --- RESET Y BASE --- */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
 
@@ -30,19 +31,19 @@
         
         .side-actions { position: absolute; right: 10px; bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 20; }
         .action-item { display: flex; flex-direction: column; align-items: center; color: #fff; font-size: 0.75rem; font-weight: bold; }
-        .action-btn { background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
-        .action-btn.active { color: #ff0050; }
+        .action-btn { background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); transition: 0.2s; }
+        .action-btn.active { color: #ff0050; transform: scale(1.2); }
         .btn-delete { color: #ff4444 !important; font-size: 1.8rem !important; margin-top: 10px; opacity: 0.8; }
 
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.1); z-index: 20; }
-        .progress-bar { height: 100%; background: #d4af37; width: 0%; }
+        .progress-bar { height: 100%; background: #d4af37; width: 0%; transition: width 0.1s linear; }
 
         /* --- NAVEGACION --- */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-        .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; }
+        .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; transition: 0.3s; }
         .nav-item.active { color: #fff; }
         .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 3px; }
-        .plus-btn { width: 45px; height: 30px; background: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; color:#000; }
+        .plus-btn { width: 45px; height: 30px; background: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #000; }
 
         /* --- PANTALLAS --- */
         .screen { position: fixed; inset: 0; display: none; flex-direction: column; background: #000; z-index: 1500; }
@@ -50,11 +51,11 @@
         .grid-item { aspect-ratio: 9/16; background: #111; position: relative; overflow: hidden; cursor: pointer; }
         .grid-item video, .grid-item img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* VISOR FULL */
+        /* VISOR FULL (CLICK DESDE PERFIL) */
         #viewer-full { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; }
-        .close-viewer { position: absolute; top: 20px; left: 20px; font-size: 2.2rem; z-index: 3100; color: #fff; text-shadow: 0 0 10px #000; cursor: pointer; }
+        .close-viewer { position: absolute; top: 20px; left: 20px; font-size: 2.2rem; z-index: 3100; color: #fff; cursor: pointer; text-shadow: 0 0 10px #000; }
 
-        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; }
+        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; flex-direction: column; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
@@ -62,56 +63,57 @@
 
     <div id="loading">
         <div style="border:4px solid #d4af37; border-top:4px solid transparent; width:50px; height:50px; border-radius:50%; animation:spin 1s linear infinite"></div>
+        <p style="color:#d4af37; margin-top:15px; font-weight:bold;">Cargando...</p>
     </div>
 
-    <!-- AUTH SCREEN -->
-    <div id="auth-screen" class="screen" style="align-items:center; justify-content:center; z-index:5000;">
-        <h1 style="font-family:'Oswald'; color:#d4af37; font-size:3.5rem; margin-bottom:2rem; letter-spacing:3px;">LA MELY</h1>
-        <div id="login-form" style="width:80%; max-width:300px;">
-            <input type="email" id="email" placeholder="Email" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:none; background:#111; color:#fff;">
+    <!-- PANTALLA DE AUTENTICACIÓN -->
+    <div id="auth-screen" class="screen" style="align-items:center; justify-content:center; display:flex;">
+        <h1 style="font-family:'Oswald'; color:#d4af37; font-size:3.5rem; margin-bottom:2rem; letter-spacing:4px;">LA MELY</h1>
+        <div id="login-form" style="width:80%; max-width:320px;">
+            <input type="email" id="email" placeholder="Correo electrónico" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:none; background:#111; color:#fff;">
             <input type="password" id="pass" placeholder="Contraseña" style="width:100%; padding:15px; margin-bottom:20px; border-radius:12px; border:none; background:#111; color:#fff;">
-            <button onclick="handleAuth('login')" style="width:100%; padding:15px; border-radius:30px; border:none; background:#d4af37; font-weight:bold; color:#000;">ENTRAR</button>
-            <p onclick="toggleAuth(true)" style="text-align:center; margin-top:20px; font-size:0.9rem; color:#888;">¿Eres nuevo? <span style="color:#d4af37">Crea una cuenta</span></p>
+            <button onclick="handleAuth('login')" style="width:100%; padding:15px; border-radius:30px; border:none; background:#d4af37; font-weight:bold; color:#000; cursor:pointer;">ENTRAR</button>
+            <p onclick="toggleAuth(true)" style="text-align:center; margin-top:20px; font-size:0.9rem; color:#888;">¿Eres nuevo? <span style="color:#d4af37">Regístrate aquí</span></p>
         </div>
-        <div id="reg-form" style="width:80%; max-width:300px; display:none;">
-            <input type="text" id="r-user" placeholder="Usuario" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:none; background:#111; color:#fff;">
-            <input type="email" id="r-email" placeholder="Email" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:none; background:#111; color:#fff;">
+        <div id="reg-form" style="width:80%; max-width:320px; display:none;">
+            <input type="text" id="r-user" placeholder="Nombre de usuario" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:none; background:#111; color:#fff;">
+            <input type="email" id="r-email" placeholder="Correo electrónico" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:none; background:#111; color:#fff;">
             <input type="password" id="r-pass" placeholder="Contraseña" style="width:100%; padding:15px; margin-bottom:20px; border-radius:12px; border:none; background:#111; color:#fff;">
-            <button onclick="handleAuth('reg')" style="width:100%; padding:15px; border-radius:30px; border:none; background:#d4af37; font-weight:bold; color:#000;">REGISTRARME</button>
-            <p onclick="toggleAuth(false)" style="text-align:center; margin-top:20px; font-size:0.9rem; color:#888;">¿Ya tienes cuenta? <span style="color:#d4af37">Inicia Sesión</span></p>
+            <button onclick="handleAuth('reg')" style="width:100%; padding:15px; border-radius:30px; border:none; background:#d4af37; font-weight:bold; color:#000; cursor:pointer;">CREAR CUENTA</button>
+            <p onclick="toggleAuth(false)" style="text-align:center; margin-top:20px; font-size:0.9rem; color:#888;">¿Ya tienes cuenta? <span style="color:#d4af37">Inicia sesión</span></p>
         </div>
     </div>
 
-    <!-- FEED SCREEN -->
-    <div id="feed-screen">
+    <!-- PANTALLA PRINCIPAL (FEED) -->
+    <div id="feed-screen" style="display:none;">
         <div id="feed-container"></div>
     </div>
 
-    <!-- PROFILE SCREEN -->
+    <!-- PANTALLA DE PERFIL -->
     <div id="profile-screen" class="screen">
         <div style="padding:40px 20px; text-align:center;">
             <div style="width:90px; height:90px; border-radius:50%; background:#111; margin:0 auto 15px; border:2px solid #d4af37; display:flex; align-items:center; justify-content:center; font-size:2.5rem; color:#d4af37;"><i class="fas fa-user"></i></div>
-            <h2 id="prof-user" style="font-family:'Oswald'; color:#d4af37;">@Usuario</h2>
-            <button onclick="logout()" style="background:none; border:1px solid #333; color:#666; padding:6px 18px; border-radius:8px; margin-top:15px; font-size:0.7rem;">CERRAR SESIÓN</button>
+            <h2 id="prof-user" style="font-family:'Oswald';">@Cargando...</h2>
+            <button onclick="logout()" style="background:none; border:1px solid #333; color:#666; padding:6px 18px; border-radius:8px; margin-top:15px; font-size:0.7rem; cursor:pointer;">CERRAR SESIÓN</button>
         </div>
         <div class="profile-grid" id="profile-grid"></div>
     </div>
 
-    <!-- UPLOAD SCREEN -->
+    <!-- PANTALLA DE SUBIDA -->
     <div id="upload-screen" class="screen" style="padding:20px; justify-content:center;">
         <div id="preview-box" style="width:100%; height:55%; background:#111; border-radius:20px; overflow:hidden;"></div>
-        <textarea id="post-desc" style="width:100%; padding:15px; background:#111; color:#fff; border:1px solid #222; border-radius:12px; margin-top:15px; font-family:inherit;" placeholder="¿De qué trata este video?"></textarea>
-        <button onclick="startUpload()" style="width:100%; padding:18px; background:#d4af37; color:#000; font-weight:bold; border-radius:15px; margin-top:15px; border:none;">SUBIR AHORA</button>
-        <button onclick="location.reload()" style="width:100%; color:#555; margin-top:15px; background:none; border:none;">Cancelar</button>
+        <textarea id="post-desc" style="width:100%; padding:15px; background:#111; color:#fff; border:1px solid #222; border-radius:12px; margin-top:15px; font-family:inherit; resize:none;" placeholder="Escribe algo sobre este video..."></textarea>
+        <button onclick="startUpload()" style="width:100%; padding:18px; background:#d4af37; color:#000; font-weight:bold; border-radius:15px; margin-top:15px; border:none; cursor:pointer;">PUBLICAR AHORA</button>
+        <button onclick="location.reload()" style="width:100%; color:#555; margin-top:15px; background:none; border:none; cursor:pointer;">Cancelar</button>
     </div>
 
-    <!-- VISOR FULL -->
+    <!-- VISOR DE CONTENIDO (FULL) -->
     <div id="viewer-full">
         <i class="fas fa-arrow-left close-viewer" onclick="closeViewer()"></i>
         <div id="viewer-content" style="width:100%; height:100%;"></div>
     </div>
 
-    <!-- NAV BAR -->
+    <!-- BARRA DE NAVEGACIÓN -->
     <div class="bottom-nav">
         <div class="nav-item active" id="nav-home" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
         <div class="nav-item" onclick="document.getElementById('file-input').click()"><div class="plus-btn"><i class="fas fa-plus"></i></div></div>
@@ -121,6 +123,7 @@
     <input type="file" id="file-input" accept="video/*,image/*" style="display:none">
 
     <script>
+        // CONFIGURACIÓN SUPABASE
         const SB_URL = 'https://meiwuluwrdjszxeyoqtt.supabase.co';
         const SB_KEY = 'sb_publishable_gZgGIamNJqf8ir8vvt1OTw_bJ-rosi4';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
@@ -128,29 +131,35 @@
         let currentUser = null;
         let selectedFile = null;
 
+        // INICIALIZACIÓN
         async function init() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
                 const { data } = await _supabase.from('perfiles').select('username').eq('id', session.user.id).single();
-                currentUser = data?.username || "Anonimo";
+                currentUser = data?.username || "Usuario";
                 document.getElementById('prof-user').innerText = "@" + currentUser;
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('feed-screen').style.display = 'block';
                 loadFeed();
                 setupRealtime();
-            } else {
-                document.getElementById('auth-screen').style.display = 'flex';
             }
         }
 
+        // CONTROL DE PANTALLAS
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
             document.getElementById('feed-screen').style.display = (id === 'feed') ? 'block' : 'none';
             document.getElementById('nav-home').classList.toggle('active', id === 'feed');
             document.getElementById('nav-profile').classList.toggle('active', id === 'profile');
             
-            if(id !== 'feed') document.getElementById(id + '-screen').style.display = 'flex';
+            if(id !== 'feed') {
+                const target = document.getElementById(id + '-screen');
+                if(target) target.style.display = 'flex';
+            }
             if(id === 'profile') loadUserPosts();
         }
 
+        // CARGAR FEED PRINCIPAL
         async function loadFeed() {
             const { data } = await _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
             const container = document.getElementById('feed-container');
@@ -159,19 +168,22 @@
             initObserver();
         }
 
+        // CARGAR POSTS DEL PERFIL
         async function loadUserPosts() {
             const { data } = await _supabase.from('publicaciones').select('*').eq('usuario', currentUser).order('created_at', { ascending: false });
             const grid = document.getElementById('profile-grid');
+            if(!grid) return;
             grid.innerHTML = "";
             data?.forEach(post => {
                 const div = document.createElement('div');
                 div.className = 'grid-item';
                 div.onclick = () => openFullViewer(post);
-                div.innerHTML = post.tipo === 'video' ? `<video src="${post.url}#t=0.1"></video>` : `<img src="${post.url}">`;
+                div.innerHTML = post.tipo === 'video' ? `<video src="${post.url}#t=0.1" muted></video>` : `<img src="${post.url}">`;
                 grid.appendChild(div);
             });
         }
 
+        // RENDERIZAR UNA PUBLICACIÓN
         function renderPost(post, container, isNew = false) {
             if (document.getElementById(`post-${post.id}`)) return;
             const card = document.createElement('div');
@@ -215,6 +227,7 @@
             v.ontimeupdate = () => bar.style.width = (v.currentTime / v.duration) * 100 + "%";
         }
 
+        // INTERACCIONES
         async function handleLike(postId) {
             const btn = document.getElementById(`btn-like-${postId}`);
             if(btn.classList.contains('active')) return;
@@ -230,16 +243,49 @@
         }
 
         async function deletePost(postId, fileUrl) {
-            if(!confirm("¿Eliminar este contenido de La Mely permanentemente?")) return;
+            if(!confirm("¿Deseas eliminar este video de La Mely permanentemente?")) return;
             document.getElementById('loading').style.display = 'flex';
             
-            await _supabase.from('publicaciones').delete().eq('id', postId);
-            const fileName = fileUrl.split('/').pop();
-            await _supabase.storage.from('mely_media').remove([fileName]);
-            
-            location.reload();
+            try {
+                // Borrar fila en base de datos
+                await _supabase.from('publicaciones').delete().eq('id', postId);
+                // Borrar archivo físico en Storage
+                const fileName = fileUrl.split('/').pop();
+                await _supabase.storage.from('mely_media').remove([fileName]);
+                alert("Eliminado con éxito");
+                location.reload();
+            } catch (e) {
+                alert("Error al eliminar");
+                document.getElementById('loading').style.display = 'none';
+            }
         }
 
+        // VISOR COMPLETO
+        function openFullViewer(post) {
+            const viewer = document.getElementById('viewer-full');
+            const content = document.getElementById('viewer-content');
+            if(!viewer || !content) return;
+
+            viewer.style.display = 'block';
+            content.innerHTML = ""; 
+            renderPost(post, content);
+            
+            const card = content.querySelector('.post-card');
+            if(card) {
+                card.style.height = '100dvh';
+                const v = card.querySelector('video');
+                if(v) { v.muted = false; v.play(); }
+            }
+        }
+
+        function closeViewer() { 
+            const viewer = document.getElementById('viewer-full');
+            const content = document.getElementById('viewer-content');
+            if(viewer) viewer.style.display = 'none';
+            if(content) content.innerHTML = "";
+        }
+
+        // OBSERVAR SCROLL PARA AUTO-PLAY Y VISTAS
         function initObserver() {
             const obs = new IntersectionObserver(entries => {
                 entries.forEach(entry => {
@@ -256,31 +302,13 @@
             document.querySelectorAll('.post-card').forEach(c => obs.observe(c));
         }
 
-        function openFullViewer(post) {
-            const viewer = document.getElementById('viewer-full');
-            const content = document.getElementById('viewer-content');
-            viewer.style.display = 'block';
-            content.innerHTML = ""; 
-            renderPost(post, content);
-            
-            const card = content.querySelector('.post-card');
-            card.style.height = '100dvh';
-            const v = card.querySelector('video');
-            if(v) v.play();
-        }
-
-        function closeViewer() { 
-            document.getElementById('viewer-full').style.display = 'none';
-            document.getElementById('viewer-content').innerHTML = "";
-        }
-
+        // TIEMPO REAL
         function setupRealtime() {
             _supabase.channel('public').on('postgres_changes', { event: '*', table: 'publicaciones' }, payload => {
                 if (payload.eventType === 'UPDATE') {
                     const post = payload.new;
                     const l = document.getElementById(`likes-${post.id}`); if(l) l.innerText = post.likes;
                     const v = document.getElementById(`vistas-${post.id}`); if(v) v.innerText = post.vistas;
-                    if(payload.old.estado === 'pendiente' && post.estado === 'aprobado') loadFeed();
                 }
                 if (payload.eventType === 'DELETE') {
                     document.getElementById(`post-${payload.old.id}`)?.remove();
@@ -288,17 +316,20 @@
             }).subscribe();
         }
 
+        // AUTENTICACIÓN
         async function handleAuth(type) {
+            document.getElementById('loading').style.display = 'flex';
             const e = (type === 'reg' ? document.getElementById('r-email') : document.getElementById('email')).value;
             const p = (type === 'reg' ? document.getElementById('r-pass') : document.getElementById('pass')).value;
+            
             if(type === 'reg') {
                 const u = document.getElementById('r-user').value;
                 const { data, error } = await _supabase.auth.signUp({ email:e, password:p });
-                if(error) return alert(error.message);
+                if(error) { alert(error.message); document.getElementById('loading').style.display = 'none'; return; }
                 await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
             } else {
                 const { error } = await _supabase.auth.signInWithPassword({ email:e, password:p });
-                if(error) return alert("Error en los datos");
+                if(error) { alert("Usuario o contraseña incorrectos"); document.getElementById('loading').style.display = 'none'; return; }
             }
             location.reload();
         }
@@ -310,11 +341,14 @@
 
         async function logout() { await _supabase.auth.signOut(); location.reload(); }
 
+        // SUBIDA DE ARCHIVOS
         document.getElementById('file-input').onchange = (e) => {
             selectedFile = e.target.files[0];
             if(selectedFile) {
                 const url = URL.createObjectURL(selectedFile);
-                document.getElementById('preview-box').innerHTML = selectedFile.type.includes('video') ? `<video src="${url}" autoplay muted loop style="width:100%; height:100%; object-fit:cover;"></video>` : `<img src="${url}" style="width:100%; height:100%; object-fit:cover;">`;
+                document.getElementById('preview-box').innerHTML = selectedFile.type.includes('video') 
+                    ? `<video src="${url}" autoplay muted loop style="width:100%; height:100%; object-fit:cover;"></video>` 
+                    : `<img src="${url}" style="width:100%; height:100%; object-fit:cover;">`;
                 showScreen('upload');
             }
         };
@@ -323,18 +357,33 @@
             if(!selectedFile) return;
             document.getElementById('loading').style.display = 'flex';
             const fName = Date.now() + "_" + selectedFile.name;
-            await _supabase.storage.from('mely_media').upload(fName, selectedFile);
-            const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
-            await _supabase.from('publicaciones').insert([{ 
-                usuario: currentUser, url: urlData.publicUrl, 
-                tipo: selectedFile.type.includes('video') ? 'video' : 'imagen',
-                descripcion: document.getElementById('post-desc').value,
-                estado: 'pendiente', likes:0, vistas:0, comentarios_count:0
-            }]);
-            alert("Video enviado a moderación"); 
-            location.reload();
+            
+            try {
+                const { data, error } = await _supabase.storage.from('mely_media').upload(fName, selectedFile);
+                if(error) throw error;
+
+                const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
+                
+                await _supabase.from('publicaciones').insert([{ 
+                    usuario: currentUser, 
+                    url: urlData.publicUrl, 
+                    tipo: selectedFile.type.includes('video') ? 'video' : 'imagen',
+                    descripcion: document.getElementById('post-desc').value,
+                    estado: 'pendiente', 
+                    likes: 0, 
+                    vistas: 0, 
+                    comentarios_count: 0
+                }]);
+                
+                alert("¡Video enviado! Aparecerá en el feed cuando sea aprobado."); 
+                location.reload();
+            } catch (e) {
+                alert("Error al subir archivo");
+                document.getElementById('loading').style.display = 'none';
+            }
         }
 
+        // EJECUTAR
         init();
     </script>
 </body>
