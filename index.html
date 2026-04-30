@@ -11,82 +11,119 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
 
-        /* --- PANTALLA DE AUTH --- */
-        #auth-screen { position: fixed; inset: 0; z-index: 1000; background: #000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        .auth-box { width: 90%; max-width: 350px; text-align: center; background: #111; padding: 30px; border-radius: 25px; border: 1px solid #222; }
-        .logo { font-family: 'Oswald'; font-size: 3rem; color: #d4af37; margin-bottom: 20px; letter-spacing: 4px; }
-        input { width: 100%; padding: 15px; margin-bottom: 10px; background: #222; border: 1px solid #333; color: #fff; border-radius: 12px; }
-        .btn-main { width: 100%; padding: 15px; background: #d4af37; color: #000; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        /* --- PANTALLAS --- */
+        .screen { position: fixed; inset: 0; width: 100%; height: 100%; display: none; flex-direction: column; }
 
-        /* --- FEED TIKTOK --- */
-        #feed-screen { width: 100%; height: 100%; display: none; }
-        #feed-container { width: 100%; height: calc(100vh - 65px); overflow-y: scroll; snap-type: y mandatory; scrollbar-width: none; }
+        /* --- AUTH SCREEN --- */
+        #auth-screen { background: #000; align-items: center; justify-content: center; z-index: 2000; }
+        .auth-box { width: 85%; max-width: 350px; text-align: center; background: #111; padding: 30px; border-radius: 25px; border: 1px solid #222; }
+        .logo { font-family: 'Oswald'; font-size: 3.5rem; color: #d4af37; margin-bottom: 20px; letter-spacing: 5px; }
+        input, textarea { width: 100%; padding: 15px; margin-bottom: 12px; background: #222; border: 1px solid #333; color: #fff; border-radius: 12px; font-family: 'Montserrat'; }
+        .btn-main { width: 100%; padding: 16px; background: #d4af37; color: #000; border: none; border-radius: 50px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+        .btn-main:active { transform: scale(0.95); }
+
+        /* --- FEED TIKTOK (Snap Scroll) --- */
+        #feed-screen { display: none; }
+        #feed-container { 
+            width: 100%; 
+            height: calc(100vh - 65px); 
+            overflow-y: scroll; 
+            snap-type: y mandatory; 
+            scroll-behavior: smooth;
+            scrollbar-width: none; 
+        }
         #feed-container::-webkit-scrollbar { display: none; }
-        .post-card { width: 100%; height: calc(100vh - 65px); snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
-        .video-player { width: 100%; height: 100%; object-fit: cover; }
-        .ui-info { position: absolute; bottom: 20px; left: 15px; pointer-events: none; text-shadow: 1px 1px 5px rgba(0,0,0,0.8); }
-        .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.4rem; }
+
+        .post-card { 
+            width: 100%; 
+            height: calc(100vh - 65px); 
+            snap-align: start; 
+            snap-stop: always; 
+            position: relative; 
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-player { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+
+        /* --- UI CONTROLES --- */
+        .ui-info { position: absolute; bottom: 50px; left: 15px; pointer-events: none; z-index: 10; text-shadow: 2px 2px 10px rgba(0,0,0,1); }
+        .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.5rem; margin-bottom: 5px; }
+        
+        .status-icon { position: absolute; font-size: 4rem; color: rgba(255,255,255,0.4); opacity: 0; pointer-events: none; z-index: 15; }
+
+        /* BARRA DE PROGRESO */
+        .progress-container { position: absolute; bottom: 0; width: 100%; height: 5px; background: rgba(255,255,255,0.1); z-index: 20; }
+        .progress-bar { height: 100%; background: #d4af37; width: 0%; transition: width 0.1s linear; }
+        .seek-input { position: absolute; top: -10px; width: 100%; height: 25px; opacity: 0; cursor: pointer; z-index: 21; }
 
         /* --- NAVEGACION --- */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 0.5px solid #333; display: flex; justify-content: space-around; align-items: center; z-index: 500; }
-        .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; }
-        .upload-btn { width: 45px; height: 30px; background: #fff; border-radius: 8px; position: relative; display: flex; align-items: center; justify-content: center; }
-        .upload-btn::before { content: ''; position: absolute; left: -3px; width: 100%; height: 100%; background: #20f3ea; border-radius: 8px; z-index: -1; }
-        .upload-btn::after { content: ''; position: absolute; right: -3px; width: 100%; height: 100%; background: #ff0050; border-radius: 8px; z-index: -1; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; }
+        .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 3px; }
+        .plus-btn { width: 45px; height: 30px; background: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
+        .plus-btn::before { content:''; position:absolute; left:-3px; width:100%; height:100%; background:#20f3ea; border-radius:10px; z-index:-1; }
+        .plus-btn::after { content:''; position:absolute; right:-3px; width:100%; height:100%; background:#ff0050; border-radius:10px; z-index:-1; }
 
-        /* --- PANTALLA DE SUBIDA --- */
-        #upload-screen { position: fixed; inset: 0; z-index: 800; background: #000; display: none; flex-direction: column; padding: 20px; }
-        .preview-box { width: 100%; height: 40%; border: 1px dashed #d4af37; border-radius: 15px; margin-bottom: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        
-        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        /* --- UPLOAD SCREEN --- */
+        #upload-screen { background: #000; padding: 20px; z-index: 1500; }
+        .preview-box { width: 100%; height: 50vh; background: #111; border-radius: 20px; overflow: hidden; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; border: 1px dashed #d4af37; }
+
+        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; display: none; align-items: center; justify-content: center; flex-direction: column; }
     </style>
 </head>
 <body>
 
-    <!-- 1. PANTALLA DE CARGA / LOGIN -->
-    <div id="auth-screen">
+    <!-- CARGA -->
+    <div id="loading">
+        <div style="border:4px solid #d4af37; border-top:4px solid transparent; width:50px; height:50px; border-radius:50%; animation:spin 1s linear infinite"></div>
+        <p style="margin-top:15px; color:#d4af37; font-weight:bold;">SUBIENDO A LA MELY...</p>
+    </div>
+
+    <!-- PANTALLA AUTH -->
+    <div id="auth-screen" class="screen">
         <div class="logo">LA MELY</div>
         <div class="auth-box" id="login-form">
-            <h3 style="margin-bottom:15px">ACCESO</h3>
-            <input type="email" id="email" placeholder="Correo">
+            <h2>ACCESO</h2><br>
+            <input type="email" id="email" placeholder="Correo electrónico">
             <input type="password" id="pass" placeholder="Contraseña">
-            <button class="btn-main" onclick="handleAuth('login')">ENTRAR</button>
-            <p onclick="toggleAuth(true)" style="margin-top:15px; font-size:0.8rem; color:#888">¿Eres nuevo? <b>Regístrate</b></p>
+            <button class="btn-main" onclick="handleAuth('login')">Entrar</button>
+            <p style="margin-top:20px; color:#666" onclick="toggleAuth(true)">¿Eres nuevo? <span style="color:#d4af37">Regístrate</span></p>
         </div>
         <div class="auth-box" id="reg-form" style="display:none">
-            <h3 style="margin-bottom:15px">REGISTRO</h3>
-            <input type="text" id="r-user" placeholder="Nombre de usuario">
-            <input type="email" id="r-email" placeholder="Correo">
-            <input type="password" id="r-pass" placeholder="Contraseña">
-            <button class="btn-main" onclick="handleAuth('reg')">CREAR CUENTA</button>
-            <p onclick="toggleAuth(false)" style="margin-top:15px; font-size:0.8rem; color:#888">¿Ya tienes cuenta? <b>Loguéate</b></p>
+            <h2>REGISTRO</h2><br>
+            <input type="text" id="r-user" placeholder="Nombre de Usuario">
+            <input type="email" id="r-email" placeholder="Correo electrónico">
+            <input type="password" id="r-pass" placeholder="Contraseña (mín. 6)">
+            <button class="btn-main" onclick="handleAuth('reg')">Crear Cuenta</button>
+            <p style="margin-top:20px; color:#666" onclick="toggleAuth(false)">¿Ya tienes cuenta? <span style="color:#d4af37">Inicia Sesión</span></p>
         </div>
     </div>
 
-    <!-- 2. PANTALLA PRINCIPAL (FEED) -->
-    <div id="feed-screen">
+    <!-- PANTALLA FEED -->
+    <div id="feed-screen" class="screen">
         <div id="feed-container"></div>
         <div class="bottom-nav">
-            <div class="nav-item"><i class="fas fa-home"></i>Inicio</div>
+            <div class="nav-item" onclick="location.reload()"><i class="fas fa-home"></i>Inicio</div>
             <div class="nav-item" onclick="document.getElementById('file-input').click()">
-                <div class="upload-btn"><i class="fas fa-plus" style="color:#000"></i></div>
+                <div class="plus-btn"><i class="fas fa-plus" style="color:#000; font-size:1rem"></i></div>
             </div>
             <div class="nav-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Salir</div>
         </div>
     </div>
 
-    <!-- 3. PANTALLA DE SUBIDA (PASO 2) -->
-    <div id="upload-screen">
-        <h2 style="font-family:'Oswald'; color:#d4af37; margin-bottom:20px">EDITAR POST</h2>
+    <!-- PANTALLA SUBIDA -->
+    <div id="upload-screen" class="screen">
+        <h2 style="font-family:'Oswald'; color:#d4af37; margin-bottom:20px; text-align:center;">NUEVO POST</h2>
         <div class="preview-box" id="preview-box"></div>
-        <textarea id="post-desc" rows="4" placeholder="Escribe algo sobre tu video..." style="width:100%; padding:15px; background:#111; color:#fff; border:1px solid #333; border-radius:10px; margin-bottom:20px; font-family:'Montserrat'"></textarea>
-        <button class="btn-main" onclick="startUpload()">PUBLICAR AHORA</button>
-        <p onclick="location.reload()" style="text-align:center; margin-top:20px; color:#888">Cancelar</p>
+        <textarea id="post-desc" rows="3" placeholder="Escribe algo sobre este video..."></textarea>
+        <button class="btn-main" onclick="startUpload()">Publicar en La Mely</button>
+        <p onclick="location.reload()" style="text-align:center; margin-top:20px; color:#888; cursor:pointer;">Cancelar</p>
     </div>
 
-    <!-- ELEMENTOS OCULTOS -->
     <input type="file" id="file-input" accept="video/*,image/*" style="display:none">
-    <div id="loading"><div style="border:4px solid #d4af37; border-top:4px solid transparent; width:40px; height:40px; border-radius:50%; animation:spin 1s linear infinite"></div><p style="margin-top:10px">Subiendo...</p></div>
 
     <script>
         const SB_URL = 'https://meiwuluwrdjszxeyoqtt.supabase.co';
@@ -96,121 +133,170 @@
         let currentUser = null;
         let selectedFile = null;
 
-        // --- GESTION DE SESION ---
-        async function checkSession() {
+        // --- INICIO ---
+        async function init() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
                 const { data } = await _supabase.from('perfiles').select('username').eq('id', session.user.id).single();
-                currentUser = data.username;
-                showScreen('feed');
+                currentUser = data ? data.username : "Anonimo";
+                document.getElementById('feed-screen').style.display = 'block';
                 loadFeed();
+                setupRealtime();
+            } else {
+                document.getElementById('auth-screen').style.display = 'flex';
             }
         }
 
-        function showScreen(screen) {
-            document.getElementById('auth-screen').style.display = screen === 'auth' ? 'flex' : 'none';
-            document.getElementById('feed-screen').style.display = screen === 'feed' ? 'block' : 'none';
-            document.getElementById('upload-screen').style.display = screen === 'upload' ? 'flex' : 'none';
+        // --- REALTIME ---
+        function setupRealtime() {
+            _supabase.channel('custom-all-channel')
+            .on('postgres_changes', { event: 'UPDATE', table: 'publicaciones', filter: 'estado=eq.aprobado' }, (payload) => {
+                renderPost(payload.new, true);
+            })
+            .subscribe();
         }
 
-        function toggleAuth(showReg) {
-            document.getElementById('login-form').style.display = showReg ? 'none' : 'block';
-            document.getElementById('reg-form').style.display = showReg ? 'block' : 'none';
+        // --- AUTH ---
+        function toggleAuth(isReg) {
+            document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
+            document.getElementById('reg-form').style.display = isReg ? 'block' : 'none';
         }
 
         async function handleAuth(type) {
             if (type === 'reg') {
-                const u = document.getElementById('r-user').value;
-                const e = document.getElementById('r-email').value;
+                const u = document.getElementById('r-user').value.trim();
+                const e = document.getElementById('r-email').value.trim();
                 const p = document.getElementById('r-pass').value;
-                const { data, error } = await _supabase.auth.signUp({ email:e, password:p });
+                const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
                 if (error) return alert(error.message);
-                await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
-                alert("Registro exitoso!"); location.reload();
+                await _supabase.from('perfiles').insert([{ id: data.user.id, username: u, email: e }]);
+                alert("¡Registrado! Ahora inicia sesión."); location.reload();
             } else {
                 const e = document.getElementById('email').value;
                 const p = document.getElementById('pass').value;
-                const { error } = await _supabase.auth.signInWithPassword({ email:e, password:p });
-                if (error) return alert("Error de acceso");
+                const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
+                if (error) return alert("Acceso denegado.");
                 location.reload();
             }
         }
 
         async function logout() { await _supabase.auth.signOut(); location.reload(); }
 
-        // --- GESTION DE VIDEOS ---
+        // --- FEED ---
+        async function loadFeed() {
+            const { data } = await _supabase.from('publicaciones')
+                .select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
+            
+            const container = document.getElementById('feed-container');
+            container.innerHTML = "";
+            data?.forEach(post => renderPost(post));
+            initObserver();
+        }
+
+        function renderPost(post, isNew = false) {
+            const container = document.getElementById('feed-container');
+            if (document.getElementById(`post-${post.id}`)) return;
+
+            const card = document.createElement('div');
+            card.className = 'post-card';
+            card.id = `post-${post.id}`;
+            card.innerHTML = `
+                ${post.tipo === 'video' 
+                    ? `<video class="video-player" src="${post.url}" loop playsinline></video>
+                       <i class="fas fa-play status-icon"></i>
+                       <div class="progress-container">
+                           <div class="progress-bar" id="bar-${post.id}"></div>
+                           <input type="range" class="seek-input" min="0" max="100" value="0" oninput="seekVideo(this, '${post.id}')">
+                       </div>` 
+                    : `<img class="video-player" src="${post.url}">`}
+                <div class="ui-info">
+                    <h2>@${post.usuario}</h2>
+                    <p>${post.descripcion || ''}</p>
+                </div>
+            `;
+            if (isNew) container.prepend(card); else container.appendChild(card);
+            if (post.tipo === 'video') setupVideoControls(card);
+        }
+
+        function setupVideoControls(card) {
+            const video = card.querySelector('video');
+            const icon = card.querySelector('.status-icon');
+            const bar = card.querySelector('.progress-bar');
+            const range = card.querySelector('.seek-input');
+
+            video.onclick = () => {
+                if (video.paused) {
+                    video.play();
+                    icon.className = "fas fa-play status-icon";
+                } else {
+                    video.pause();
+                    icon.className = "fas fa-pause status-icon";
+                }
+                icon.style.opacity = "1";
+                setTimeout(() => icon.style.opacity = "0", 400);
+            };
+
+            video.ontimeupdate = () => {
+                const p = (video.currentTime / video.duration) * 100;
+                bar.style.width = p + "%";
+                range.value = p;
+            };
+        }
+
+        window.seekVideo = (el, id) => {
+            const v = document.querySelector(`#post-${id} video`);
+            v.currentTime = (el.value / 100) * v.duration;
+        };
+
+        function initObserver() {
+            const obs = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    const v = entry.target.querySelector('video');
+                    if (v) {
+                        if (entry.isIntersecting) v.play();
+                        else { v.pause(); v.currentTime = 0; }
+                    }
+                });
+            }, { threshold: 0.7 });
+            document.querySelectorAll('.post-card').forEach(c => obs.observe(c));
+        }
+
+        // --- SUBIDA ---
         document.getElementById('file-input').onchange = (e) => {
             selectedFile = e.target.files[0];
             if (selectedFile) {
                 const url = URL.createObjectURL(selectedFile);
-                document.getElementById('preview-box').innerHTML = selectedFile.type.includes('video') ? 
-                    `<video src="${url}" autoplay muted loop style="height:100%"></video>` : `<img src="${url}" style="height:100%">`;
-                showScreen('upload');
+                document.getElementById('preview-box').innerHTML = selectedFile.type.includes('video') 
+                    ? `<video src="${url}" autoplay muted loop style="height:100%"></video>` 
+                    : `<img src="${url}" style="height:100%; object-fit:contain">`;
+                document.getElementById('feed-screen').style.display = 'none';
+                document.getElementById('upload-screen').style.display = 'flex';
             }
         };
 
         async function startUpload() {
-    if (!selectedFile) return alert("Selecciona un video primero");
-    
-    document.getElementById('loading').style.display = 'flex';
-    const fName = `${Date.now()}_${selectedFile.name.replace(/\s/g, '_')}`; // Quitamos espacios
+            document.getElementById('loading').style.display = 'flex';
+            const fExt = selectedFile.name.split('.').pop();
+            const fName = `${Date.now()}.${fExt}`;
 
-    // 1. Subida al Storage con configuración extra
-    const { data: sData, error: sErr } = await _supabase.storage
-        .from('mely_media')
-        .upload(fName, selectedFile, {
-            cacheControl: '3600',
-            upsert: false,
-            contentType: selectedFile.type // Esto le dice a Supabase que es un video/imagen real
-        });
-    
-    if (sErr) {
-        document.getElementById('loading').style.display = 'none';
-        console.error("Error completo:", sErr);
-        return alert("Error al subir: " + sErr.message);
-    }
+            const { data: sData, error: sErr } = await _supabase.storage.from('mely_media').upload(fName, selectedFile, { contentType: selectedFile.type });
+            if (sErr) { alert(sErr.message); return location.reload(); }
 
-    // 2. Obtener URL y guardar en base de datos
-    const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
-    
-    const { error: dbErr } = await _supabase.from('publicaciones').insert([{
-        usuario: currentUser,
-        url: urlData.publicUrl,
-        tipo: selectedFile.type.includes('video') ? 'video' : 'imagen',
-        descripcion: document.getElementById('post-desc').value,
-        estado: 'pendiente'
-    }]);
+            const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
+            
+            await _supabase.from('publicaciones').insert([{
+                usuario: currentUser,
+                url: urlData.publicUrl,
+                tipo: selectedFile.type.includes('video') ? 'video' : 'imagen',
+                descripcion: document.getElementById('post-desc').value,
+                estado: 'pendiente'
+            }]);
 
-    if(dbErr) {
-        alert("Subió el archivo pero no guardó los datos.");
-    } else {
-        alert("¡Enviado para aprobación!");
-        location.reload();
-    }
-}
-
-        async function loadFeed() {
-            const { data } = await _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
-            const container = document.getElementById('feed-container');
-            data?.forEach(post => {
-                const card = document.createElement('div');
-                card.className = 'post-card';
-                card.innerHTML = `
-                    ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop muted playsinline autoplay></video>` : `<img class="video-player" src="${post.url}">`}
-                    <div class="ui-info"><h2>@${post.usuario}</h2><p>${post.descripcion}</p></div>
-                `;
-                container.appendChild(card);
-            });
-            initObserver();
+            alert("¡Listo! El admin lo revisará.");
+            location.reload();
         }
 
-        function initObserver() {
-            const vids = document.querySelectorAll('video');
-            const obs = new IntersectionObserver(e => e.forEach(i => i.isIntersecting ? i.target.play() : i.target.pause()), { threshold: 0.6 });
-            vids.forEach(v => obs.observe(v));
-        }
-
-        checkSession();
+        init();
     </script>
     <style> @keyframes spin { to { transform: rotate(360deg); } } </style>
 </body>
