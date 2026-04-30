@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Estilos base existentes */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
         #app-viewport { width: 100%; height: calc(100dvh - 65px); position: relative; overflow: hidden; }
@@ -30,38 +31,39 @@
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.1); z-index: 20; }
         .progress-bar { height: 100%; background: #d4af37; width: 0%; }
         
-        /* NAVBAR ACTUALIZADA */
+        /* NAVBAR */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; transition: 0.3s; }
         .nav-item.active { color: #fff; }
-        .nav-item i { font-size: 1.3rem; display: block; margin-bottom: 3px; }
+        .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 3px; }
+        .plus-btn { width: 45px; height: 30px; background: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
+        .plus-btn::before { content:''; position:absolute; left:-3px; width:100%; height:100%; background:#20f3ea; border-radius:10px; z-index:-1; }
+        .plus-btn::after { content:''; position:absolute; right:-3px; width:100%; height:100%; background:#ff0050; border-radius:10px; z-index:-1; }
         
-        .plus-btn { width: 42px; height: 28px; background: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
-        .plus-btn::before { content:''; position:absolute; left:-3px; width:100%; height:100%; background:#20f3ea; border-radius:8px; z-index:-1; }
-        .plus-btn::after { content:''; position:absolute; right:-3px; width:100%; height:100%; background:#ff0050; border-radius:8px; z-index:-1; }
-        
+        /* PANTALLAS */
         .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: #000; z-index: 1500; overflow-y: auto; }
         
-        /* ESTILOS DE BUSQUEDA Y NOTIFICACIONES */
-        .search-bar { padding: 15px; background: #111; display: flex; gap: 10px; position: sticky; top: 0; z-index: 10; }
-        .search-bar input { flex: 1; background: #222; border: none; padding: 12px; border-radius: 8px; color: #fff; outline: none; }
-        .user-row { display: flex; align-items: center; padding: 12px 20px; border-bottom: 1px solid #111; cursor: pointer; }
-        .user-row img { width: 45px; height: 45px; border-radius: 50%; margin-right: 15px; }
-        
-        .notif-row { display: flex; align-items: flex-start; padding: 15px; border-bottom: 1px solid #111; gap: 12px; }
-        .notif-row img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        /* BÚSQUEDA */
+        #search-input-container { padding: 15px; background: #111; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 10; }
+        #search-box { width: 100%; padding: 12px; background: #222; border: none; border-radius: 10px; color: #fff; font-family: inherit; }
+        .user-search-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #111; cursor: pointer; }
+        .user-search-item img { width: 45px; height: 45px; border-radius: 50%; margin-right: 15px; background: #333; }
+
+        /* NOTIFICACIONES */
+        .notif-item { display: flex; align-items: flex-start; padding: 15px; border-bottom: 1px solid #111; gap: 12px; }
+        .notif-item img.avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
         .notif-content { flex: 1; font-size: 0.9rem; }
-        .notif-time { font-size: 0.7rem; color: #555; margin-top: 4px; }
+        .notif-content b { color: #d4af37; }
+        .notif-time { font-size: 0.75rem; color: #555; margin-top: 4px; }
         .notif-thumb { width: 40px; height: 55px; background: #222; border-radius: 4px; object-fit: cover; }
 
-        /* [RESTO DE ESTILOS MANTENIDOS] */
+        /* PERFIL */
         .profile-header { padding: 30px 20px; text-align: center; background: #000; position: relative; }
         .btn-back { position: absolute; top: 20px; left: 20px; font-size: 1.5rem; color: #fff; background: none; border: none; cursor: pointer; }
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
         .grid-item { aspect-ratio: 9/16; background: #111; position: relative; overflow: hidden; cursor: pointer; }
         .grid-item video, .grid-item img { width: 100%; height: 100%; object-fit: cover; }
-        #viewer-modal { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; }
-        .viewer-close { position: absolute; top: 20px; left: 20px; font-size: 2rem; z-index: 3100; color: #fff; cursor: pointer; }
+        
         #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; flex-direction: column; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
@@ -99,18 +101,18 @@
 
         <!-- SEARCH -->
         <div id="search-screen" class="screen">
-            <div class="search-bar">
-                <input type="text" id="search-input" placeholder="Buscar perfiles..." oninput="searchUsers(this.value)">
+            <div id="search-input-container">
+                <input type="text" id="search-box" placeholder="Buscar por nombre de usuario..." oninput="filterSearch(this.value)">
             </div>
-            <div id="search-results"></div>
+            <div id="search-results-list"></div>
         </div>
 
-        <!-- INBOX -->
+        <!-- INBOX (BANDEJA) -->
         <div id="inbox-screen" class="screen">
-            <div style="padding:20px; border-bottom: 1px solid #222;">
-                <h2 style="font-family:'Oswald'; color:#d4af37;">Bandeja de entrada</h2>
+            <div style="padding:20px; border-bottom:1px solid #222;">
+                <h2 style="font-family:'Oswald'; color:#d4af37;">Bandeja de Entrada</h2>
             </div>
-            <div id="notif-results"></div>
+            <div id="inbox-results-list"></div>
         </div>
 
         <!-- PROFILE -->
@@ -138,7 +140,7 @@
         </div>
     </div>
 
-    <!-- NAVBAR ACTUALIZADA CON LUPA Y BANDEJA -->
+    <!-- BOTTOM NAV ACTUALIZADA -->
     <div class="bottom-nav" id="main-nav" style="display:none;">
         <div class="nav-item active" id="nav-home" onclick="showScreen('feed')">
             <i class="fas fa-home"></i>Inicio
@@ -149,7 +151,7 @@
         <div class="nav-item" onclick="document.getElementById('file-input').click()">
             <div class="plus-btn"><i class="fas fa-plus" style="color:#000;"></i></div>
         </div>
-        <div class="nav-item" id="nav-inbox" onclick="goToInbox()">
+        <div class="nav-item" id="nav-inbox" onclick="loadInbox()">
             <i class="fas fa-comment-alt"></i>Bandeja
         </div>
         <div class="nav-item" id="nav-profile-btn" onclick="goToMyProfile()">
@@ -157,8 +159,9 @@
         </div>
     </div>
 
-    <div id="viewer-modal">
-        <i class="fas fa-arrow-left viewer-close" onclick="closeViewer()"></i>
+    <!-- VIEWER MODAL -->
+    <div id="viewer-modal" style="display:none; position:fixed; inset:0; background:#000; z-index:3000;">
+        <i class="fas fa-arrow-left" style="position:absolute; top:20px; left:20px; font-size:2rem; z-index:3100; color:#fff; cursor:pointer;" onclick="closeViewer()"></i>
         <div id="viewer-content" style="width:100%; height:100%;"></div>
     </div>
 
@@ -193,75 +196,70 @@
             document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
             document.getElementById('feed-screen').style.display = id === 'feed' ? 'block' : 'none';
             
-            // Actualizar iconos activos
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            // Actualizar clase active en nav
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if(id === 'feed') document.getElementById('nav-home').classList.add('active');
             if(id === 'search') document.getElementById('nav-search').classList.add('active');
             if(id === 'inbox') document.getElementById('nav-inbox').classList.add('active');
             if(id === 'profile') document.getElementById('nav-profile-btn').classList.add('active');
 
-            const screen = document.getElementById(id + '-screen');
-            if(screen) screen.style.display = id === 'feed' ? 'block' : 'flex';
+            const target = document.getElementById(id + '-screen');
+            if(target) target.style.display = id === 'feed' ? 'block' : 'flex';
         }
 
-        // LÓGICA DE BÚSQUEDA
-        async function searchUsers(term) {
-            if(term.length < 2) {
-                document.getElementById('search-results').innerHTML = "";
-                return;
-            }
+        // --- LÓGICA DE BÚSQUEDA ---
+        async function filterSearch(term) {
+            if(term.length < 2) return document.getElementById('search-results-list').innerHTML = "";
             const { data } = await _supabase.from('perfiles').select('username').ilike('username', `%${term}%`).limit(10);
-            const res = document.getElementById('search-results');
-            res.innerHTML = "";
+            const list = document.getElementById('search-results-list');
+            list.innerHTML = "";
             data?.forEach(u => {
-                const div = document.createElement('div');
-                div.className = 'user-row';
-                div.onclick = () => goToUserProfile(u.username);
-                div.innerHTML = `
+                const item = document.createElement('div');
+                item.className = 'user-search-item';
+                item.onclick = () => goToUserProfile(u.username);
+                item.innerHTML = `
                     <img src="https://ui-avatars.com/api/?name=${u.username}&background=random&color=fff">
                     <span style="font-weight:bold;">@${u.username}</span>
                 `;
-                res.appendChild(div);
+                list.appendChild(item);
             });
         }
 
-        // LÓGICA DE BANDEJA DE ENTRADA (NOTIFICACIONES)
-        async function goToInbox() {
+        // --- LÓGICA DE BANDEJA (NOTIFICACIONES) ---
+        async function loadInbox() {
             showScreen('inbox');
-            const res = document.getElementById('notif-results');
-            res.innerHTML = "<p style='padding:20px; color:#555;'>Cargando notificaciones...</p>";
+            const list = document.getElementById('inbox-results-list');
+            list.innerHTML = "<p style='padding:20px; color:#555;'>Cargando notificaciones...</p>";
             
-            // Aquí asumo que tienes una tabla 'notificaciones' vinculada a tus publicaciones
+            // Nota: Aquí se asume que tienes una tabla llamada 'notificaciones' vinculada
             const { data } = await _supabase.from('notificaciones')
                 .select('*, publicaciones(url, tipo)')
                 .eq('target_user_id', currentUserId)
                 .order('created_at', { ascending: false });
 
-            res.innerHTML = "";
+            list.innerHTML = "";
             if(!data || data.length === 0) {
-                res.innerHTML = "<p style='padding:20px; color:#555; text-align:center;'>No tienes notificaciones aún.</p>";
+                list.innerHTML = "<p style='padding:40px; text-align:center; color:#555;'>No tienes notificaciones por ahora.</p>";
                 return;
             }
 
             data.forEach(n => {
-                const row = document.createElement('div');
-                row.className = 'notif-row';
-                const actionText = n.tipo === 'like' ? 'le dio like a tu video' : `comentó: "${n.comentario}"`;
-                row.innerHTML = `
-                    <img src="https://ui-avatars.com/api/?name=${n.from_username}&background=random">
+                const item = document.createElement('div');
+                item.className = 'notif-item';
+                const action = n.tipo === 'like' ? 'le dio like a tu publicación' : `comentó: "${n.comentario}"`;
+                item.innerHTML = `
+                    <img class="avatar" src="https://ui-avatars.com/api/?name=${n.from_username}&background=random">
                     <div class="notif-content">
-                        <span style="font-weight:bold;">${n.from_username}</span> ${actionText}
+                        <b>${n.from_username}</b> ${action}
                         <div class="notif-time">${new Date(n.created_at).toLocaleDateString()}</div>
                     </div>
                     <img class="notif-thumb" src="${n.publicaciones?.url}${n.publicaciones?.tipo === 'video' ? '#t=0.1' : ''}">
                 `;
-                res.appendChild(row);
+                list.appendChild(item);
             });
         }
 
-        /* [RESTO DE TUS FUNCIONES: loadFeed, renderPost, handleLike, etc., se mantienen idénticas al código anterior] */
-        // Nota: Asegúrate de incluir todas tus funciones originales aquí abajo para que el sistema siga operando.
-        
+        // --- FUNCIONES DE FEED Y PERFIL MANTENIDAS ---
         async function loadFeed() {
             const container = document.getElementById('feed-container');
             const { data } = await _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
@@ -270,11 +268,9 @@
             initObserver();
         }
 
-        function renderPost(post, container, isNew = false) {
+        function renderPost(post, container) {
             const card = document.createElement('div');
             card.className = 'post-card';
-            card.id = `post-${post.id}`;
-            card.setAttribute('data-id', post.id);
             card.innerHTML = `
                 ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop playsinline></video>` : `<img class="video-player" src="${post.url}">`}
                 <div class="side-actions">
@@ -282,8 +278,8 @@
                         <img src="https://ui-avatars.com/api/?name=${post.usuario}&background=random">
                     </div>
                     <div class="action-item">
-                        <button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button>
-                        <span id="likes-${post.id}">${post.likes || 0}</span>
+                        <button class="action-btn"><i class="fas fa-heart"></i></button>
+                        <span>${post.likes || 0}</span>
                     </div>
                 </div>
                 <div class="ui-info">
@@ -292,10 +288,8 @@
                 </div>
             `;
             container.appendChild(card);
-            if(post.tipo === 'video') {
-                const v = card.querySelector('video');
-                v.onclick = () => v.paused ? v.play() : v.pause();
-            }
+            const v = card.querySelector('video');
+            if(v) v.onclick = () => v.paused ? v.play() : v.pause();
         }
 
         function initObserver() {
@@ -303,7 +297,7 @@
                 entries.forEach(entry => {
                     const v = entry.target.querySelector('video');
                     if (entry.isIntersecting && v) v.play().catch(()=>{});
-                    else if(v) { v.pause(); v.currentTime = 0; }
+                    else if(v) v.pause();
                 });
             }, { threshold: 0.8 });
             document.querySelectorAll('.post-card').forEach(c => obs.observe(c));
@@ -313,17 +307,17 @@
             viewingUser = currentUser;
             document.getElementById('prof-user').innerText = "@" + currentUser;
             showScreen('profile');
-            loadUserPosts('posts');
+            loadUserPosts();
         }
 
         function goToUserProfile(username) {
             viewingUser = username;
             document.getElementById('prof-user').innerText = "@" + username;
             showScreen('profile');
-            loadUserPosts('posts');
+            loadUserPosts();
         }
 
-        async function loadUserPosts(tab) {
+        async function loadUserPosts() {
             const grid = document.getElementById('profile-grid');
             grid.innerHTML = "";
             const { data } = await _supabase.from('publicaciones').select('*').eq('usuario', viewingUser).eq('estado', 'aprobado');
