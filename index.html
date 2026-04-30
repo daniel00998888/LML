@@ -101,57 +101,76 @@
     </div>
 
     <script>
-        const track = document.getElementById('track');
-        const slides = document.querySelectorAll('.carousel-slide');
-        const nextBtn = document.getElementById('nextBtn');
-        const prevBtn = document.getElementById('prevBtn');
+    const track = document.getElementById('track');
+    const slides = document.querySelectorAll('.carousel-slide');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
 
-        // 1. Clonamos la primera y última imagen
-        const firstClone = slides[0].cloneNode(true);
-        const lastClone = slides[slides.length - 1].cloneNode(true);
+    // 1. Configuración de Clones para el efecto infinito
+    const firstClone = slides[0].cloneNode(true);
+    const lastClone = slides[slides.length - 1].cloneNode(true);
+    track.appendChild(firstClone);
+    track.insertBefore(lastClone, slides[0]);
 
-        // 2. Las añadimos al track
-        track.appendChild(firstClone);
-        track.insertBefore(lastClone, slides[0]);
+    let index = 1;
+    const size = 100;
+    let autoPlayTimer; // Aquí guardamos el temporizador
 
-        // 3. Ajuste inicial (empezamos en la foto 1, no en el clon)
-        let index = 1;
-        const size = 100;
+    track.style.transform = `translateX(${-index * size}%)`;
+
+    // 2. Función para mover el carrusel
+    function move(dir) {
+        if (dir === 1 && index >= track.children.length - 1) return;
+        if (dir === -1 && index <= 0) return;
+        
+        index += dir;
+        track.style.transition = "transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)";
         track.style.transform = `translateX(${-index * size}%)`;
+        
+        // CADA VEZ QUE SE MUEVE, REINICIAMOS EL TIEMPO DE ESPERA
+        resetAutoPlay();
+    }
 
-        function moveNext() {
-            if (index >= track.children.length - 1) return;
+    // 3. Lógica del "Salto Invisible" (Infinito)
+    track.addEventListener('transitionend', () => {
+        if (track.children[index] === firstClone) {
+            track.style.transition = "none";
+            index = 1;
+            track.style.transform = `translateX(${-index * size}%)`;
+        }
+        if (track.children[index] === lastClone) {
+            track.style.transition = "none";
+            index = track.children.length - 2;
+            track.style.transform = `translateX(${-index * size}%)`;
+        }
+    });
+
+    // 4. EL CEREBRO: Control de inactividad
+    function startAutoPlay() {
+        autoPlayTimer = setInterval(() => {
+            // Desliza solo hacia la derecha
             index++;
             track.style.transition = "transform 0.6s ease-in-out";
             track.style.transform = `translateX(${-index * size}%)`;
-        }
+        }, 3000); // Se mueve cada 3 segundos una vez que inicia
+    }
 
-        function movePrev() {
-            if (index <= 0) return;
-            index--;
-            track.style.transition = "transform 0.6s ease-in-out";
-            track.style.transform = `translateX(${-index * size}%)`;
-        }
+    function resetAutoPlay() {
+        clearInterval(autoPlayTimer); // Detenemos el movimiento automático
+        
+        // Esperamos 5 segundos de inactividad antes de volver a empezar
+        clearTimeout(window.idleTimeout);
+        window.idleTimeout = setTimeout(() => {
+            startAutoPlay();
+        }, 5000); 
+    }
 
-        // 4. El "Truco Infinito": detectamos cuando termina la animación
-        track.addEventListener('transitionend', () => {
-            if (track.children[index] === firstClone) {
-                track.style.transition = "none"; // Quitamos la animación para el salto
-                index = 1;
-                track.style.transform = `translateX(${-index * size}%)`;
-            }
-            if (track.children[index] === lastClone) {
-                track.style.transition = "none";
-                index = track.children.length - 2;
-                track.style.transform = `translateX(${-index * size}%)`;
-            }
-        });
+    // Eventos de botones
+    nextBtn.addEventListener('click', () => move(1));
+    prevBtn.addEventListener('click', () => move(-1));
 
-        nextBtn.addEventListener('click', moveNext);
-        prevBtn.addEventListener('click', movePrev);
-
-        // Auto-play hacia la derecha siempre
-        setInterval(moveNext, 4000);
-    </script>
+    // Arrancamos el temporizador por primera vez
+    resetAutoPlay();
+</script>
 </body>
 </html>
