@@ -4,44 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LA MELY | TV</title>
-    <!-- Evitar error favicon 404 -->
     <link rel="icon" href="data:,">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body, html { 
-            width: 100%; 
-            height: 100%; 
-            background: #000; 
-            color: #fff; 
-            overflow: hidden; /* Bloquea el scroll del navegador */
-            font-family: 'Montserrat', sans-serif; 
-        }
+        body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
 
         /* --- FEED TIKTOK (Magnetismo Estricto) --- */
         #feed-container { 
-            width: 100%; 
-            height: calc(100dvh - 65px); 
-            overflow-y: scroll; 
-            snap-type: y mandatory; /* Convierte el scroll en un carrusel vertical */
-            scroll-behavior: smooth;
-            scrollbar-width: none; 
-            overscroll-behavior-y: contain; /* Evita que la página rebote */
+            width: 100%; height: calc(100dvh - 65px); overflow-y: scroll; 
+            snap-type: y mandatory; scroll-behavior: smooth; scrollbar-width: none; overscroll-behavior-y: contain; 
         }
         #feed-container::-webkit-scrollbar { display: none; }
 
         .post-card { 
-            width: 100%; 
-            height: calc(100dvh - 65px); 
-            snap-align: start; /* Alinea al inicio de cada "slide" */
-            snap-stop: always; /* Obliga a parar en cada video, no permite saltar varios */
-            position: relative; 
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 100%; height: calc(100dvh - 65px); snap-align: start; snap-stop: always; 
+            position: relative; background: #000; display: flex; align-items: center; justify-content: center;
         }
 
         .video-player { width: 100%; height: 100%; object-fit: cover; }
@@ -54,13 +34,12 @@
         .action-btn { background: none; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; text-shadow: 2px 2px 5px #000; }
         .action-btn.active { color: #ff0050; }
 
-        /* BARRA DE PROGRESO */
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.1); z-index: 20; }
         .progress-bar { height: 100%; background: #d4af37; width: 0%; }
 
         /* --- NAVEGACION --- */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-        .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; transition: 0.3s; }
+        .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; }
         .nav-item.active { color: #fff; }
         .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 3px; }
         
@@ -69,21 +48,28 @@
         .plus-btn::after { content:''; position:absolute; right:-3px; width:100%; height:100%; background:#ff0050; border-radius:10px; z-index:-1; }
 
         /* --- PANTALLAS --- */
-        .screen { position: fixed; inset: 0; display: none; flex-direction: column; background: #000; z-index: 1500; }
+        .screen { position: fixed; inset: 0; display: none; flex-direction: column; background: #000; z-index: 1500; overflow-y: auto; }
         
         /* AUTH */
         #auth-screen { align-items: center; justify-content: center; z-index: 2000; }
         .auth-box { width: 85%; max-width: 350px; text-align: center; background: #111; padding: 30px; border-radius: 25px; border: 1px solid #222; }
         .btn-main { width: 100%; padding: 16px; background: #d4af37; color: #000; border: none; border-radius: 50px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
 
-        /* PERFIL */
-        .profile-header { padding: 40px 20px; text-align: center; background: #111; border-bottom: 1px solid #222; }
-        .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; overflow-y: auto; }
-        .grid-item { aspect-ratio: 9/16; background: #222; }
+        /* PERFIL DETALLADO */
+        .profile-header { padding: 40px 20px; text-align: center; background: #000; }
+        .profile-avatar { width: 100px; height: 100px; border-radius: 50%; background: #222; margin: 0 auto 15px; border: 2px solid #d4af37; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #d4af37; }
+        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
+        .grid-item { aspect-ratio: 9/16; background: #111; position: relative; cursor: pointer; }
         .grid-item video, .grid-item img { width: 100%; height: 100%; object-fit: cover; }
+        .grid-item i { position: absolute; top: 5px; right: 5px; font-size: 0.8rem; color: rgba(255,255,255,0.7); }
 
-        /* CARGA */
-        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        /* MODAL VER VIDEO */
+        #viewer-modal { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; flex-direction: column; }
+        .viewer-close { position: absolute; top: 20px; left: 20px; font-size: 2rem; z-index: 3100; cursor: pointer; }
+
+        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; flex-direction: column; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
@@ -91,24 +77,24 @@
 
     <div id="loading">
         <div style="border:4px solid #d4af37; border-top:4px solid transparent; width:50px; height:50px; border-radius:50%; animation:spin 1s linear infinite"></div>
-        <p style="margin-top:15px; color:#d4af37; font-weight:bold;">PROCESANDO...</p>
+        <p style="margin-top:15px; color:#d4af37; font-weight:bold;">CARGANDO...</p>
     </div>
 
     <!-- PANTALLA AUTH -->
     <div id="auth-screen" class="screen">
         <div style="font-family:'Oswald'; font-size:3rem; color:#d4af37; margin-bottom:20px;">LA MELY</div>
         <div class="auth-box" id="login-form">
-            <input type="email" id="email" placeholder="Correo electrónico">
+            <input type="email" id="email" placeholder="Correo">
             <input type="password" id="pass" placeholder="Contraseña">
             <button class="btn-main" onclick="handleAuth('login')">Entrar</button>
-            <p style="margin-top:20px; color:#666" onclick="toggleAuth(true)">¿Eres nuevo? <span style="color:#d4af37">Regístrate</span></p>
+            <p style="margin-top:20px; color:#666" onclick="toggleAuth(true)">¿Nuevo? <span style="color:#d4af37">Regístrate</span></p>
         </div>
         <div class="auth-box" id="reg-form" style="display:none">
-            <input type="text" id="r-user" placeholder="Nombre de Usuario">
-            <input type="email" id="r-email" placeholder="Correo electrónico">
+            <input type="text" id="r-user" placeholder="Usuario">
+            <input type="email" id="r-email" placeholder="Correo">
             <input type="password" id="r-pass" placeholder="Contraseña">
-            <button class="btn-main" onclick="handleAuth('reg')">Crear Cuenta</button>
-            <p style="margin-top:20px; color:#666" onclick="toggleAuth(false)">¿Ya tienes cuenta? <span style="color:#d4af37">Inicia Sesión</span></p>
+            <button class="btn-main" onclick="handleAuth('reg')">Crear</button>
+            <p style="margin-top:20px; color:#666" onclick="toggleAuth(false)">¿Tienes cuenta? <span style="color:#d4af37">Entra</span></p>
         </div>
     </div>
 
@@ -127,10 +113,13 @@
     <!-- PANTALLA PERFIL -->
     <div id="profile-screen" class="screen">
         <div class="profile-header">
-            <h1 id="prof-user">@Usuario</h1>
-            <button onclick="logout()" style="background:none; border:1px solid #444; color:#fff; padding:5px 15px; border-radius:5px; margin-top:10px;">Cerrar Sesión</button>
+            <div class="profile-avatar" id="prof-avatar"><i class="fas fa-user"></i></div>
+            <h1 id="prof-user" style="font-family:'Oswald'; font-size:1.8rem; color:#d4af37;">@Usuario</h1>
+            <button onclick="logout()" style="background:none; border:1px solid #333; color:#888; padding:5px 15px; border-radius:5px; margin-top:15px; font-size:0.8rem;">Cerrar Sesión</button>
         </div>
+        <div style="padding:10px; font-size:0.9rem; font-weight:bold; border-top:1px solid #111;">PUBLICACIONES</div>
         <div class="profile-grid" id="profile-grid"></div>
+        <div style="height:80px;"></div>
         <div class="bottom-nav">
             <div class="nav-item" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
             <div class="nav-item" onclick="document.getElementById('file-input').click()">
@@ -138,6 +127,12 @@
             </div>
             <div class="nav-item active"><i class="fas fa-user"></i>Perfil</div>
         </div>
+    </div>
+
+    <!-- VISOR DE VIDEO (Al dar click en perfil) -->
+    <div id="viewer-modal">
+        <i class="fas fa-arrow-left viewer-close" onclick="closeViewer()"></i>
+        <div id="viewer-content" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"></div>
     </div>
 
     <!-- PANTALLA SUBIDA -->
@@ -193,9 +188,26 @@
             data?.forEach(post => {
                 const item = document.createElement('div');
                 item.className = 'grid-item';
-                item.innerHTML = post.tipo === 'video' ? `<video src="${post.url}"></video>` : `<img src="${post.url}">`;
+                item.onclick = () => openViewer(post);
+                item.innerHTML = post.tipo === 'video' ? 
+                    `<video src="${post.url}#t=0.1"></video><i class="fas fa-play"></i>` : 
+                    `<img src="${post.url}">`;
                 grid.appendChild(item);
             });
+        }
+
+        function openViewer(post) {
+            const modal = document.getElementById('viewer-modal');
+            const content = document.getElementById('viewer-content');
+            modal.style.display = 'flex';
+            content.innerHTML = post.tipo === 'video' ? 
+                `<video src="${post.url}" controls autoplay loop style="width:100%; max-height:100%"></video>` : 
+                `<img src="${post.url}" style="width:100%; max-height:100%; object-fit:contain;">`;
+        }
+
+        function closeViewer() {
+            document.getElementById('viewer-modal').style.display = 'none';
+            document.getElementById('viewer-content').innerHTML = "";
         }
 
         function renderPost(post, isNew = false) {
@@ -214,11 +226,8 @@
                 <div class="ui-info"><h2>@${post.usuario}</h2><p>${post.descripcion || ''}</p></div>
                 <div class="progress-container"><div class="progress-bar" id="bar-${post.id}"></div></div>
             `;
-            if (isNew) {
-                container.prepend(card);
-                container.scrollTo({top: 0, behavior: 'smooth'});
-                initObserver();
-            } else container.appendChild(card);
+            if (isNew) { container.prepend(card); container.scrollTo({top: 0}); initObserver(); }
+            else container.appendChild(card);
             if (post.tipo === 'video') setupVideo(card);
         }
 
@@ -235,7 +244,7 @@
                     const v = entry.target.querySelector('video');
                     if (v) entry.isIntersecting ? v.play() : (v.pause(), v.currentTime = 0);
                 });
-            }, { threshold: 0.7 });
+            }, { threshold: 0.8 });
             document.querySelectorAll('.post-card').forEach(c => obs.observe(c));
         }
 
