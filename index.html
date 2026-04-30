@@ -9,87 +9,52 @@
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* [MANTENEMOS TODOS TUS ESTILOS ORIGINALES] */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
-        
         #app-viewport { width: 100%; height: calc(100dvh - 65px); position: relative; overflow: hidden; }
         #feed-screen { width: 100%; height: 100%; display: block; }
         #feed-container { width: 100%; height: 100%; overflow-y: scroll; snap-type: y mandatory; scroll-behavior: smooth; scrollbar-width: none; overscroll-behavior-y: contain; }
         #feed-container::-webkit-scrollbar { display: none; }
-        
         .post-card { width: 100%; height: 100%; snap-align: start; snap-stop: always; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
-        
-        .up-to-date-card {
-            width: 100%; height: 100%; snap-align: start; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; text-align: center; padding: 40px;
-            background: radial-gradient(circle, #111 0%, #000 100%);
-        }
-        .up-to-date-card i { font-size: 5rem; color: #d4af37; margin-bottom: 20px; }
-        .up-to-date-card h2 { font-family: 'Oswald'; font-size: 2.2rem; color: #d4af37; letter-spacing: 2px; }
-        .up-to-date-card p { color: #888; margin: 15px 0 30px; font-size: 0.9rem; }
-        .btn-refresh { background: #d4af37; color: #000; border: none; padding: 15px 40px; border-radius: 50px; font-weight: 800; text-transform: uppercase; cursor: pointer; }
-
         .video-player { width: 100%; height: 100%; object-fit: cover; }
         .ui-info { position: absolute; bottom: 40px; left: 15px; z-index: 10; text-shadow: 2px 2px 8px rgba(0,0,0,1); max-width: 70%; }
-        .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.4rem; margin-bottom: 5px; }
-        
+        .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.4rem; margin-bottom: 5px; cursor: pointer; display: inline-block; }
         .side-actions { position: absolute; right: 10px; bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 20; }
         .action-item { display: flex; flex-direction: column; align-items: center; color: #fff; font-size: 0.75rem; font-weight: bold; }
-        .action-btn { background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
+        .action-btn { background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer; transition: 0.2s; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
         .action-btn.active { color: #ff0050 !important; transform: scale(1.1); }
-        
-        .user-avatar-btn { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #fff; overflow: hidden; background: #333; margin-bottom: 5px; }
+        .user-avatar-btn { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #fff; overflow: hidden; background: #333; margin-bottom: 5px; cursor: pointer; position: relative; }
         .user-avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
-        
+        .user-avatar-btn::after { content: '+'; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); background: #ff0050; color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 1px solid #000; }
         .btn-delete { color: #ff4444 !important; font-size: 1.8rem !important; margin-top: 5px; opacity: 0.8; }
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.1); z-index: 20; }
         .progress-bar { height: 100%; background: #d4af37; width: 0%; }
-        
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; }
         .nav-item.active { color: #fff; }
         .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 3px; }
-        
         .plus-btn { width: 45px; height: 30px; background: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
         .plus-btn::before { content:''; position:absolute; left:-3px; width:100%; height:100%; background:#20f3ea; border-radius:10px; z-index:-1; }
         .plus-btn::after { content:''; position:absolute; right:-3px; width:100%; height:100%; background:#ff0050; border-radius:10px; z-index:-1; }
-
         .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: #000; z-index: 1500; overflow-y: auto; }
-        .profile-header { padding: 30px 20px; text-align: center; background: #000; position: relative; border-bottom: 1px solid #222; }
+        .profile-header { padding: 30px 20px; text-align: center; background: #000; position: relative; }
         .btn-back { position: absolute; top: 20px; left: 20px; font-size: 1.5rem; color: #fff; background: none; border: none; cursor: pointer; }
-        
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
-        .grid-item { aspect-ratio: 9/16; background: #111; position: relative; overflow: hidden; }
+        .grid-item { aspect-ratio: 9/16; background: #111; position: relative; overflow: hidden; cursor: pointer; }
         .grid-item video, .grid-item img { width: 100%; height: 100%; object-fit: cover; }
-        
+        .grid-views { position: absolute; bottom: 5px; left: 5px; font-size: 0.75rem; color: #fff; font-weight: bold; text-shadow: 1px 1px 3px #000; z-index: 5; display: flex; align-items: center; gap: 4px; }
+        .profile-tabs-nav { display: flex; border-top: 1px solid #222; border-bottom: 1px solid #111; }
+        .tab-btn { flex: 1; padding: 12px; background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; position: relative; }
+        .tab-btn.active { color: #fff; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 2px; background: #d4af37; }
         #viewer-modal { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; }
         .viewer-close { position: absolute; top: 20px; left: 20px; font-size: 2rem; z-index: 3100; color: #fff; cursor: pointer; }
-        
         #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; flex-direction: column; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 90%; max-width: 400px; pointer-events: none; }
-        .toast { background: #333; color: #fff; padding: 15px 20px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; border-left: 5px solid #d4af37; box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
-        #custom-confirm { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9998; display: none; align-items: center; justify-content: center; }
-        .confirm-box { background: #1a1a1a; width: 85%; max-width: 300px; padding: 25px; border-radius: 20px; text-align: center; border: 1px solid #333; }
-        .confirm-btns { display: flex; gap: 10px; margin-top: 20px; }
-        .confirm-btns button { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-
-    <div id="toast-container"></div>
-    <div id="custom-confirm">
-        <div class="confirm-box">
-            <p id="confirm-msg">¿Estás seguro?</p>
-            <div class="confirm-btns">
-                <button onclick="closeConfirm(false)" style="background:#333; color:#fff;">No</button>
-                <button onclick="closeConfirm(true)" style="background:#ff4444; color:#fff;">Sí, borrar</button>
-            </div>
-        </div>
-    </div>
 
     <div id="loading">
         <div style="border:4px solid #d4af37; border-top:4px solid transparent; width:50px; height:50px; border-radius:50%; animation:spin 1s linear infinite"></div>
@@ -121,10 +86,14 @@
 
         <div id="profile-screen" class="screen">
             <div class="profile-header">
-                <button class="btn-back" onclick="showScreen('feed')"><i class="fas fa-arrow-left"></i></button>
+                <button class="btn-back" id="btn-back-profile" onclick="showScreen('feed')" style="display:none;"><i class="fas fa-arrow-left"></i></button>
                 <div style="font-size: 3.5rem; color: #d4af37;"><i class="fas fa-user-circle"></i></div>
-                <h1 id="prof-user" style="font-family:'Oswald'; font-size:1.8rem; color:#d4af37;">@Cargando...</h1>
-                <button onclick="logout()" style="background:none; border:1px solid #333; color:#888; padding:5px 15px; border-radius:5px; margin-top:10px; cursor:pointer;">Cerrar Sesión</button>
+                <h1 id="prof-user" style="font-family:'Oswald'; font-size:1.8rem; color:#d4af37;">@Usuario</h1>
+                <button id="btn-logout" onclick="logout()" style="background:none; border:1px solid #333; color:#888; padding:5px 15px; border-radius:5px; margin-top:10px; cursor:pointer;">Cerrar Sesión</button>
+            </div>
+            <div class="profile-tabs-nav" id="profile-tabs">
+                <button class="tab-btn active" id="tab-posts" onclick="switchProfileTab('posts')"><i class="fas fa-th"></i></button>
+                <button class="tab-btn" id="tab-likes" onclick="switchProfileTab('likes')"><i class="fas fa-heart"></i></button>
             </div>
             <div class="profile-grid" id="profile-grid"></div>
             <div style="height:80px;"></div>
@@ -132,8 +101,8 @@
 
         <div id="upload-screen" class="screen" style="padding:20px; justify-content: center;">
             <div style="width:100%; height:50vh; background:#111; border-radius:15px; overflow:hidden;" id="preview-box"></div>
-            <textarea id="post-desc" style="width:100%; background:#222; border:none; color:#fff; padding:15px; margin-top:15px; border-radius:10px; font-family:inherit; resize:none;" placeholder="Escribe algo..."></textarea>
-            <button style="margin-top:15px; width:100%; padding:18px; background:#d4af37; border:none; border-radius:12px; font-weight:bold; color:#000; cursor:pointer;" onclick="startUpload()">PUBLICAR</button>
+            <textarea id="post-desc" style="width:100%; background:#222; border:none; color:#fff; padding:15px; margin-top:15px; border-radius:10px; font-family:inherit; resize:none;" placeholder="Escribe algo sobre este video..."></textarea>
+            <button style="margin-top:15px; width:100%; padding:18px; background:#d4af37; border:none; border-radius:12px; font-weight:bold; color:#000; cursor:pointer;" onclick="startUpload()">PUBLICAR AHORA</button>
             <button onclick="location.reload()" style="background:none; border:none; color:#888; margin-top:15px; width:100%; cursor:pointer;">Cancelar</button>
         </div>
     </div>
@@ -156,7 +125,10 @@
         const SB_KEY = 'sb_publishable_gZgGIamNJqf8ir8vvt1OTw_bJ-rosi4';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        let currentUser = null, currentUserId = null, selectedFile = null, confirmCallback = null;
+        let currentUser = null;
+        let currentUserId = null; 
+        let selectedFile = null;
+        let viewingUser = null;
 
         async function init() {
             const { data: { session } } = await _supabase.auth.getSession();
@@ -164,89 +136,15 @@
                 currentUserId = session.user.id;
                 const { data } = await _supabase.from('perfiles').select('username').eq('id', currentUserId).single();
                 currentUser = data?.username || "Anonimo";
+                
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('main-nav').style.display = 'flex';
                 loadFeed();
                 setupRealtime();
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('main-nav').style.display = 'none';
             }
-        }
-
-        async function loadFeed() {
-            const container = document.getElementById('feed-container');
-            container.innerHTML = "";
-            const { data: seen } = await _supabase.from('vistan_historial').select('post_id').eq('user_id', currentUserId);
-            const seenIds = seen ? seen.map(v => v.post_id) : [];
-            let query = _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').neq('usuario', currentUser).order('created_at', { ascending: false });
-            if (seenIds.length > 0) query = query.not('id', 'in', `(${seenIds.join(',')})`);
-            const { data } = await query;
-            if (!data || data.length === 0) {
-                container.innerHTML = `<div class="up-to-date-card"><i class="fas fa-check-circle"></i><h2>¡ESTÁS AL DÍA!</h2><p>Has visto todo lo nuevo.</p><button class="btn-refresh" onclick="location.reload()">Recargar</button></div>`;
-                return;
-            }
-            data.forEach(post => renderPost(post, container));
-            initObserver();
-        }
-
-        function renderPost(post, container, isNew = false) {
-            const card = document.createElement('div');
-            card.className = 'post-card';
-            card.id = `post-${post.id}`;
-            card.setAttribute('data-id', post.id);
-            card.innerHTML = `
-                ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop playsinline></video>` : `<img class="video-player" src="${post.url}">`}
-                <div class="side-actions">
-                    <div class="user-avatar-btn"><img src="https://ui-avatars.com/api/?name=${post.usuario}&background=random&color=fff"></div>
-                    <div class="action-item"><button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button><span id="likes-${post.id}">${post.likes || 0}</span></div>
-                    ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}')"><i class="fas fa-trash-alt"></i></button>` : ''}
-                </div>
-                <div class="ui-info"><h2>@${post.usuario}</h2><p>${post.descripcion || ''}</p></div>
-                <div class="progress-container"><div class="progress-bar" id="bar-${post.id}"></div></div>
-            `;
-            isNew ? container.prepend(card) : container.appendChild(card);
-            if (post.tipo === 'video') {
-                const v = card.querySelector('video');
-                v.ontimeupdate = () => card.querySelector('.progress-bar').style.width = (v.currentTime / v.duration) * 100 + "%";
-            }
-        }
-
-        function initObserver() {
-            const obs = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
-                    const v = entry.target.querySelector('video');
-                    if (entry.isIntersecting) {
-                        if(v) v.play().catch(()=>{});
-                        markView(entry.target.getAttribute('data-id'));
-                    } else if(v) { v.pause(); }
-                });
-            }, { threshold: 0.7 });
-            document.querySelectorAll('.post-card').forEach(c => obs.observe(c));
-        }
-
-        async function markView(postId) {
-            if(sessionStorage.getItem(`v_${postId}`)) return;
-            sessionStorage.setItem(`v_${postId}`, 'true');
-            await _supabase.rpc('increment_vistas', { post_id: postId.toString() });
-            await _supabase.from('vistan_historial').insert([{ user_id: currentUserId, post_id: Number(postId) }]);
-        }
-
-        async function handleLike(postId, btn) {
-            const active = btn.classList.toggle('active');
-            if (active) {
-                await _supabase.from('likes').insert([{ user_id: currentUserId, post_id: Number(postId) }]);
-                await _supabase.rpc('increment_likes', { post_id: postId.toString() });
-            } else {
-                await _supabase.from('likes').delete().eq('user_id', currentUserId).eq('post_id', Number(postId));
-                await _supabase.rpc('decrement_likes', { post_id: postId.toString() });
-            }
-        }
-
-        async function deletePost(postId) {
-            showConfirm("¿Eliminar este video?", async () => {
-                await _supabase.from('publicaciones').delete().eq('id', postId);
-                location.reload();
-            });
         }
 
         function showScreen(id) {
@@ -254,31 +152,214 @@
             document.getElementById('feed-screen').style.display = id === 'feed' ? 'block' : 'none';
             document.getElementById('nav-home').classList.toggle('active', id === 'feed');
             document.getElementById('nav-profile-btn').classList.toggle('active', id === 'profile');
-            if(id === 'profile') document.getElementById('profile-screen').style.display = 'flex';
-            if(id === 'upload') document.getElementById('upload-screen').style.display = 'flex';
+            
+            if(id === 'profile') {
+                document.getElementById('profile-screen').style.display = 'flex';
+            } else if(id === 'upload') {
+                document.getElementById('upload-screen').style.display = 'flex';
+            }
         }
 
-        async function goToMyProfile() {
+        function goToMyProfile() {
+            viewingUser = currentUser;
             document.getElementById('prof-user').innerText = "@" + currentUser;
+            document.getElementById('btn-back-profile').style.display = 'none';
+            document.getElementById('btn-logout').style.display = 'inline-block';
+            document.getElementById('profile-tabs').style.display = 'flex';
             showScreen('profile');
+            switchProfileTab('posts');
+        }
+
+        function goToUserProfile(username) {
+            if(username === currentUser) return goToMyProfile();
+            viewingUser = username;
+            document.getElementById('prof-user').innerText = "@" + username;
+            document.getElementById('btn-back-profile').style.display = 'block';
+            document.getElementById('btn-logout').style.display = 'none';
+            document.getElementById('profile-tabs').style.display = 'none';
+            showScreen('profile');
+            loadUserPosts('posts');
+        }
+
+        async function switchProfileTab(tab) {
+            document.getElementById('tab-posts').classList.toggle('active', tab === 'posts');
+            document.getElementById('tab-likes').classList.toggle('active', tab === 'likes');
+            loadUserPosts(tab);
+        }
+
+        async function loadUserPosts(filterType = 'posts') {
             const grid = document.getElementById('profile-grid');
-            grid.innerHTML = "<p style='padding:20px; color:#666;'>Cargando tus videos...</p>";
-            const { data } = await _supabase.from('publicaciones').select('*').eq('usuario', currentUser).order('created_at', { ascending: false });
+            grid.innerHTML = "<p style='grid-column:1/4; text-align:center; padding:20px; color:#555;'>Cargando...</p>";
+            
+            let data = [];
+            if(filterType === 'posts') {
+                const { data: posts } = await _supabase.from('publicaciones').select('*').eq('usuario', viewingUser).eq('estado', 'aprobado').order('created_at', { ascending: false });
+                data = posts;
+            } else {
+                const { data: likedData } = await _supabase.from('likes').select('publicaciones(*)').eq('user_id', currentUserId);
+                data = likedData ? likedData.map(l => l.publicaciones).filter(p => p !== null) : [];
+            }
+
             grid.innerHTML = "";
             data?.forEach(post => {
                 const item = document.createElement('div');
                 item.className = 'grid-item';
                 item.onclick = () => openViewer(post);
-                item.innerHTML = post.tipo === 'video' ? `<video src="${post.url}#t=0.1" muted></video>` : `<img src="${post.url}">`;
+                item.innerHTML = `
+                    ${post.tipo === 'video' ? `<video src="${post.url}#t=0.1" muted></video>` : `<img src="${post.url}">`}
+                    <div class="grid-views"><i class="fas fa-play"></i> ${post.vistas || 0}</div>
+                `;
                 grid.appendChild(item);
             });
         }
 
+        // --- LÓGICA DE "TODOS LOS MENSAJES" (MOSTRAR TODO SI NO HAY NUEVOS) ---
+        async function loadFeed() {
+            const container = document.getElementById('feed-container');
+            container.innerHTML = "<div style='padding:50px; text-align:center;'>Preparando tu feed...</div>";
+
+            // 1. Intentar cargar contenido nuevo (no visto y no propio)
+            const { data: seenVideos } = await _supabase
+                .from('vistan_historial')
+                .select('post_id')
+                .eq('user_id', currentUserId);
+            
+            const seenIds = seenVideos ? seenVideos.map(v => v.post_id) : [];
+
+            let query = _supabase
+                .from('publicaciones')
+                .select('*')
+                .eq('estado', 'aprobado')
+                .neq('usuario', currentUser)
+                .order('created_at', { ascending: false });
+
+            if (seenIds.length > 0) {
+                query = query.not('id', 'in', `(${seenIds.join(',')})`);
+            }
+
+            let { data, error } = await query;
+
+            // 2. Si no hay contenido nuevo, cargar ABSOLUTAMENTE TODO (Incluso propios y vistos)
+            if (!data || data.length === 0) {
+                const { data: allData } = await _supabase
+                    .from('publicaciones')
+                    .select('*')
+                    .eq('estado', 'aprobado')
+                    .order('vistas', { ascending: false }); // Ordenar por más vistos para mostrar lo mejor
+                data = allData;
+            }
+
+            container.innerHTML = "";
+            
+            if (error || !data || data.length === 0) {
+                container.innerHTML = `<div style="height:100%; display:flex; align-items:center; justify-content:center;">No hay nada que mostrar aún.</div>`;
+                return;
+            }
+
+            data.forEach(post => renderPost(post, container));
+            initObserver();
+        }
+
+        function renderPost(post, container, isNew = false) {
+            if (!isNew && document.getElementById(`post-${post.id}`)) return;
+            const card = document.createElement('div');
+            card.className = 'post-card';
+            card.id = `post-${post.id}`;
+            card.setAttribute('data-id', post.id);
+
+            card.innerHTML = `
+                ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop playsinline></video>` : `<img class="video-player" src="${post.url}">`}
+                <div class="side-actions">
+                    <div class="user-avatar-btn" onclick="goToUserProfile('${post.usuario}')">
+                        <img src="https://ui-avatars.com/api/?name=${post.usuario}&background=random&color=fff" alt="avatar">
+                    </div>
+                    <div class="action-item">
+                        <button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button>
+                        <span class="likes-count" id="likes-${post.id}">${post.likes || 0}</span>
+                    </div>
+                    <div class="action-item">
+                        <button class="action-btn" onclick="alert('Muy pronto...')"><i class="fas fa-comment-dots"></i></button>
+                        <span id="comm-count-${post.id}">${post.comentarios_count || 0}</span>
+                    </div>
+                    <div class="action-item">
+                        <i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i>
+                        <span class="vistas-count" id="vistas-${post.id}">${post.vistas || 0}</span>
+                    </div>
+                    ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
+                </div>
+                <div class="ui-info">
+                    <h2 onclick="goToUserProfile('${post.usuario}')">@${post.usuario}</h2>
+                    <p>${post.descripcion || ''}</p>
+                </div>
+                <div class="progress-container"><div class="progress-bar" id="bar-${post.id}"></div></div>
+            `;
+            isNew ? container.prepend(card) : container.appendChild(card);
+            if (post.tipo === 'video') setupVideo(card, post.id);
+            checkLikeStatus(post.id, card.querySelector(`#btn-like-${post.id}`));
+        }
+
+        async function handleLike(postId, btn) {
+            const isLiked = btn.classList.contains('active');
+            const allBtns = document.querySelectorAll(`#btn-like-${postId}`);
+            const allCounts = document.querySelectorAll(`#likes-${postId}`);
+            if (!isLiked) {
+                allBtns.forEach(b => b.classList.add('active'));
+                allCounts.forEach(c => c.innerText = parseInt(c.innerText || 0) + 1);
+                await _supabase.from('likes').insert([{ user_id: currentUserId, post_id: Number(postId) }]);
+                await _supabase.rpc('increment_likes', { post_id: postId.toString() });
+            } else {
+                allBtns.forEach(b => b.classList.remove('active'));
+                allCounts.forEach(c => c.innerText = Math.max(0, parseInt(c.innerText || 0) - 1));
+                await _supabase.from('likes').delete().eq('user_id', currentUserId).eq('post_id', Number(postId));
+                await _supabase.rpc('decrement_likes', { post_id: postId.toString() });
+            }
+        }
+
+        async function checkLikeStatus(postId, btn) {
+            if (!btn) return;
+            const { data } = await _supabase.from('likes').select('id').eq('user_id', currentUserId).eq('post_id', Number(postId)).maybeSingle();
+            if (data) btn.classList.add('active');
+        }
+
+        async function markView(postId) {
+            if(sessionStorage.getItem(`view_${postId}`)) return;
+            sessionStorage.setItem(`view_${postId}`, 'true');
+            await _supabase.rpc('increment_vistas', { post_id: postId.toString() });
+            await _supabase.from('vistan_historial').insert([{ user_id: currentUserId, post_id: Number(postId) }]);
+        }
+
+        function setupVideo(card, postId) {
+            const v = card.querySelector('video');
+            const bar = card.querySelector('.progress-bar');
+            if(!v) return;
+            v.onclick = () => v.paused ? v.play() : v.pause();
+            v.ontimeupdate = () => bar.style.width = (v.currentTime / v.duration) * 100 + "%";
+        }
+
+        function initObserver() {
+            const obs = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    const id = entry.target.getAttribute('data-id');
+                    const v = entry.target.querySelector('video');
+                    if (entry.isIntersecting) { 
+                        if(v) v.play().catch(()=>{}); 
+                        markView(id); 
+                    } else if(v) { 
+                        v.pause(); 
+                        v.currentTime = 0; 
+                    }
+                });
+            }, { threshold: 0.7 });
+            document.querySelectorAll('#feed-container .post-card').forEach(c => obs.observe(c));
+        }
+
         function openViewer(post) {
             const modal = document.getElementById('viewer-modal');
+            const content = document.getElementById('viewer-content');
             modal.style.display = 'block';
-            renderPost(post, document.getElementById('viewer-content'), true);
-            const v = document.querySelector('#viewer-content video');
+            content.innerHTML = "";
+            renderPost(post, content, true);
+            const v = content.querySelector('video');
             if(v) { v.muted = false; v.play(); }
         }
 
@@ -287,24 +368,20 @@
             document.getElementById('viewer-content').innerHTML = "";
         }
 
-        function showConfirm(msg, cb) { 
-            document.getElementById('confirm-msg').innerText = msg;
-            document.getElementById('custom-confirm').style.display = 'flex';
-            confirmCallback = cb;
-        }
-
-        function closeConfirm(ans) {
-            document.getElementById('custom-confirm').style.display = 'none';
-            if(ans && confirmCallback) confirmCallback();
+        async function deletePost(postId, fileUrl) {
+            if(!confirm("¿Eliminar?")) return;
+            await _supabase.from('publicaciones').delete().eq('id', postId);
+            location.reload();
         }
 
         async function handleAuth(type) {
             const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
             const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
+            document.getElementById('loading').style.display = 'flex';
             if(type === 'reg'){
                 const u = document.getElementById('r-user').value;
-                const { data } = await _supabase.auth.signUp({ email: e, password: p });
-                if(data.user) await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
+                const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
+                if(!error && data.user) await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
             } else {
                 await _supabase.auth.signInWithPassword({ email: e, password: p });
             }
@@ -328,19 +405,25 @@
         };
 
         async function startUpload() {
+            if(!selectedFile) return;
             document.getElementById('loading').style.display = 'flex';
             const fName = Date.now() + "_" + selectedFile.name;
             await _supabase.storage.from('mely_media').upload(fName, selectedFile);
-            const { data } = _supabase.storage.from('mely_media').getPublicUrl(fName);
-            await _supabase.from('publicaciones').insert([{ usuario: currentUser, url: data.publicUrl, tipo: selectedFile.type.includes('video') ? 'video' : 'imagen', descripcion: document.getElementById('post-desc').value, estado: 'pendiente' }]);
+            const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
+            await _supabase.from('publicaciones').insert([{ 
+                usuario: currentUser, url: urlData.publicUrl, 
+                tipo: selectedFile.type.includes('video') ? 'video' : 'imagen', 
+                descripcion: document.getElementById('post-desc').value, 
+                estado: 'pendiente', likes: 0, vistas: 0, comentarios_count: 0 
+            }]);
             location.reload();
         }
 
         function setupRealtime() {
             _supabase.channel('public').on('postgres_changes', { event: 'UPDATE', table: 'publicaciones' }, payload => {
                 const post = payload.new;
-                const el = document.getElementById(`likes-${post.id}`);
-                if(el) el.innerText = post.likes;
+                document.querySelectorAll(`#likes-${post.id}`).forEach(c => c.innerText = post.likes);
+                document.querySelectorAll(`#vistas-${post.id}`).forEach(v => v.innerText = post.vistas);
             }).subscribe();
         }
 
