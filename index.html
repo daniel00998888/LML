@@ -11,152 +11,186 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
 
-        /* FEED Y NAV (Igual al anterior) */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 0.5px solid #333; display: flex; justify-content: space-around; align-items: center; z-index: 200; }
+        /* --- PANTALLA DE AUTH --- */
+        #auth-screen { position: fixed; inset: 0; z-index: 1000; background: #000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .auth-box { width: 90%; max-width: 350px; text-align: center; background: #111; padding: 30px; border-radius: 25px; border: 1px solid #222; }
+        .logo { font-family: 'Oswald'; font-size: 3rem; color: #d4af37; margin-bottom: 20px; letter-spacing: 4px; }
+        input { width: 100%; padding: 15px; margin-bottom: 10px; background: #222; border: 1px solid #333; color: #fff; border-radius: 12px; }
+        .btn-main { width: 100%; padding: 15px; background: #d4af37; color: #000; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+        /* --- FEED TIKTOK --- */
+        #feed-screen { width: 100%; height: 100%; display: none; }
+        #feed-container { width: 100%; height: calc(100vh - 65px); overflow-y: scroll; snap-type: y mandatory; scrollbar-width: none; }
+        #feed-container::-webkit-scrollbar { display: none; }
+        .post-card { width: 100%; height: calc(100vh - 65px); snap-align: start; position: relative; display: flex; align-items: center; justify-content: center; background: #000; }
+        .video-player { width: 100%; height: 100%; object-fit: cover; }
+        .ui-info { position: absolute; bottom: 20px; left: 15px; pointer-events: none; text-shadow: 1px 1px 5px rgba(0,0,0,0.8); }
+        .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.4rem; }
+
+        /* --- NAVEGACION --- */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 0.5px solid #333; display: flex; justify-content: space-around; align-items: center; z-index: 500; }
         .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; }
-        .upload-btn-ui { width: 45px; height: 30px; background: #fff; border-radius: 8px; position: relative; display: flex; align-items: center; justify-content: center; }
-        .upload-btn-ui::before { content: ''; position: absolute; left: -3px; width: 100%; height: 100%; background: #20f3ea; border-radius: 8px; z-index: -1; }
-        .upload-btn-ui::after { content: ''; position: absolute; right: -3px; width: 100%; height: 100%; background: #ff0050; border-radius: 8px; z-index: -1; }
+        .upload-btn { width: 45px; height: 30px; background: #fff; border-radius: 8px; position: relative; display: flex; align-items: center; justify-content: center; }
+        .upload-btn::before { content: ''; position: absolute; left: -3px; width: 100%; height: 100%; background: #20f3ea; border-radius: 8px; z-index: -1; }
+        .upload-btn::after { content: ''; position: absolute; right: -3px; width: 100%; height: 100%; background: #ff0050; border-radius: 8px; z-index: -1; }
 
-        /* PANTALLA DE EDICIÓN (PASO 2) */
-        #edit-screen {
-            position: fixed; inset: 0; background: #000; z-index: 400;
-            display: none; flex-direction: column; padding: 20px;
-        }
-        .preview-container { width: 100%; height: 40%; background: #111; border-radius: 15px; overflow: hidden; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 1px solid #d4af37; }
-        .preview-container img, .preview-container video { max-width: 100%; max-height: 100%; }
-
-        .edit-fields { flex: 1; }
-        input, textarea { width: 100%; padding: 15px; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 10px; margin-bottom: 15px; font-family: 'Montserrat'; }
-        .publish-btn { width: 100%; padding: 18px; background: #d4af37; color: #000; border: none; border-radius: 50px; font-weight: 700; font-size: 1.1rem; cursor: pointer; }
+        /* --- PANTALLA DE SUBIDA --- */
+        #upload-screen { position: fixed; inset: 0; z-index: 800; background: #000; display: none; flex-direction: column; padding: 20px; }
+        .preview-box { width: 100%; height: 40%; border: 1px dashed #d4af37; border-radius: 15px; margin-bottom: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         
-        #loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 500; display: none; align-items: center; justify-content: center; flex-direction: column; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #d4af37; border-top: 4px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; flex-direction: column; }
     </style>
 </head>
 <body>
 
-    <!-- INPUT OCULTO PARA ABRIR GALERÍA -->
-    <input type="file" id="file-input" accept="video/*,image/*" style="display: none;">
-
-    <div id="feed"></div>
-
-    <div class="bottom-nav">
-        <div class="nav-item"><i class="fas fa-home"></i>Inicio</div>
-        <div class="nav-item" onclick="document.getElementById('file-input').click()">
-            <div class="upload-btn-ui"><i class="fas fa-plus" style="color: #000;"></i></div>
+    <!-- 1. PANTALLA DE CARGA / LOGIN -->
+    <div id="auth-screen">
+        <div class="logo">LA MELY</div>
+        <div class="auth-box" id="login-form">
+            <h3 style="margin-bottom:15px">ACCESO</h3>
+            <input type="email" id="email" placeholder="Correo">
+            <input type="password" id="pass" placeholder="Contraseña">
+            <button class="btn-main" onclick="handleAuth('login')">ENTRAR</button>
+            <p onclick="toggleAuth(true)" style="margin-top:15px; font-size:0.8rem; color:#888">¿Eres nuevo? <b>Regístrate</b></p>
         </div>
-        <div class="nav-item"><i class="fas fa-user"></i>Perfil</div>
-    </div>
-
-    <!-- PANTALLA DE PASO 2: DESCRIPCIÓN -->
-    <div id="edit-screen">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-            <i class="fas fa-arrow-left" onclick="location.reload()"></i>
-            <h3 style="font-family: 'Oswald'; color: #d4af37;">NUEVA PUBLICACIÓN</h3>
-            <span></span>
-        </div>
-        
-        <div class="preview-container" id="preview-box"></div>
-
-        <div class="edit-fields">
-            <input type="text" id="post-user" placeholder="Tu nombre o @usuario">
-            <textarea id="post-desc" rows="4" placeholder="Escribe una descripción épica..."></textarea>
-            <button class="publish-btn" onclick="uploadContent()">PUBLICAR AHORA</button>
+        <div class="auth-box" id="reg-form" style="display:none">
+            <h3 style="margin-bottom:15px">REGISTRO</h3>
+            <input type="text" id="r-user" placeholder="Nombre de usuario">
+            <input type="email" id="r-email" placeholder="Correo">
+            <input type="password" id="r-pass" placeholder="Contraseña">
+            <button class="btn-main" onclick="handleAuth('reg')">CREAR CUENTA</button>
+            <p onclick="toggleAuth(false)" style="margin-top:15px; font-size:0.8rem; color:#888">¿Ya tienes cuenta? <b>Loguéate</b></p>
         </div>
     </div>
 
-    <div id="loading-overlay">
-        <div class="spinner"></div>
-        <p style="margin-top: 15px;">Subiendo a la red...</p>
+    <!-- 2. PANTALLA PRINCIPAL (FEED) -->
+    <div id="feed-screen">
+        <div id="feed-container"></div>
+        <div class="bottom-nav">
+            <div class="nav-item"><i class="fas fa-home"></i>Inicio</div>
+            <div class="nav-item" onclick="document.getElementById('file-input').click()">
+                <div class="upload-btn"><i class="fas fa-plus" style="color:#000"></i></div>
+            </div>
+            <div class="nav-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i>Salir</div>
+        </div>
     </div>
+
+    <!-- 3. PANTALLA DE SUBIDA (PASO 2) -->
+    <div id="upload-screen">
+        <h2 style="font-family:'Oswald'; color:#d4af37; margin-bottom:20px">EDITAR POST</h2>
+        <div class="preview-box" id="preview-box"></div>
+        <textarea id="post-desc" rows="4" placeholder="Escribe algo sobre tu video..." style="width:100%; padding:15px; background:#111; color:#fff; border:1px solid #333; border-radius:10px; margin-bottom:20px; font-family:'Montserrat'"></textarea>
+        <button class="btn-main" onclick="startUpload()">PUBLICAR AHORA</button>
+        <p onclick="location.reload()" style="text-align:center; margin-top:20px; color:#888">Cancelar</p>
+    </div>
+
+    <!-- ELEMENTOS OCULTOS -->
+    <input type="file" id="file-input" accept="video/*,image/*" style="display:none">
+    <div id="loading"><div style="border:4px solid #d4af37; border-top:4px solid transparent; width:40px; height:40px; border-radius:50%; animation:spin 1s linear infinite"></div><p style="margin-top:10px">Subiendo...</p></div>
 
     <script>
         const SB_URL = 'https://meiwuluwrdjszxeyoqtt.supabase.co';
         const SB_KEY = 'sb_publishable_gZgGIamNJqf8ir8vvt1OTw_bJ-rosi4';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
+        let currentUser = null;
         let selectedFile = null;
 
-        // PASO 1: Detectar elección de archivo
-        document.getElementById('file-input').onchange = function(e) {
+        // --- GESTION DE SESION ---
+        async function checkSession() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            if (session) {
+                const { data } = await _supabase.from('perfiles').select('username').eq('id', session.user.id).single();
+                currentUser = data.username;
+                showScreen('feed');
+                loadFeed();
+            }
+        }
+
+        function showScreen(screen) {
+            document.getElementById('auth-screen').style.display = screen === 'auth' ? 'flex' : 'none';
+            document.getElementById('feed-screen').style.display = screen === 'feed' ? 'block' : 'none';
+            document.getElementById('upload-screen').style.display = screen === 'upload' ? 'flex' : 'none';
+        }
+
+        function toggleAuth(showReg) {
+            document.getElementById('login-form').style.display = showReg ? 'none' : 'block';
+            document.getElementById('reg-form').style.display = showReg ? 'block' : 'none';
+        }
+
+        async function handleAuth(type) {
+            if (type === 'reg') {
+                const u = document.getElementById('r-user').value;
+                const e = document.getElementById('r-email').value;
+                const p = document.getElementById('r-pass').value;
+                const { data, error } = await _supabase.auth.signUp({ email:e, password:p });
+                if (error) return alert(error.message);
+                await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
+                alert("Registro exitoso!"); location.reload();
+            } else {
+                const e = document.getElementById('email').value;
+                const p = document.getElementById('pass').value;
+                const { error } = await _supabase.auth.signInWithPassword({ email:e, password:p });
+                if (error) return alert("Error de acceso");
+                location.reload();
+            }
+        }
+
+        async function logout() { await _supabase.auth.signOut(); location.reload(); }
+
+        // --- GESTION DE VIDEOS ---
+        document.getElementById('file-input').onchange = (e) => {
             selectedFile = e.target.files[0];
             if (selectedFile) {
-                showEditScreen();
+                const url = URL.createObjectURL(selectedFile);
+                document.getElementById('preview-box').innerHTML = selectedFile.type.includes('video') ? 
+                    `<video src="${url}" autoplay muted loop style="height:100%"></video>` : `<img src="${url}" style="height:100%">`;
+                showScreen('upload');
             }
         };
 
-        function showEditScreen() {
-            document.getElementById('edit-screen').style.display = 'flex';
-            const previewBox = document.getElementById('preview-box');
-            const url = URL.createObjectURL(selectedFile);
+        async function startUpload() {
+            document.getElementById('loading').style.display = 'flex';
+            const fName = `${Date.now()}_${selectedFile.name}`;
+            const { data: sData, error: sErr } = await _supabase.storage.from('mely_media').upload(fName, selectedFile);
             
-            if (selectedFile.type.includes('video')) {
-                previewBox.innerHTML = `<video src="${url}" autoplay muted loop></video>`;
-            } else {
-                previewBox.innerHTML = `<img src="${url}">`;
-            }
+            if (sErr) return alert("Error al subir");
+
+            const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
+            await _supabase.from('publicaciones').insert([{
+                usuario: currentUser,
+                url: urlData.publicUrl,
+                tipo: selectedFile.type.includes('video') ? 'video' : 'imagen',
+                descripcion: document.getElementById('post-desc').value,
+                estado: 'pendiente'
+            }]);
+            alert("Enviado para aprobación!");
+            location.reload();
         }
 
-        // PASO 2: Subir archivo y datos
-        async function uploadContent() {
-            const user = document.getElementById('post-user').value;
-            const desc = document.getElementById('post-desc').value;
-
-            if (!user || !selectedFile) return alert("Pon tu nombre, bro.");
-
-            document.getElementById('loading-overlay').style.display = 'flex';
-
-            // 1. Subir al Storage
-            const fileName = `${Date.now()}_${selectedFile.name}`;
-            const { data: storageData, error: storageError } = await _supabase.storage
-                .from('mely_media')
-                .upload(fileName, selectedFile);
-
-            if (storageError) {
-                alert("Error al subir archivo");
-                console.error(storageError);
-                return;
-            }
-
-            // 2. Obtener URL Pública
-            const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fileName);
-            const publicUrl = urlData.publicUrl;
-
-            // 3. Guardar en Tabla
-            const type = selectedFile.type.includes('video') ? 'video' : 'imagen';
-            const { error: dbError } = await _supabase.from('publicaciones').insert([
-                { usuario: user, url: publicUrl, tipo: type, descripcion: desc, estado: 'pendiente' }
-            ]);
-
-            if (!dbError) {
-                alert("¡Listo! Espera a que el admin lo apruebe.");
-                location.reload();
-            } else {
-                alert("Error al guardar datos");
-            }
-        }
-
-        // Cargar Feed (Simplificado para el ejemplo)
         async function loadFeed() {
             const { data } = await _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
-            const feed = document.getElementById('feed');
+            const container = document.getElementById('feed-container');
             data?.forEach(post => {
                 const card = document.createElement('div');
                 card.className = 'post-card';
-                card.style = "width: 100%; height: calc(100vh - 65px); snap-align: start; position: relative;";
                 card.innerHTML = `
-                    ${post.tipo === 'video' ? `<video style="width:100%;height:100%;object-fit:cover" src="${post.url}" loop muted playsinline autoplay></video>` : `<img style="width:100%;height:100%;object-fit:cover" src="${post.url}">`}
-                    <div style="position:absolute;bottom:20px;left:20px;pointer-events:none;">
-                        <h2 style="font-family:Oswald;color:#d4af37">@${post.usuario}</h2>
-                        <p>${post.descripcion}</p>
-                    </div>
+                    ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop muted playsinline autoplay></video>` : `<img class="video-player" src="${post.url}">`}
+                    <div class="ui-info"><h2>@${post.usuario}</h2><p>${post.descripcion}</p></div>
                 `;
-                feed.appendChild(card);
+                container.appendChild(card);
             });
+            initObserver();
         }
-        loadFeed();
+
+        function initObserver() {
+            const vids = document.querySelectorAll('video');
+            const obs = new IntersectionObserver(e => e.forEach(i => i.isIntersecting ? i.target.play() : i.target.pause()), { threshold: 0.6 });
+            vids.forEach(v => obs.observe(v));
+        }
+
+        checkSession();
     </script>
+    <style> @keyframes spin { to { transform: rotate(360deg); } } </style>
 </body>
 </html>
