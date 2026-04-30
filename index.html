@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LA MELY | Oficial</title>
-    <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Usaremos Oswald para claridad y Montserrat para el resto -->
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --negro-fondo: #0a0a0a;
-            --gris-oscuro: #1a1a1a;
-            --dorado-cholo: #c5a059;
-            --blanco-humo: #f5f5f5;
+            --negro-mate: #121212;
+            --dorado-metal: #d4af37;
+            --blanco-puro: #ffffff;
+            --gris-plata: #2a2a2a;
         }
 
         * {
@@ -20,95 +21,100 @@
         }
 
         body {
-            background-color: var(--negro-fondo);
-            color: var(--blanco-humo);
+            background-color: var(--negro-mate);
+            color: var(--blanco-puro);
             font-family: 'Montserrat', sans-serif;
-            overflow-x: hidden;
+            line-height: 1.6;
         }
 
-        /* Estilo Gótico/Cholo para el Título */
+        /* Header con tipografía legible pero con impacto */
         header {
-            padding: 40px 20px;
+            padding: 60px 20px;
             text-align: center;
-            border-bottom: 2px solid var(--dorado-cholo);
-            background: linear-gradient(180deg, #151515 0%, #0a0a0a 100%);
+            background: linear-gradient(to bottom, #1a1a1a, #121212);
+            border-bottom: 3px solid var(--dorado-metal);
         }
 
         h1 {
-            font-family: 'UnifrakturMaguntia', serif;
-            font-size: 4rem;
-            color: var(--dorado-cholo);
+            font-family: 'Oswald', sans-serif;
+            font-size: 5rem; /* Tamaño grande para impacto */
+            color: var(--dorado-metal);
             text-transform: uppercase;
-            letter-spacing: 5px;
-            text-shadow: 3px 3px 0px rgba(0,0,0,1);
+            letter-spacing: 10px; /* Espaciado profesional */
+            margin: 0;
+            line-height: 1;
         }
 
         .subtitle {
-            font-size: 0.9rem;
-            letter-spacing: 8px;
-            color: #888;
-            margin-top: 10px;
+            font-size: 1rem;
+            color: #aaa;
+            letter-spacing: 5px;
+            margin-top: 15px;
+            font-weight: 400;
         }
 
-        /* Contenedor del Carrusel */
-        .carousel-container {
-            max-width: 1000px;
-            margin: 50px auto;
+        /* Carrusel Optimizado */
+        .carousel-wrapper {
+            max-width: 1100px;
+            margin: 40px auto;
             position: relative;
-            padding: 20px;
-            background: var(--gris-oscuro);
-            border: 1px solid #333;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        .carousel-container {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
         }
 
         .carousel-slide {
-            display: none;
-            width: 100%;
-            height: 500px;
+            min-width: 100%;
+            height: 600px;
             object-fit: cover;
-            border: 2px solid var(--dorado-cholo);
+            filter: brightness(0.8);
+            transition: filter 0.3s;
         }
 
-        .active {
-            display: block;
-            animation: fade 0.8s ease-in-out;
+        .carousel-slide:hover {
+            filter: brightness(1);
         }
 
-        @keyframes fade {
-            from { opacity: 0.4; } 
-            to { opacity: 1; }
-        }
-
-        /* Botones de navegación */
-        .prev, .next {
-            cursor: pointer;
+        /* Controles */
+        .btn-nav {
             position: absolute;
             top: 50%;
-            width: auto;
-            margin-top: -22px;
-            padding: 16px;
-            color: var(--dorado-cholo);
-            font-weight: bold;
-            font-size: 24px;
-            transition: 0.6s ease;
-            user-select: none;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid var(--dorado-cholo);
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.7);
+            color: var(--dorado-metal);
+            border: 2px solid var(--dorado-metal);
+            padding: 15px;
+            cursor: pointer;
+            font-size: 20px;
+            z-index: 10;
+            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .next { right: 30px; }
-        .prev { left: 30px; }
+        .btn-prev { left: 20px; }
+        .btn-next { right: 20px; }
 
-        .prev:hover, .next:hover {
-            background-color: var(--dorado-cholo);
-            color: black;
+        .btn-nav:hover {
+            background: var(--dorado-metal);
+            color: #000;
         }
 
         footer {
+            padding: 40px;
             text-align: center;
-            padding: 50px;
-            color: #444;
-            font-size: 0.8rem;
+            background: #000;
+            color: var(--dorado-metal);
+            font-size: 0.9rem;
+            letter-spacing: 2px;
         }
 
     </style>
@@ -117,44 +123,39 @@
 
     <header>
         <h1>LA MELY</h1>
-        <p class="subtitle">ESTILO & RESPETO</p>
+        <p class="subtitle">CALIDAD Y ESTILO</p>
     </header>
 
-    <div class="carousel-container">
-        <!-- Puedes agregar muchísimas fotos siguiendo este formato -->
-        <img class="carousel-slide active" src="https://via.placeholder.com/1000x500/111/c5a059?text=FOTO+1" alt="Foto 1">
-        <img class="carousel-slide" src="https://via.placeholder.com/1000x500/111/c5a059?text=FOTO+2" alt="Foto 2">
-        <img class="carousel-slide" src="https://via.placeholder.com/1000x500/111/c5a059?text=FOTO+3" alt="Foto 3">
-        <img class="carousel-slide" src="https://via.placeholder.com/1000x500/111/c5a059?text=FOTO+4" alt="Foto 4">
-        <img class="carousel-slide" src="https://via.placeholder.com/1000x500/111/c5a059?text=FOTO+5" alt="Foto 5">
+    <div class="carousel-wrapper">
+        <div class="carousel-container" id="track">
+            <!-- Puedes poner muchísimas fotos aquí -->
+            <img class="carousel-slide" src="https://via.placeholder.com/1100x600/222/d4af37?text=MELY+FOTO+1" alt="Foto 1">
+            <img class="carousel-slide" src="https://via.placeholder.com/1100x600/222/d4af37?text=MELY+FOTO+2" alt="Foto 2">
+            <img class="carousel-slide" src="https://via.placeholder.com/1100x600/222/d4af37?text=MELY+FOTO+3" alt="Foto 3">
+            <img class="carousel-slide" src="https://via.placeholder.com/1100x600/222/d4af37?text=MELY+FOTO+4" alt="Foto 4">
+            <img class="carousel-slide" src="https://via.placeholder.com/1100x600/222/d4af37?text=MELY+FOTO+5" alt="Foto 5">
+        </div>
 
-        <a class="prev" onclick="changeSlide(-1)">&#10094;</a>
-        <a class="next" onclick="changeSlide(1)">&#10095;</a>
+        <button class="btn-nav btn-prev" onclick="move(-1)">&#10094;</button>
+        <button class="btn-nav btn-next" onclick="move(1)">&#10095;</button>
     </div>
 
     <footer>
-        &copy; 2026 LA MELY - TODOS LOS DERECHOS RESERVADOS
+        &copy; 2026 LA MELY | EXCELENCIA URBANA
     </footer>
 
     <script>
-        let currentIdx = 0;
-        const slides = document.querySelectorAll('.carousel-slide');
+        const track = document.getElementById('track');
+        let index = 0;
+        const totalSlides = document.querySelectorAll('.carousel-slide').length;
 
-        function showSlide(n) {
-            slides.forEach(s => s.classList.remove('active'));
-            
-            currentIdx = (n + slides.length) % slides.length;
-            slides[currentIdx].classList.add('active');
+        function move(direction) {
+            index = (index + direction + totalSlides) % totalSlides;
+            track.style.transform = `translateX(-${index * 100}%)`;
         }
 
-        function changeSlide(n) {
-            showSlide(currentIdx + n);
-        }
-
-        // Cambio automático cada 5 segundos
-        setInterval(() => {
-            changeSlide(1);
-        }, 5000);
+        // Auto-reproducción
+        setInterval(() => move(1), 4000);
     </script>
 </body>
 </html>
