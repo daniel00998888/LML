@@ -196,7 +196,6 @@
                 const { data: posts } = await _supabase.from('publicaciones').select('*').eq('usuario', currentUser).order('created_at', { ascending: false });
                 data = posts;
             } else {
-                // Aquí consultamos la tabla likes y extraemos la data de publicaciones vinculada
                 const { data: likedData } = await _supabase.from('likes').select('publicaciones(*)').eq('user_id', session.user.id);
                 data = likedData ? likedData.map(l => l.publicaciones).filter(p => p !== null) : [];
             }
@@ -255,16 +254,8 @@
         async function checkLikeStatus(postId, btn) {
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session || !btn) return;
-
-            // IMPORTANTE: Convertimos a Number para evitar error 406
             const cleanPostId = Number(postId);
-
-            const { data } = await _supabase.from('likes')
-                .select('id')
-                .eq('user_id', session.user.id)
-                .eq('post_id', cleanPostId)
-                .maybeSingle();
-
+            const { data } = await _supabase.from('likes').select('id').eq('user_id', session.user.id).eq('post_id', cleanPostId).maybeSingle();
             if (data) btn.classList.add('active');
             else btn.classList.remove('active');
         }
@@ -276,19 +267,27 @@
             const isLiked = btn.classList.contains('active');
             const cleanPostId = Number(postId);
             const countSpan = document.getElementById(`likes-${postId}`);
-            let currentCount = parseInt(countSpan.innerText);
+            let currentCount = parseInt(countSpan.innerText || 0);
 
-            // UI Optimista
             btn.classList.toggle('active');
 
             if (!isLiked) {
-                countSpan.innerText = currentCount + 1;
+                if(countSpan) countSpan.innerText = currentCount + 1;
                 const { error } = await _supabase.from('likes').insert([{ user_id: session.user.id, post_id: cleanPostId }]);
                 if(!error) await _supabase.rpc('increment_likes', { post_id: postId.toString() });
             } else {
-                countSpan.innerText = Math.max(0, currentCount - 1);
+                if(countSpan) countSpan.innerText = Math.max(0, currentCount - 1);
                 const { error } = await _supabase.from('likes').delete().eq('user_id', session.user.id).eq('post_id', cleanPostId);
-                if(!error) await _supabase.rpc('decrement_likes', { post_id: postId.toString() });
+                if(!error) {
+                    await _supabase.rpc('decrement_likes', { post_id: postId.toString() });
+                    
+                    // Lógica para quitar del perfil en tiempo real si estamos en pestaña Likes
+                    const tabLikes = document.getElementById('tab-likes');
+                    if (tabLikes && tabLikes.classList.contains('active')) {
+                        closeViewer();
+                        loadUserPosts('likes');
+                    }
+                }
             }
         }
 
