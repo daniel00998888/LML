@@ -9,74 +9,47 @@
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* [MANTENEMOS TODOS TUS ESTILOS ORIGINALES] */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
-
         #app-viewport { width: 100%; height: calc(100dvh - 65px); position: relative; overflow: hidden; }
-
         #feed-screen { width: 100%; height: 100%; display: block; }
-        #feed-container { 
-            width: 100%; height: 100%; overflow-y: scroll; 
-            snap-type: y mandatory; scroll-behavior: smooth; scrollbar-width: none; overscroll-behavior-y: contain; 
-        }
+        #feed-container { width: 100%; height: 100%; overflow-y: scroll; snap-type: y mandatory; scroll-behavior: smooth; scrollbar-width: none; overscroll-behavior-y: contain; }
         #feed-container::-webkit-scrollbar { display: none; }
-
-        .post-card { 
-            width: 100%; height: 100%; snap-align: start; snap-stop: always; 
-            position: relative; background: #000; display: flex; align-items: center; justify-content: center;
-        }
+        .post-card { width: 100%; height: 100%; snap-align: start; snap-stop: always; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
         .video-player { width: 100%; height: 100%; object-fit: cover; }
-
-        /* UI INFO Y AVATAR */
         .ui-info { position: absolute; bottom: 40px; left: 15px; z-index: 10; text-shadow: 2px 2px 8px rgba(0,0,0,1); max-width: 70%; }
         .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.4rem; margin-bottom: 5px; cursor: pointer; display: inline-block; }
-        
         .side-actions { position: absolute; right: 10px; bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 20; }
         .action-item { display: flex; flex-direction: column; align-items: center; color: #fff; font-size: 0.75rem; font-weight: bold; }
         .action-btn { background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer; transition: 0.2s; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
         .action-btn.active { color: #ff0050 !important; transform: scale(1.1); }
-        
-        /* BOTÓN AVATAR EN FEED */
         .user-avatar-btn { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #fff; overflow: hidden; background: #333; margin-bottom: 5px; cursor: pointer; position: relative; }
         .user-avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
         .user-avatar-btn::after { content: '+'; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); background: #ff0050; color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; border: 1px solid #000; }
-
         .btn-delete { color: #ff4444 !important; font-size: 1.8rem !important; margin-top: 5px; opacity: 0.8; }
-
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.1); z-index: 20; }
         .progress-bar { height: 100%; background: #d4af37; width: 0%; }
-
-        /* NAVEGACION */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; }
         .nav-item.active { color: #fff; }
         .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 3px; }
-        
         .plus-btn { width: 45px; height: 30px; background: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
         .plus-btn::before { content:''; position:absolute; left:-3px; width:100%; height:100%; background:#20f3ea; border-radius:10px; z-index:-1; }
         .plus-btn::after { content:''; position:absolute; right:-3px; width:100%; height:100%; background:#ff0050; border-radius:10px; z-index:-1; }
-
-        /* PERFIL */
         .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: #000; z-index: 1500; overflow-y: auto; }
         .profile-header { padding: 30px 20px; text-align: center; background: #000; position: relative; }
         .btn-back { position: absolute; top: 20px; left: 20px; font-size: 1.5rem; color: #fff; background: none; border: none; cursor: pointer; }
-        
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
         .grid-item { aspect-ratio: 9/16; background: #111; position: relative; overflow: hidden; cursor: pointer; }
         .grid-item video, .grid-item img { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* MINIATURA VISTAS */
         .grid-views { position: absolute; bottom: 5px; left: 5px; font-size: 0.75rem; color: #fff; font-weight: bold; text-shadow: 1px 1px 3px #000; z-index: 5; display: flex; align-items: center; gap: 4px; }
-
         .profile-tabs-nav { display: flex; border-top: 1px solid #222; border-bottom: 1px solid #111; }
         .tab-btn { flex: 1; padding: 12px; background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer; position: relative; }
         .tab-btn.active { color: #fff; }
         .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 2px; background: #d4af37; }
-
-        /* MODAL VISOR */
         #viewer-modal { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; }
         .viewer-close { position: absolute; top: 20px; left: 20px; font-size: 2rem; z-index: 3100; color: #fff; cursor: pointer; }
-
         #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; flex-direction: column; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
@@ -153,14 +126,17 @@
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         let currentUser = null;
+        let currentUserId = null; // Guardamos el UUID para las consultas
         let selectedFile = null;
-        let viewingUser = null; // Para saber qué perfil estamos viendo
+        let viewingUser = null;
 
         async function init() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
-                const { data } = await _supabase.from('perfiles').select('username').eq('id', session.user.id).single();
+                currentUserId = session.user.id;
+                const { data } = await _supabase.from('perfiles').select('username').eq('id', currentUserId).single();
                 currentUser = data?.username || "Anonimo";
+                
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('main-nav').style.display = 'flex';
                 loadFeed();
@@ -200,7 +176,7 @@
             document.getElementById('prof-user').innerText = "@" + username;
             document.getElementById('btn-back-profile').style.display = 'block';
             document.getElementById('btn-logout').style.display = 'none';
-            document.getElementById('profile-tabs').style.display = 'none'; // No ver likes de otros
+            document.getElementById('profile-tabs').style.display = 'none';
             showScreen('profile');
             loadUserPosts('posts');
         }
@@ -220,8 +196,7 @@
                 const { data: posts } = await _supabase.from('publicaciones').select('*').eq('usuario', viewingUser).eq('estado', 'aprobado').order('created_at', { ascending: false });
                 data = posts;
             } else {
-                const { data: { session } } = await _supabase.auth.getSession();
-                const { data: likedData } = await _supabase.from('likes').select('publicaciones(*)').eq('user_id', session.user.id);
+                const { data: likedData } = await _supabase.from('likes').select('publicaciones(*)').eq('user_id', currentUserId);
                 data = likedData ? likedData.map(l => l.publicaciones).filter(p => p !== null) : [];
             }
 
@@ -238,11 +213,51 @@
             });
         }
 
+        // --- LÓGICA DE FEED ACTUALIZADA ---
         async function loadFeed() {
-            const { data } = await _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
             const container = document.getElementById('feed-container');
+            container.innerHTML = "<div style='padding:50px; text-align:center;'>Preparando tu feed...</div>";
+
+            // 1. Obtener IDs de videos ya vistos por este usuario
+            const { data: seenVideos } = await _supabase
+                .from('vistan_historial')
+                .select('post_id')
+                .eq('user_id', currentUserId);
+            
+            const seenIds = seenVideos ? seenVideos.map(v => v.post_id) : [];
+
+            // 2. Cargar videos:
+            // - Solo los aprobados
+            // - Que NO sean del propio usuario (neq 'usuario', currentUser)
+            // - Que NO estén en el historial de vistos
+            let query = _supabase
+                .from('publicaciones')
+                .select('*')
+                .eq('estado', 'aprobado')
+                .neq('usuario', currentUser) // REGLA: No ver videos propios
+                .order('created_at', { ascending: false });
+
+            // Solo aplicar el filtro 'not in' si hay videos vistos, para evitar error de Supabase
+            if (seenIds.length > 0) {
+                query = query.not('id', 'in', `(${seenIds.join(',')})`);
+            }
+
+            const { data, error } = await query;
+
             container.innerHTML = "";
-            data?.forEach(post => renderPost(post, container));
+            
+            if (error || !data || data.length === 0) {
+                container.innerHTML = `
+                    <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center;">
+                        <i class="fas fa-check-circle" style="font-size:4rem; color:#d4af37; margin-bottom:20px;"></i>
+                        <h2 style="font-family:'Oswald'">¡ESTÁS AL DÍA!</h2>
+                        <p style="color:#888; margin-top:10px;">Has visto todo el contenido nuevo. ¡Vuelve más tarde o sube tu propio video!</p>
+                        <button onclick="location.reload()" style="margin-top:20px; background:#222; color:#fff; border:none; padding:10px 20px; border-radius:5px;">Recargar</button>
+                    </div>`;
+                return;
+            }
+
+            data.forEach(post => renderPost(post, container));
             initObserver();
         }
 
@@ -285,35 +300,40 @@
         }
 
         async function handleLike(postId, btn) {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session) return;
             const isLiked = btn.classList.contains('active');
             const allBtns = document.querySelectorAll(`#btn-like-${postId}`);
             const allCounts = document.querySelectorAll(`#likes-${postId}`);
             if (!isLiked) {
                 allBtns.forEach(b => b.classList.add('active'));
                 allCounts.forEach(c => c.innerText = parseInt(c.innerText || 0) + 1);
-                await _supabase.from('likes').insert([{ user_id: session.user.id, post_id: Number(postId) }]);
+                await _supabase.from('likes').insert([{ user_id: currentUserId, post_id: Number(postId) }]);
                 await _supabase.rpc('increment_likes', { post_id: postId.toString() });
             } else {
                 allBtns.forEach(b => b.classList.remove('active'));
                 allCounts.forEach(c => c.innerText = Math.max(0, parseInt(c.innerText || 0) - 1));
-                await _supabase.from('likes').delete().eq('user_id', session.user.id).eq('post_id', Number(postId));
+                await _supabase.from('likes').delete().eq('user_id', currentUserId).eq('post_id', Number(postId));
                 await _supabase.rpc('decrement_likes', { post_id: postId.toString() });
             }
         }
 
         async function checkLikeStatus(postId, btn) {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session || !btn) return;
-            const { data } = await _supabase.from('likes').select('id').eq('user_id', session.user.id).eq('post_id', Number(postId)).maybeSingle();
+            if (!btn) return;
+            const { data } = await _supabase.from('likes').select('id').eq('user_id', currentUserId).eq('post_id', Number(postId)).maybeSingle();
             if (data) btn.classList.add('active');
         }
 
+        // --- LÓGICA DE VISTA ACTUALIZADA CON HISTORIAL ---
         async function markView(postId) {
             if(sessionStorage.getItem(`view_${postId}`)) return;
             sessionStorage.setItem(`view_${postId}`, 'true');
+
+            // Incrementar vistas global
             await _supabase.rpc('increment_vistas', { post_id: postId.toString() });
+
+            // REGLA: Registrar que este usuario ya vio el video permanentemente
+            await _supabase.from('vistan_historial').insert([
+                { user_id: currentUserId, post_id: Number(postId) }
+            ]);
         }
 
         function setupVideo(card, postId) {
@@ -329,8 +349,13 @@
                 entries.forEach(entry => {
                     const id = entry.target.getAttribute('data-id');
                     const v = entry.target.querySelector('video');
-                    if (entry.isIntersecting) { if(v) v.play().catch(()=>{}); markView(id); } 
-                    else if(v) { v.pause(); v.currentTime = 0; }
+                    if (entry.isIntersecting) { 
+                        if(v) v.play().catch(()=>{}); 
+                        markView(id); 
+                    } else if(v) { 
+                        v.pause(); 
+                        v.currentTime = 0; 
+                    }
                 });
             }, { threshold: 0.7 });
             document.querySelectorAll('#feed-container .post-card').forEach(c => obs.observe(c));
