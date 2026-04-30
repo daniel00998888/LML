@@ -226,16 +226,18 @@
         }
 
         async function handleLike(postId, btn) {
-            if(btn.classList.contains('active')) return;
-            btn.classList.add('active');
-            const counter = document.getElementById(`likes-${postId}`);
-            let currentLikes = parseInt(counter.innerText);
-            counter.innerText = currentLikes + 1;
+    if(btn.classList.contains('active')) return;
+    btn.classList.add('active');
+    
+    // Cambiamos el contador visualmente rápido
+    const counter = document.getElementById(`likes-${postId}`);
+    counter.innerText = parseInt(counter.innerText) + 1;
 
-            // Update en Supabase
-            await _supabase.rpc('increment_likes', { post_id: postId });
-        }
-
+    // Llamada a Supabase
+    const { error } = await _supabase.rpc('increment_likes', { post_id: postId });
+    
+    if (error) console.error("Error al dar like:", error.message);
+}
         async function markView(postId) {
             const key = `viewed_${postId}`;
             if(localStorage.getItem(key)) return; // Solo una vista por sesión local
