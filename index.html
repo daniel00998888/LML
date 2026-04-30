@@ -32,7 +32,7 @@
         .action-item { display: flex; flex-direction: column; align-items: center; color: #fff; font-size: 0.75rem; font-weight: bold; }
         .action-btn { background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5)); }
         .action-btn.active { color: #ff0050; }
-        .btn-delete { color: #ff4444; font-size: 1.8rem; margin-top: 10px; opacity: 0.8; }
+        .btn-delete { color: #ff4444 !important; font-size: 1.8rem !important; margin-top: 10px; opacity: 0.8; }
 
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.1); z-index: 20; }
         .progress-bar { height: 100%; background: #d4af37; width: 0%; }
@@ -42,7 +42,7 @@
         .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; }
         .nav-item.active { color: #fff; }
         .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 3px; }
-        .plus-btn { width: 45px; height: 30px; background: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .plus-btn { width: 45px; height: 30px; background: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; color:#000; }
 
         /* --- PANTALLAS --- */
         .screen { position: fixed; inset: 0; display: none; flex-direction: column; background: #000; z-index: 1500; }
@@ -52,9 +52,10 @@
 
         /* VISOR FULL */
         #viewer-full { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; }
-        .close-viewer { position: absolute; top: 20px; left: 20px; font-size: 2rem; z-index: 3100; color: #fff; }
+        .close-viewer { position: absolute; top: 20px; left: 20px; font-size: 2.2rem; z-index: 3100; color: #fff; text-shadow: 0 0 10px #000; cursor: pointer; }
 
-        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -64,20 +65,20 @@
     </div>
 
     <!-- AUTH SCREEN -->
-    <div id="auth-screen" class="screen" style="align-items:center; justify-content:center; display:none; z-index:5000;">
-        <h1 style="font-family:'Oswald'; color:#d4af37; font-size:3rem; margin-bottom:2rem;">LA MELY</h1>
+    <div id="auth-screen" class="screen" style="align-items:center; justify-content:center; z-index:5000;">
+        <h1 style="font-family:'Oswald'; color:#d4af37; font-size:3.5rem; margin-bottom:2rem; letter-spacing:3px;">LA MELY</h1>
         <div id="login-form" style="width:80%; max-width:300px;">
-            <input type="email" id="email" placeholder="Email" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:none; background:#222; color:#fff;">
-            <input type="password" id="pass" placeholder="Password" style="width:100%; padding:12px; margin-bottom:20px; border-radius:8px; border:none; background:#222; color:#fff;">
-            <button onclick="handleAuth('login')" style="width:100%; padding:12px; border-radius:25px; border:none; background:#d4af37; font-weight:bold;">ENTRAR</button>
-            <p onclick="toggleAuth(true)" style="text-align:center; margin-top:15px; font-size:0.8rem; color:#888;">¿No tienes cuenta? <span style="color:#d4af37">Regístrate</span></p>
+            <input type="email" id="email" placeholder="Email" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:none; background:#111; color:#fff;">
+            <input type="password" id="pass" placeholder="Contraseña" style="width:100%; padding:15px; margin-bottom:20px; border-radius:12px; border:none; background:#111; color:#fff;">
+            <button onclick="handleAuth('login')" style="width:100%; padding:15px; border-radius:30px; border:none; background:#d4af37; font-weight:bold; color:#000;">ENTRAR</button>
+            <p onclick="toggleAuth(true)" style="text-align:center; margin-top:20px; font-size:0.9rem; color:#888;">¿Eres nuevo? <span style="color:#d4af37">Crea una cuenta</span></p>
         </div>
         <div id="reg-form" style="width:80%; max-width:300px; display:none;">
-            <input type="text" id="r-user" placeholder="Usuario" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:none; background:#222; color:#fff;">
-            <input type="email" id="r-email" placeholder="Email" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:none; background:#222; color:#fff;">
-            <input type="password" id="r-pass" placeholder="Password" style="width:100%; padding:12px; margin-bottom:20px; border-radius:8px; border:none; background:#222; color:#fff;">
-            <button onclick="handleAuth('reg')" style="width:100%; padding:12px; border-radius:25px; border:none; background:#d4af37; font-weight:bold;">CREAR CUENTA</button>
-            <p onclick="toggleAuth(false)" style="text-align:center; margin-top:15px; font-size:0.8rem; color:#888;">¿Ya tienes cuenta? <span style="color:#d4af37">Inicia Sesión</span></p>
+            <input type="text" id="r-user" placeholder="Usuario" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:none; background:#111; color:#fff;">
+            <input type="email" id="r-email" placeholder="Email" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:none; background:#111; color:#fff;">
+            <input type="password" id="r-pass" placeholder="Contraseña" style="width:100%; padding:15px; margin-bottom:20px; border-radius:12px; border:none; background:#111; color:#fff;">
+            <button onclick="handleAuth('reg')" style="width:100%; padding:15px; border-radius:30px; border:none; background:#d4af37; font-weight:bold; color:#000;">REGISTRARME</button>
+            <p onclick="toggleAuth(false)" style="text-align:center; margin-top:20px; font-size:0.9rem; color:#888;">¿Ya tienes cuenta? <span style="color:#d4af37">Inicia Sesión</span></p>
         </div>
     </div>
 
@@ -89,32 +90,32 @@
     <!-- PROFILE SCREEN -->
     <div id="profile-screen" class="screen">
         <div style="padding:40px 20px; text-align:center;">
-            <div style="width:80px; height:80px; border-radius:50%; background:#222; margin:0 auto 10px; border:2px solid #d4af37; display:flex; align-items:center; justify-content:center; font-size:2rem; color:#d4af37;"><i class="fas fa-user"></i></div>
-            <h2 id="prof-user">@Usuario</h2>
-            <button onclick="logout()" style="background:none; border:1px solid #444; color:#888; padding:5px 15px; border-radius:5px; margin-top:10px; font-size:0.7rem;">SALIR</button>
+            <div style="width:90px; height:90px; border-radius:50%; background:#111; margin:0 auto 15px; border:2px solid #d4af37; display:flex; align-items:center; justify-content:center; font-size:2.5rem; color:#d4af37;"><i class="fas fa-user"></i></div>
+            <h2 id="prof-user" style="font-family:'Oswald'; color:#d4af37;">@Usuario</h2>
+            <button onclick="logout()" style="background:none; border:1px solid #333; color:#666; padding:6px 18px; border-radius:8px; margin-top:15px; font-size:0.7rem;">CERRAR SESIÓN</button>
         </div>
         <div class="profile-grid" id="profile-grid"></div>
     </div>
 
     <!-- UPLOAD SCREEN -->
-    <div id="upload-screen" class="screen" style="padding:20px;">
-        <div id="preview-box" style="width:100%; height:60%; background:#111; border-radius:15px; overflow:hidden;"></div>
-        <textarea id="post-desc" style="width:100%; padding:15px; background:#222; color:#fff; border:none; border-radius:10px; margin-top:15px;" placeholder="Descripción..."></textarea>
-        <button onclick="startUpload()" style="width:100%; padding:15px; background:#d4af37; color:#000; font-weight:bold; border-radius:10px; margin-top:15px; border:none;">PUBLICAR</button>
-        <button onclick="location.reload()" style="width:100%; color:#888; margin-top:10px; background:none; border:none;">Cancelar</button>
+    <div id="upload-screen" class="screen" style="padding:20px; justify-content:center;">
+        <div id="preview-box" style="width:100%; height:55%; background:#111; border-radius:20px; overflow:hidden;"></div>
+        <textarea id="post-desc" style="width:100%; padding:15px; background:#111; color:#fff; border:1px solid #222; border-radius:12px; margin-top:15px; font-family:inherit;" placeholder="¿De qué trata este video?"></textarea>
+        <button onclick="startUpload()" style="width:100%; padding:18px; background:#d4af37; color:#000; font-weight:bold; border-radius:15px; margin-top:15px; border:none;">SUBIR AHORA</button>
+        <button onclick="location.reload()" style="width:100%; color:#555; margin-top:15px; background:none; border:none;">Cancelar</button>
     </div>
 
-    <!-- VISOR FULL (CLICK DESDE PERFIL) -->
+    <!-- VISOR FULL -->
     <div id="viewer-full">
-        <i class="fas fa-times close-viewer" onclick="closeViewer()"></i>
+        <i class="fas fa-arrow-left close-viewer" onclick="closeViewer()"></i>
         <div id="viewer-content" style="width:100%; height:100%;"></div>
     </div>
 
     <!-- NAV BAR -->
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
+        <div class="nav-item active" id="nav-home" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
         <div class="nav-item" onclick="document.getElementById('file-input').click()"><div class="plus-btn"><i class="fas fa-plus"></i></div></div>
-        <div class="nav-item" onclick="showScreen('profile')"><i class="fas fa-user"></i>Perfil</div>
+        <div class="nav-item" id="nav-profile" onclick="showScreen('profile')"><i class="fas fa-user"></i>Perfil</div>
     </div>
 
     <input type="file" id="file-input" accept="video/*,image/*" style="display:none">
@@ -143,6 +144,9 @@
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
             document.getElementById('feed-screen').style.display = (id === 'feed') ? 'block' : 'none';
+            document.getElementById('nav-home').classList.toggle('active', id === 'feed');
+            document.getElementById('nav-profile').classList.toggle('active', id === 'profile');
+            
             if(id !== 'feed') document.getElementById(id + '-screen').style.display = 'flex';
             if(id === 'profile') loadUserPosts();
         }
@@ -185,14 +189,14 @@
                         <span id="likes-${post.id}">${post.likes || 0}</span>
                     </div>
                     <div class="action-item">
-                        <button class="action-btn"><i class="fas fa-comment-dots"></i></button>
+                        <button class="action-btn" onclick="alert('Comentarios próximamente')"><i class="fas fa-comment-dots"></i></button>
                         <span id="comm-count-${post.id}">${post.comentarios_count || 0}</span>
                     </div>
                     <div class="action-item">
                         <i class="fas fa-play" style="font-size:1.5rem; opacity:0.5"></i>
                         <span id="vistas-${post.id}">${post.vistas || 0}</span>
                     </div>
-                    ${isOwner ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash"></i></button>` : ''}
+                    ${isOwner ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
                 <div class="ui-info">
                     <h2>@${post.usuario}</h2>
@@ -226,13 +230,10 @@
         }
 
         async function deletePost(postId, fileUrl) {
-            if(!confirm("¿Eliminar para siempre de La Mely?")) return;
+            if(!confirm("¿Eliminar este contenido de La Mely permanentemente?")) return;
             document.getElementById('loading').style.display = 'flex';
             
-            // 1. Borrar de la tabla
             await _supabase.from('publicaciones').delete().eq('id', postId);
-            
-            // 2. Borrar del Storage (Extraer nombre de archivo de la URL)
             const fileName = fileUrl.split('/').pop();
             await _supabase.storage.from('mely_media').remove([fileName]);
             
@@ -259,10 +260,11 @@
             const viewer = document.getElementById('viewer-full');
             const content = document.getElementById('viewer-content');
             viewer.style.display = 'block';
-            content.innerHTML = ""; // Limpiar
+            content.innerHTML = ""; 
             renderPost(post, content);
+            
             const card = content.querySelector('.post-card');
-            card.style.height = '100dvh'; // Ajuste pantalla completa
+            card.style.height = '100dvh';
             const v = card.querySelector('video');
             if(v) v.play();
         }
@@ -272,14 +274,13 @@
             document.getElementById('viewer-content').innerHTML = "";
         }
 
-        // --- REALTIME ---
         function setupRealtime() {
             _supabase.channel('public').on('postgres_changes', { event: '*', table: 'publicaciones' }, payload => {
                 if (payload.eventType === 'UPDATE') {
                     const post = payload.new;
                     const l = document.getElementById(`likes-${post.id}`); if(l) l.innerText = post.likes;
                     const v = document.getElementById(`vistas-${post.id}`); if(v) v.innerText = post.vistas;
-                    if(payload.old.estado === 'pendiente' && post.estado === 'aprobado') location.reload();
+                    if(payload.old.estado === 'pendiente' && post.estado === 'aprobado') loadFeed();
                 }
                 if (payload.eventType === 'DELETE') {
                     document.getElementById(`post-${payload.old.id}`)?.remove();
@@ -287,7 +288,6 @@
             }).subscribe();
         }
 
-        // --- AUTH & UPLOAD ---
         async function handleAuth(type) {
             const e = (type === 'reg' ? document.getElementById('r-email') : document.getElementById('email')).value;
             const p = (type === 'reg' ? document.getElementById('r-pass') : document.getElementById('pass')).value;
@@ -298,7 +298,7 @@
                 await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
             } else {
                 const { error } = await _supabase.auth.signInWithPassword({ email:e, password:p });
-                if(error) return alert("Error");
+                if(error) return alert("Error en los datos");
             }
             location.reload();
         }
@@ -320,6 +320,7 @@
         };
 
         async function startUpload() {
+            if(!selectedFile) return;
             document.getElementById('loading').style.display = 'flex';
             const fName = Date.now() + "_" + selectedFile.name;
             await _supabase.storage.from('mely_media').upload(fName, selectedFile);
@@ -330,7 +331,8 @@
                 descripcion: document.getElementById('post-desc').value,
                 estado: 'pendiente', likes:0, vistas:0, comentarios_count:0
             }]);
-            alert("Enviado para aprobación"); location.reload();
+            alert("Video enviado a moderación"); 
+            location.reload();
         }
 
         init();
