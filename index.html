@@ -85,7 +85,7 @@
             pointer-events: none;
             transition: height 0.1s;
         }
-        /* ESTILO PARA LOS TIEMPOS DEL VIDEO */
+        
         .video-time-display {
             position: absolute;
             bottom: 15px;
@@ -365,7 +365,6 @@
                     ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
                 <div class="ui-info"><h2 onclick="goToUserProfile('${post.usuario}')">@${post.usuario}</h2><p>${post.descripcion || ''}</p></div>
-                <!-- CONTADOR DE TIEMPO -->
                 ${post.tipo === 'video' ? `<div class="video-time-display" id="time-${post.id}">0:00 / 0:00</div>` : ''}
                 <div class="progress-container"><div class="progress-bar" id="bar-${post.id}"></div></div>
             `;
@@ -404,8 +403,8 @@
             await _supabase.from('vistan_historial').insert([{ user_id: currentUserId, post_id: Number(postId) }]);
         }
 
-        // FUNCION PARA FORMATEAR SEGUNDOS A 0:00
         function formatTime(seconds) {
+            if(!seconds) return "0:00";
             const min = Math.floor(seconds / 60);
             const sec = Math.floor(seconds % 60);
             return `${min}:${sec < 10 ? '0' : ''}${sec}`;
@@ -419,14 +418,12 @@
             if (!v || !container) return;
 
             let isDragging = false;
-
             v.onclick = () => v.paused ? v.play() : v.pause();
 
             v.ontimeupdate = () => {
                 if (!isNaN(v.duration) && !isDragging) {
                     const percentage = (v.currentTime / v.duration) * 100;
                     bar.style.width = percentage + "%";
-                    // ACTUALIZAR TEXTO DE TIEMPO
                     if(timeDisplay) {
                         timeDisplay.innerText = `${formatTime(v.currentTime)} / ${formatTime(v.duration)}`;
                     }
@@ -517,10 +514,12 @@
         }
 
         function setupRealtime() {
-            _supabase.channel('public').on('postgres_changes', { event: 'UPDATE', table: 'publicaciones' }, payload => {
-                const post = payload.new;
-                document.querySelectorAll(`#likes-${post.id}`).forEach(c => c.innerText = post.likes);
-                document.querySelectorAll(`#vistas-${post.id}`).forEach(v => v.innerText = post.vistas);
+            _supabase.channel('public')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'publicaciones' }, payload => {
+                if (payload.eventType === 'INSERT' && payload.new.estado === 'aprobado') {
+                    renderPost(payload.new, document.getElementById('feed-container'), true);
+                    initObserver();
+                }
             }).subscribe();
         }
 
