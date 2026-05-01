@@ -170,55 +170,62 @@
             setTimeout(() => splash.style.display = 'none', 500);
         }
 
-       async function handleAuth(type) {
-    const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
-    const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
+        async function handleAuth(type) {
+    // 1. Capturar valores con nombres claros
+    const emailLogin = document.getElementById('email').value;
+    const passLogin = document.getElementById('pass').value;
     
-    if(!e || !p) return showMessage("Faltan datos");
+    const userReg = document.getElementById('r-user').value;
+    const emailReg = document.getElementById('r-email').value;
+    const passReg = document.getElementById('r-pass').value;
+    
     document.getElementById('loading').style.display = 'flex';
     
     if(type === 'reg'){
-        const u = document.getElementById('r-user').value;
-        if(!u) {
+        if(!userReg || !emailReg || !passReg) {
             document.getElementById('loading').style.display = 'none';
-            return showMessage("El nombre de usuario es obligatorio");
+            return showMessage("Completa todos los campos");
         }
 
-        // 1. Creamos el usuario en el sistema de Autenticación
+        // Registro en Auth
         const { data, error } = await _supabase.auth.signUp({ 
-            email: e, 
-            password: p 
+            email: emailReg, 
+            password: passReg 
         });
         
         if (error) {
             document.getElementById('loading').style.display = 'none';
             let msg = error.message;
-            if (msg.includes("at least 6 characters")) msg = "Mínimo 6 caracteres";
+            if (msg.includes("at least 6 characters")) msg = "La contraseña debe ser de 6+ caracteres";
             showMessage(msg);
         } else if (data.user) {
-            // 2. Insertamos manualmente en la tabla 'perfiles'
-            // IMPORTANTE: Asegúrate que los nombres de las columnas en Supabase coincidan (username, email)
+            // INSERTAR EN PERFILES
+            // Usamos los valores capturados arriba directamente
             const { error: profileError } = await _supabase
                 .from('perfiles')
                 .insert([
                     { 
-                        id: data.user.id, // Relaciona el perfil con el ID de auth
-                        username: u,      // Guarda el nombre de usuario
-                        email: e          // Guarda el correo (opcional)
+                        id: data.user.id, 
+                        username: userReg, 
+                        email: emailReg 
                     }
                 ]);
 
             if (profileError) {
-                console.error("Error al crear perfil:", profileError.message);
-                showMessage("Error al crear el perfil en la tabla.");
+                console.error(profileError);
+                document.getElementById('loading').style.display = 'none';
+                showMessage("Error al guardar en tabla perfiles");
             } else {
-                showMessage("¡Cuenta creada con éxito!");
+                showMessage("¡Cuenta creada correctamente!");
                 setTimeout(() => location.reload(), 1500);
             }
         }
     } else {
-        // Lógica de Login (permanece igual)
-        const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
+        // Login
+        const { error } = await _supabase.auth.signInWithPassword({ 
+            email: emailLogin, 
+            password: passLogin 
+        });
         if (error) {
             document.getElementById('loading').style.display = 'none';
             showMessage("Credenciales incorrectas");
@@ -227,7 +234,6 @@
         }
     }
 }
-
         function toggleAuth(isReg) {
             document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
             document.getElementById('reg-form').style.display = isReg ? 'block' : 'none';
