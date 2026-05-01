@@ -309,38 +309,28 @@
         }
 
         async function loadUserPosts(filterType = 'posts') {
-    const grid = document.getElementById('profile-grid');
-    grid.innerHTML = "<p style='grid-column:1/4; text-align:center; padding:20px; color:#555;'>Cargando...</p>";
-    
-    let data = [];
-    if(filterType === 'posts') {
-        // Traemos las publicaciones ordenadas por fecha
-        const { data: posts } = await _supabase.from('publicaciones')
-            .select('*')
-            .eq('usuario', viewingUser)
-            .eq('estado', 'aprobado')
-            .order('created_at', { ascending: true }); // Los más viejos primero en el array...
-        data = posts;
-    } else {
-        const { data: likedData } = await _supabase.from('likes')
-            .select('publicaciones(*)')
-            .eq('user_id', currentUserId);
-        data = likedData ? likedData.map(l => l.publicaciones).filter(p => p !== null) : [];
-    }
-
-    grid.innerHTML = "";
-    data?.forEach(post => {
-        const item = document.createElement('div');
-        item.className = 'grid-item';
-        item.onclick = () => openViewer(post);
-        item.innerHTML = `
-            ${post.tipo === 'video' ? `<video src="${post.url}#t=0.1" muted></video>` : `<img src="${post.url}">`}
-            <div class="grid-views"><i class="fas fa-play"></i> ${post.vistas || 0}</div>
-        `;
-        // EL CAMBIO CLAVE: usamos prepend para que el último procesado quede al inicio
-        grid.prepend(item); 
-    });
-}
+            const grid = document.getElementById('profile-grid');
+            grid.innerHTML = "<p style='grid-column:1/4; text-align:center; padding:20px; color:#555;'>Cargando...</p>";
+            let data = [];
+            if(filterType === 'posts') {
+                const { data: posts } = await _supabase.from('publicaciones').select('*').eq('usuario', viewingUser).eq('estado', 'aprobado').order('created_at', { ascending: false });
+                data = posts;
+            } else {
+                const { data: likedData } = await _supabase.from('likes').select('publicaciones(*)').eq('user_id', currentUserId);
+                data = likedData ? likedData.map(l => l.publicaciones).filter(p => p !== null) : [];
+            }
+            grid.innerHTML = "";
+            data?.forEach(post => {
+                const item = document.createElement('div');
+                item.className = 'grid-item';
+                item.onclick = () => openViewer(post);
+                item.innerHTML = `
+                    ${post.tipo === 'video' ? `<video src="${post.url}#t=0.1" muted></video>` : `<img src="${post.url}">`}
+                    <div class="grid-views"><i class="fas fa-play"></i> ${post.vistas || 0}</div>
+                `;
+                grid.appendChild(item);
+            });
+        }
 
         async function loadFeed() {
             const container = document.getElementById('feed-container');
