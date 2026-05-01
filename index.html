@@ -171,38 +171,51 @@
         }
 
         async function handleAuth(type) {
-            const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
-            const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
-            
-            if(!e || !p) return showMessage("Faltan datos");
-            document.getElementById('loading').style.display = 'flex';
-            
-            if(type === 'reg'){
-                const u = document.getElementById('r-user').value;
-                if(!u) {
-                    document.getElementById('loading').style.display = 'none';
-                    return showMessage("El nombre de usuario es obligatorio");
-                }
-                const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
-                if (error) {
-                    document.getElementById('loading').style.display = 'none';
-                    showMessage(error.message);
-                } else {
-                    // ARREGLO: Insertamos en la tabla 'perfiles' inmediatamente después del registro
-                    await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
-                    showMessage("¡Cuenta creada! Iniciando sesión...");
-                    setTimeout(() => location.reload(), 1500);
-                }
-            } else {
-                const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
-                if (error) {
-                    document.getElementById('loading').style.display = 'none';
-                    showMessage("Correo o clave incorrectos");
-                } else {
-                    location.reload();
-                }
-            }
+    const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
+    const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
+    
+    if(!e || !p) return showMessage("Faltan datos");
+    document.getElementById('loading').style.display = 'flex';
+    
+    if(type === 'reg'){
+        const u = document.getElementById('r-user').value;
+        if(!u) {
+            document.getElementById('loading').style.display = 'none';
+            return showMessage("El nombre de usuario es obligatorio");
         }
+        const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
+        
+        if (error) {
+            document.getElementById('loading').style.display = 'none';
+            
+            // TRADUCCIÓN DE ERRORES DE SUPABASE
+            let msg = error.message;
+            if (msg.includes("at least 6 characters")) msg = "La contraseña debe tener al menos 6 caracteres";
+            if (msg.includes("already registered")) msg = "Este correo ya está registrado";
+            if (msg.includes("Invalid email")) msg = "Formato de correo no válido";
+            
+            showMessage(msg);
+        } else {
+            await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
+            showMessage("¡Cuenta creada! Iniciando sesión...");
+            setTimeout(() => location.reload(), 1500);
+        }
+    } else {
+        const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
+        if (error) {
+            document.getElementById('loading').style.display = 'none';
+            
+            // TRADUCCIÓN DE ERRORES DE LOGIN
+            let msg = error.message;
+            if (msg.includes("Invalid login credentials")) msg = "Correo o clave incorrectos";
+            if (msg.includes("Email not confirmed")) msg = "Debes confirmar tu correo electrónico";
+            
+            showMessage(msg);
+        } else {
+            location.reload();
+        }
+    }
+}
 
         function toggleAuth(isReg) {
             document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
