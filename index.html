@@ -66,7 +66,6 @@
         
         .btn-delete { color: #ff4444 !important; font-size: 1.8rem !important; margin-top: 5px; opacity: 0.8; }
         
-        /* BARRA DE PROGRESO Y TIEMPO */
         .progress-container { 
             position: absolute; 
             bottom: 0; 
@@ -148,18 +147,13 @@
     </div>
 
     <div id="auth-screen" class="screen" style="display:flex; align-items:center; justify-content:center; z-index:9000;">
-        <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; letter-spacing:5px;">LA MELY</div>
-        
-        <!-- Mensaje dinámico debajo del título para Registro -->
-        <div id="reg-msg" style="display:none; color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold;">Registrate para ver los videos de la mely</div>
-
-        <div id="login-form" style="width:85%; max-width:350px; text-align:center; margin-top:20px;">
+        <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; margin-bottom:20px; letter-spacing:5px;">LA MELY</div>
+        <div id="login-form" style="width:85%; max-width:350px; text-align:center;">
             <input type="email" id="email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
             <input type="password" id="pass" placeholder="Contraseña" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
             <button onclick="handleAuth('login')" style="width:100%; padding:16px; background:#d4af37; border:none; border-radius:50px; font-weight:800; text-transform:uppercase; cursor:pointer;">Entrar</button>
             <p style="margin-top:20px; color:#666" onclick="toggleAuth(true)">¿No tienes cuenta? <span style="color:#d4af37">Regístrate</span></p>
         </div>
-
         <div id="reg-form" style="display:none; width:85%; max-width:350px; text-align:center;">
             <input type="text" id="r-user" placeholder="Nombre de usuario" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
             <input type="email" id="r-email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
@@ -273,8 +267,6 @@
         function toggleAuth(isReg) {
             document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
             document.getElementById('reg-form').style.display = isReg ? 'block' : 'none';
-            // Controlar visibilidad del mensaje especial de registro
-            document.getElementById('reg-msg').style.display = isReg ? 'block' : 'none';
         }
 
         async function logout() { await _supabase.auth.signOut(); location.reload(); }
@@ -521,16 +513,16 @@
         }
 
         function setupRealtime() {
-            _supabase.channel('publicaciones').on('postgres_changes', { event: '*', filter: 'estado=eq.aprobado', schema: 'public', table: 'publicaciones' }, payload => {
-                if(payload.eventType === 'INSERT') {
-                    const container = document.getElementById('feed-container');
-                    renderPost(payload.new, container, true);
-                    initObserver();
+            _supabase.channel('public')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'publicaciones' }, payload => {
+                if (payload.eventType === 'INSERT' && payload.new.estado === 'aprobado' && payload.new.usuario !== currentUser) {
+                   renderPost(payload.new, document.getElementById('feed-container'), true);
+                   initObserver();
                 }
             }).subscribe();
         }
 
-        init();
+        window.onload = init;
     </script>
 </body>
 </html>
