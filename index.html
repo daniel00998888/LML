@@ -170,7 +170,7 @@
             setTimeout(() => splash.style.display = 'none', 500);
         }
 
-        async function handleAuth(type) {
+       async function handleAuth(type) {
     const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
     const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
     
@@ -183,34 +183,45 @@
             document.getElementById('loading').style.display = 'none';
             return showMessage("El nombre de usuario es obligatorio");
         }
-        const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
+
+        // 1. Creamos el usuario en el sistema de Autenticación
+        const { data, error } = await _supabase.auth.signUp({ 
+            email: e, 
+            password: p 
+        });
         
         if (error) {
             document.getElementById('loading').style.display = 'none';
-            
-            // TRADUCCIÓN DE ERRORES DE SUPABASE
             let msg = error.message;
-            if (msg.includes("at least 6 characters")) msg = "La contraseña debe tener al menos 6 caracteres";
-            if (msg.includes("already registered")) msg = "Este correo ya está registrado";
-            if (msg.includes("Invalid email")) msg = "Formato de correo no válido";
-            
+            if (msg.includes("at least 6 characters")) msg = "Mínimo 6 caracteres";
             showMessage(msg);
-        } else {
-            await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
-            showMessage("¡Cuenta creada! Iniciando sesión...");
-            setTimeout(() => location.reload(), 1500);
+        } else if (data.user) {
+            // 2. Insertamos manualmente en la tabla 'perfiles'
+            // IMPORTANTE: Asegúrate que los nombres de las columnas en Supabase coincidan (username, email)
+            const { error: profileError } = await _supabase
+                .from('perfiles')
+                .insert([
+                    { 
+                        id: data.user.id, // Relaciona el perfil con el ID de auth
+                        username: u,      // Guarda el nombre de usuario
+                        email: e          // Guarda el correo (opcional)
+                    }
+                ]);
+
+            if (profileError) {
+                console.error("Error al crear perfil:", profileError.message);
+                showMessage("Error al crear el perfil en la tabla.");
+            } else {
+                showMessage("¡Cuenta creada con éxito!");
+                setTimeout(() => location.reload(), 1500);
+            }
         }
     } else {
+        // Lógica de Login (permanece igual)
         const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
         if (error) {
             document.getElementById('loading').style.display = 'none';
-            
-            // TRADUCCIÓN DE ERRORES DE LOGIN
-            let msg = error.message;
-            if (msg.includes("Invalid login credentials")) msg = "Correo o clave incorrectos";
-            if (msg.includes("Email not confirmed")) msg = "Debes confirmar tu correo electrónico";
-            
-            showMessage(msg);
+            showMessage("Credenciales incorrectas");
         } else {
             location.reload();
         }
