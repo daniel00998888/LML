@@ -389,26 +389,72 @@
 
         // FUNCIÓN SETUP VIDEO MEJORADA (INTERACTIVA)
         function setupVideo(card, postId) {
-            const v = card.querySelector('video');
-            const container = card.querySelector('.progress-container');
-            const bar = card.querySelector('.progress-bar');
-            if(!v || !container) return;
+    const v = card.querySelector('video');
+    const container = card.querySelector('.progress-container');
+    const bar = card.querySelector('.progress-bar');
+    if (!v || !container) return;
 
-            v.onclick = () => v.paused ? v.play() : v.pause();
+    let isDragging = false;
 
-            v.ontimeupdate = () => {
-                if (!isNaN(v.duration)) {
-                    bar.style.width = (v.currentTime / v.duration) * 100 + "%";
-                }
-            };
+    // Reproducir/Pausar al tocar el video
+    v.onclick = () => v.paused ? v.play() : v.pause();
 
-            container.onclick = (e) => {
-                e.stopPropagation();
-                const rect = container.getBoundingClientRect();
-                const pos = (e.clientX - rect.left) / rect.width;
-                v.currentTime = pos * v.duration;
-            };
+    // Actualización automática de la barra mientras el video corre
+    v.ontimeupdate = () => {
+        if (!isNaN(v.duration) && !isDragging) {
+            const percentage = (v.currentTime / v.duration) * 100;
+            bar.style.width = percentage + "%";
         }
+    };
+
+    // Función para calcular la posición y mover el video
+    const scrub = (e) => {
+        const rect = container.getBoundingClientRect();
+        // Soporte para Touch (móvil) y Mouse (PC)
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        let pos = (clientX - rect.left) / rect.width;
+        
+        // Limitar entre 0 y 1
+        pos = Math.max(0, Math.min(1, pos));
+        
+        bar.style.width = (pos * 100) + "%";
+        if (!isNaN(v.duration)) {
+            v.currentTime = pos * v.duration;
+        }
+    };
+
+    // Eventos de Mouse
+    container.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        scrub(e);
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (isDragging) scrub(e);
+    });
+
+    window.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+
+    // Eventos de Touch (Móvil) - Lo que buscabas
+    container.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        scrub(e);
+    }, { passive: true });
+
+    container.addEventListener('touchmove', (e) => {
+        if (isDragging) {
+            scrub(e);
+            // Evita que el scroll vertical interfiera mientras deslizas la barra
+            if (e.cancelable) e.preventDefault(); 
+        }
+    }, { passive: false });
+
+    container.addEventListener('touchend', () => {
+        isDragging = false;
+    });
+}
 
         function initObserver() {
             const obs = new IntersectionObserver(entries => {
