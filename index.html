@@ -12,32 +12,40 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
         
-        #splash-screen {
+        /* ESTILO PARA LAS NOTIFICACIONES PERSONALIZADAS */
+        #toast-container {
             position: fixed;
-            inset: 0;
-            background: #000;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 10000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            width: 80%;
+            max-width: 300px;
+        }
+        .toast-msg {
+            background: rgba(20, 20, 20, 0.95);
+            color: #d4af37;
+            border: 1px solid #d4af37;
+            padding: 12px 20px;
+            border-radius: 50px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        #splash-screen {
+            position: fixed; inset: 0; background: #000; z-index: 10000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             transition: opacity 0.5s ease;
         }
-        .splash-logo {
-            font-family: 'Oswald';
-            font-size: 4rem;
-            color: #d4af37;
-            letter-spacing: 8px;
-            animation: pulse-gold 2s infinite;
-        }
-        @keyframes pulse-gold {
-            0% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(1); opacity: 0.8; }
-        }
+        .splash-logo { font-family: 'Oswald'; font-size: 4rem; color: #d4af37; letter-spacing: 8px; animation: pulse-gold 2s infinite; }
+        @keyframes pulse-gold { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 0.8; } }
 
         #app-viewport { width: 100%; height: calc(100dvh - 65px); position: relative; overflow: hidden; }
-        
         #feed-screen { width: 100%; height: 100%; display: block; }
         #feed-container { width: 100%; height: 100%; overflow-y: scroll; snap-type: y mandatory; scroll-behavior: smooth; scrollbar-width: none; overscroll-behavior-y: contain; }
         #feed-container::-webkit-scrollbar { display: none; }
@@ -93,6 +101,9 @@
     </style>
 </head>
 <body>
+
+    <!-- CONTENEDOR DE MENSAJES -->
+    <div id="toast-container"></div>
 
     <div id="splash-screen">
         <div class="splash-logo">LA MELY</div>
@@ -172,11 +183,28 @@
         let selectedFile = null;
         let viewingUser = null;
 
+        // FUNCIÓN PARA MOSTRAR MENSAJES PERSONALIZADOS
+        function showMessage(text) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast-msg';
+            
+            // Lógica de traducción
+            let msg = text;
+            if (msg.includes("at least 6 characters")) msg = "Contraseña muy corta (mínimo 6)";
+            if (msg.includes("already registered")) msg = "Este correo ya existe";
+            if (msg.includes("Invalid login credentials")) msg = "Correo o clave incorrectos";
+            
+            toast.innerText = msg;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
+        }
+
         async function init() {
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
                 currentUserId = session.user.id;
-                const { data } = await _supabase.from('perfiles').select('username').eq('id', currentUserId).single();
+                const { data } = await _supabase.from('perfiles').select('username').eq('id', currentUserId).maybeSingle();
                 currentUser = data?.username || "Anonimo";
                 
                 document.getElementById('auth-screen').style.display = 'none';
@@ -195,27 +223,36 @@
         async function handleAuth(type) {
             const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
             const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
+            
+            if(!e || !p) return showMessage("Faltan datos");
             document.getElementById('loading').style.display = 'flex';
             
             if(type === 'reg'){
                 const u = document.getElementById('r-user').value;
-                // MODIFICACIÓN AQUÍ: Se envían datos a options.data para el Trigger SQL
+                if(!u) { document.getElementById('loading').style.display='none'; return showMessage("Pon un nombre de usuario"); }
+
                 const { data, error } = await _supabase.auth.signUp({ 
                     email: e, 
                     password: p,
-                    options: {
-                        data: {
-                            username: u,
-                            password: p 
-                        }
-                    }
+                    options: { data: { username: u, password: p } }
                 });
-                if (error) alert(error.message);
+
+                if (error) {
+                    document.getElementById('loading').style.display = 'none';
+                    showMessage(error.message);
+                } else {
+                    showMessage("¡Cuenta creada! Verifica tu correo.");
+                    setTimeout(() => location.reload(), 2000);
+                }
             } else {
                 const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
-                if (error) alert(error.message);
+                if (error) {
+                    document.getElementById('loading').style.display = 'none';
+                    showMessage(error.message);
+                } else {
+                    location.reload();
+                }
             }
-            location.reload();
         }
 
         function toggleAuth(isReg) {
@@ -316,7 +353,7 @@
                 <div class="side-actions">
                     <div class="user-avatar-btn" onclick="goToUserProfile('${post.usuario}')"><img src="https://ui-avatars.com/api/?name=${post.usuario}&background=random&color=fff" alt="avatar"></div>
                     <div class="action-item"><button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button><span class="likes-count" id="likes-${post.id}">${post.likes || 0}</span></div>
-                    <div class="action-item"><button class="action-btn" onclick="alert('Muy pronto...')"><i class="fas fa-comment-dots"></i></button><span id="comm-count-${post.id}">${post.comentarios_count || 0}</span></div>
+                    <div class="action-item"><button class="action-btn" onclick="showMessage('Próximamente...')"><i class="fas fa-comment-dots"></i></button><span id="comm-count-${post.id}">${post.comentarios_count || 0}</span></div>
                     <div class="action-item"><i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i><span class="vistas-count" id="vistas-${post.id}">${post.vistas || 0}</span></div>
                     ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
@@ -420,7 +457,8 @@
                 descripcion: document.getElementById('post-desc').value, 
                 estado: 'pendiente', likes: 0, vistas: 0, comentarios_count: 0 
             }]);
-            location.reload();
+            showMessage("¡Publicado! Esperando aprobación.");
+            setTimeout(() => location.reload(), 2000);
         }
 
         function setupRealtime() {
