@@ -12,7 +12,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
         
-        /* ESTILO PARA LAS NOTIFICACIONES PERSONALIZADAS */
         #toast-container {
             position: fixed;
             bottom: 80px;
@@ -53,8 +52,8 @@
         .post-card { width: 100%; height: 100%; snap-align: start; snap-stop: always; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
         .video-player { width: 100%; height: 100%; object-fit: cover; }
         
-        .ui-info { position: absolute; bottom: 40px; left: 15px; z-index: 10; text-shadow: 2px 2px 8px rgba(0,0,0,1); max-width: 70%; }
-        .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.4rem; margin-bottom: 5px; cursor: pointer; display: inline-block; }
+        .ui-info { position: absolute; bottom: 45px; left: 15px; z-index: 10; text-shadow: 2px 2px 8px rgba(0,0,0,1); max-width: 70%; pointer-events: none; }
+        .ui-info h2 { font-family: 'Oswald'; color: #d4af37; font-size: 1.4rem; margin-bottom: 5px; cursor: pointer; pointer-events: auto; display: inline-block; }
         
         .side-actions { position: absolute; right: 10px; bottom: 80px; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 20; }
         .action-item { display: flex; flex-direction: column; align-items: center; color: #fff; font-size: 0.75rem; font-weight: bold; }
@@ -67,9 +66,15 @@
         
         .btn-delete { color: #ff4444 !important; font-size: 1.8rem !important; margin-top: 5px; opacity: 0.8; }
         
-        .progress-container { position: absolute; bottom: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.1); z-index: 20; }
-        .progress-bar { height: 100%; background: #d4af37; width: 0%; }
+        /* BARRA DE PROGRESO MEJORADA */
+        .progress-container { position: absolute; bottom: 0; width: 100%; height: 25px; background: transparent; z-index: 100; display: flex; align-items: flex-end; cursor: pointer; }
+        .progress-bg { width: 100%; height: 5px; background: rgba(255,255,255,0.2); position: relative; }
+        .progress-bar { height: 100%; background: #d4af37; width: 0%; position: relative; }
+        .progress-bar::after { content: ''; position: absolute; right: -5px; top: -3px; width: 10px; height: 10px; background: #d4af37; border-radius: 50%; display: none; }
+        .progress-container:hover .progress-bar::after { display: block; }
         
+        .time-display { position: absolute; bottom: 10px; left: 15px; font-size: 11px; font-weight: bold; color: rgba(255,255,255,0.8); text-shadow: 1px 1px 2px #000; pointer-events: none; z-index: 101; }
+
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; }
         .nav-item.active { color: #fff; }
@@ -102,7 +107,6 @@
 </head>
 <body>
 
-    <!-- CONTENEDOR DE MENSAJES -->
     <div id="toast-container"></div>
 
     <div id="splash-screen">
@@ -117,8 +121,6 @@
 
     <div id="auth-screen" class="screen" style="display:flex; align-items:center; justify-content:center; z-index:9000;">
         <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; letter-spacing:5px;">LA MELY</div>
-        
-        <!-- NUEVOS MENSAJES DE ESTADO -->
         <div id="login-msg" style="color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">inicia sesion para ver los videos de la mely</div>
         <div id="reg-msg" style="display:none; color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">registrate para ver los videos de la mely</div>
 
@@ -188,6 +190,14 @@
         let selectedFile = null;
         let viewingUser = null;
 
+        // Formatea segundos (65 -> 1:05)
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
         function showMessage(text) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -254,7 +264,6 @@
         function toggleAuth(isReg) {
             document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
             document.getElementById('reg-form').style.display = isReg ? 'block' : 'none';
-            // Alternar los mensajes de texto
             document.getElementById('login-msg').style.display = isReg ? 'none' : 'block';
             document.getElementById('reg-msg').style.display = isReg ? 'block' : 'none';
         }
@@ -354,7 +363,14 @@
                     ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
                 <div class="ui-info"><h2 onclick="goToUserProfile('${post.usuario}')">@${post.usuario}</h2><p>${post.descripcion || ''}</p></div>
-                <div class="progress-container"><div class="progress-bar" id="bar-${post.id}"></div></div>
+                
+                ${post.tipo === 'video' ? `
+                <div class="time-display" id="time-${post.id}">0:00 / 0:00</div>
+                <div class="progress-container" id="container-${post.id}">
+                    <div class="progress-bg">
+                        <div class="progress-bar" id="bar-${post.id}"></div>
+                    </div>
+                </div>` : ''}
             `;
             isNew ? container.prepend(card) : container.appendChild(card);
             if (post.tipo === 'video') setupVideo(card, post.id);
@@ -394,9 +410,37 @@
         function setupVideo(card, postId) {
             const v = card.querySelector('video');
             const bar = card.querySelector('.progress-bar');
-            if(!v) return;
+            const container = card.querySelector('.progress-container');
+            const timeDisplay = card.querySelector('.time-display');
+            
+            if(!v || !container) return;
+
             v.onclick = () => v.paused ? v.play() : v.pause();
-            v.ontimeupdate = () => bar.style.width = (v.currentTime / v.duration) * 100 + "%";
+
+            // Actualizar barra y tiempo
+            v.ontimeupdate = () => {
+                const pct = (v.currentTime / v.duration) * 100;
+                bar.style.width = pct + "%";
+                timeDisplay.innerText = `${formatTime(v.currentTime)} / ${formatTime(v.duration)}`;
+            };
+
+            // Función para cambiar tiempo al hacer clic o arrastrar
+            const scrub = (e) => {
+                const rect = container.getBoundingClientRect();
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                const pct = Math.max(0, Math.min(1, x / rect.width));
+                v.currentTime = pct * v.duration;
+            };
+
+            // Eventos de ratón y táctiles para la barra
+            let isDragging = false;
+            container.onmousedown = (e) => { isDragging = true; scrub(e); };
+            container.ontouchstart = (e) => { isDragging = true; scrub(e); };
+
+            window.addEventListener('mousemove', (e) => { if(isDragging) scrub(e); });
+            window.addEventListener('touchmove', (e) => { if(isDragging) scrub(e); });
+            window.addEventListener('mouseup', () => { isDragging = false; });
+            window.addEventListener('touchend', () => { isDragging = false; });
         }
 
         function initObserver() {
