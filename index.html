@@ -116,7 +116,12 @@
     </div>
 
     <div id="auth-screen" class="screen" style="display:flex; align-items:center; justify-content:center; z-index:9000;">
-        <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; margin-bottom:20px; letter-spacing:5px;">LA MELY</div>
+        <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; letter-spacing:5px;">LA MELY</div>
+        
+        <!-- NUEVOS MENSAJES DE ESTADO -->
+        <div id="login-msg" style="color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">inicia sesion para ver los videos de la mely</div>
+        <div id="reg-msg" style="display:none; color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">registrate para ver los videos de la mely</div>
+
         <div id="login-form" style="width:85%; max-width:350px; text-align:center;">
             <input type="email" id="email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
             <input type="password" id="pass" placeholder="Contraseña" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
@@ -183,18 +188,14 @@
         let selectedFile = null;
         let viewingUser = null;
 
-        // FUNCIÓN PARA MOSTRAR MENSAJES PERSONALIZADOS
         function showMessage(text) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = 'toast-msg';
-            
-            // Lógica de traducción
             let msg = text;
             if (msg.includes("at least 6 characters")) msg = "Contraseña muy corta (mínimo 6)";
             if (msg.includes("already registered")) msg = "Este correo ya existe";
             if (msg.includes("Invalid login credentials")) msg = "Correo o clave incorrectos";
-            
             toast.innerText = msg;
             container.appendChild(toast);
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
@@ -206,7 +207,6 @@
                 currentUserId = session.user.id;
                 const { data } = await _supabase.from('perfiles').select('username').eq('id', currentUserId).maybeSingle();
                 currentUser = data?.username || "Anonimo";
-                
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('main-nav').style.display = 'flex';
                 await loadFeed();
@@ -223,20 +223,16 @@
         async function handleAuth(type) {
             const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
             const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
-            
             if(!e || !p) return showMessage("Faltan datos");
             document.getElementById('loading').style.display = 'flex';
-            
             if(type === 'reg'){
                 const u = document.getElementById('r-user').value;
                 if(!u) { document.getElementById('loading').style.display='none'; return showMessage("Pon un nombre de usuario"); }
-
                 const { data, error } = await _supabase.auth.signUp({ 
                     email: e, 
                     password: p,
                     options: { data: { username: u, password: p } }
                 });
-
                 if (error) {
                     document.getElementById('loading').style.display = 'none';
                     showMessage(error.message);
@@ -258,6 +254,9 @@
         function toggleAuth(isReg) {
             document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
             document.getElementById('reg-form').style.display = isReg ? 'block' : 'none';
+            // Alternar los mensajes de texto
+            document.getElementById('login-msg').style.display = isReg ? 'none' : 'block';
+            document.getElementById('reg-msg').style.display = isReg ? 'block' : 'none';
         }
 
         async function logout() { await _supabase.auth.signOut(); location.reload(); }
@@ -267,7 +266,6 @@
             document.getElementById('feed-screen').style.display = id === 'feed' ? 'block' : 'none';
             document.getElementById('nav-home').classList.toggle('active', id === 'feed');
             document.getElementById('nav-profile-btn').classList.toggle('active', id === 'profile');
-            
             if(id === 'profile') document.getElementById('profile-screen').style.display = 'flex';
             else if(id === 'upload') document.getElementById('upload-screen').style.display = 'flex';
         }
@@ -302,7 +300,6 @@
         async function loadUserPosts(filterType = 'posts') {
             const grid = document.getElementById('profile-grid');
             grid.innerHTML = "<p style='grid-column:1/4; text-align:center; padding:20px; color:#555;'>Cargando...</p>";
-            
             let data = [];
             if(filterType === 'posts') {
                 const { data: posts } = await _supabase.from('publicaciones').select('*').eq('usuario', viewingUser).eq('estado', 'aprobado').order('created_at', { ascending: false });
@@ -311,7 +308,6 @@
                 const { data: likedData } = await _supabase.from('likes').select('publicaciones(*)').eq('user_id', currentUserId);
                 data = likedData ? likedData.map(l => l.publicaciones).filter(p => p !== null) : [];
             }
-
             grid.innerHTML = "";
             data?.forEach(post => {
                 const item = document.createElement('div');
