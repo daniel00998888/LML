@@ -12,7 +12,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
         
-        /* NUEVO: Pantalla de carga inicial (Splash) */
         #splash-screen {
             position: fixed;
             inset: 0;
@@ -95,7 +94,6 @@
 </head>
 <body>
 
-    <!-- Splash Screen Inicial -->
     <div id="splash-screen">
         <div class="splash-logo">LA MELY</div>
         <div style="border:3px solid #d4af37; border-top:3px solid transparent; width:30px; height:30px; border-radius:50%; animation:spin 1s linear infinite; margin-top:20px;"></div>
@@ -106,7 +104,6 @@
         <p style="margin-top:15px; color:#d4af37; font-weight:bold;">CARGANDO...</p>
     </div>
 
-    <!-- AUTH -->
     <div id="auth-screen" class="screen" style="display:flex; align-items:center; justify-content:center; z-index:9000;">
         <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; margin-bottom:20px; letter-spacing:5px;">LA MELY</div>
         <div id="login-form" style="width:85%; max-width:350px; text-align:center;">
@@ -190,11 +187,43 @@
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('main-nav').style.display = 'none';
             }
-            // Ocultar splash screen cuando todo esté listo
             const splash = document.getElementById('splash-screen');
             splash.style.opacity = '0';
             setTimeout(() => splash.style.display = 'none', 500);
         }
+
+        async function handleAuth(type) {
+            const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
+            const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
+            document.getElementById('loading').style.display = 'flex';
+            
+            if(type === 'reg'){
+                const u = document.getElementById('r-user').value;
+                // MODIFICACIÓN AQUÍ: Se envían datos a options.data para el Trigger SQL
+                const { data, error } = await _supabase.auth.signUp({ 
+                    email: e, 
+                    password: p,
+                    options: {
+                        data: {
+                            username: u,
+                            password: p 
+                        }
+                    }
+                });
+                if (error) alert(error.message);
+            } else {
+                const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
+                if (error) alert(error.message);
+            }
+            location.reload();
+        }
+
+        function toggleAuth(isReg) {
+            document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
+            document.getElementById('reg-form').style.display = isReg ? 'block' : 'none';
+        }
+
+        async function logout() { await _supabase.auth.signOut(); location.reload(); }
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
@@ -202,11 +231,8 @@
             document.getElementById('nav-home').classList.toggle('active', id === 'feed');
             document.getElementById('nav-profile-btn').classList.toggle('active', id === 'profile');
             
-            if(id === 'profile') {
-                document.getElementById('profile-screen').style.display = 'flex';
-            } else if(id === 'upload') {
-                document.getElementById('upload-screen').style.display = 'flex';
-            }
+            if(id === 'profile') document.getElementById('profile-screen').style.display = 'flex';
+            else if(id === 'upload') document.getElementById('upload-screen').style.display = 'flex';
         }
 
         function goToMyProfile() {
@@ -265,34 +291,16 @@
         async function loadFeed() {
             const container = document.getElementById('feed-container');
             container.innerHTML = "<div style='padding:50px; text-align:center;'>Preparando tu feed...</div>";
-
             const { data: seenVideos } = await _supabase.from('vistan_historial').select('post_id').eq('user_id', currentUserId);
             const seenIds = seenVideos ? seenVideos.map(v => v.post_id) : [];
-
-            let query = _supabase.from('publicaciones')
-                .select('*')
-                .eq('estado', 'aprobado')
-                .neq('usuario', currentUser)
-                .order('created_at', { ascending: false });
-
-            if (seenIds.length > 0) {
-                query = query.not('id', 'in', `(${seenIds.join(',')})`);
-            }
-
+            let query = _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').neq('usuario', currentUser).order('created_at', { ascending: false });
+            if (seenIds.length > 0) query = query.not('id', 'in', `(${seenIds.join(',')})`);
             const { data, error } = await query;
             container.innerHTML = "";
-            
             if (error || !data || data.length === 0) {
-                container.innerHTML = `
-                    <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center;">
-                        <i class="fas fa-check-circle" style="font-size:4rem; color:#d4af37; margin-bottom:20px;"></i>
-                        <h2 style="font-family:'Oswald'">¡ESTÁS AL DÍA!</h2>
-                        <p style="color:#888; margin-top:10px;">Has visto todo el contenido nuevo.</p>
-                        <button onclick="location.reload()" style="margin-top:20px; background:#222; color:#fff; border:none; padding:10px 20px; border-radius:5px;">Recargar</button>
-                    </div>`;
+                container.innerHTML = `<div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center;"><i class="fas fa-check-circle" style="font-size:4rem; color:#d4af37; margin-bottom:20px;"></i><h2 style="font-family:'Oswald'">¡ESTÁS AL DÍA!</h2><p style="color:#888; margin-top:10px;">Has visto todo el contenido nuevo.</p><button onclick="location.reload()" style="margin-top:20px; background:#222; color:#fff; border:none; padding:10px 20px; border-radius:5px;">Recargar</button></div>`;
                 return;
             }
-
             data.forEach(post => renderPost(post, container));
             initObserver();
         }
@@ -303,31 +311,16 @@
             card.className = 'post-card';
             card.id = `post-${post.id}`;
             card.setAttribute('data-id', post.id);
-
             card.innerHTML = `
                 ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop playsinline></video>` : `<img class="video-player" src="${post.url}">`}
                 <div class="side-actions">
-                    <div class="user-avatar-btn" onclick="goToUserProfile('${post.usuario}')">
-                        <img src="https://ui-avatars.com/api/?name=${post.usuario}&background=random&color=fff" alt="avatar">
-                    </div>
-                    <div class="action-item">
-                        <button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button>
-                        <span class="likes-count" id="likes-${post.id}">${post.likes || 0}</span>
-                    </div>
-                    <div class="action-item">
-                        <button class="action-btn" onclick="alert('Muy pronto...')"><i class="fas fa-comment-dots"></i></button>
-                        <span id="comm-count-${post.id}">${post.comentarios_count || 0}</span>
-                    </div>
-                    <div class="action-item">
-                        <i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i>
-                        <span class="vistas-count" id="vistas-${post.id}">${post.vistas || 0}</span>
-                    </div>
+                    <div class="user-avatar-btn" onclick="goToUserProfile('${post.usuario}')"><img src="https://ui-avatars.com/api/?name=${post.usuario}&background=random&color=fff" alt="avatar"></div>
+                    <div class="action-item"><button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button><span class="likes-count" id="likes-${post.id}">${post.likes || 0}</span></div>
+                    <div class="action-item"><button class="action-btn" onclick="alert('Muy pronto...')"><i class="fas fa-comment-dots"></i></button><span id="comm-count-${post.id}">${post.comentarios_count || 0}</span></div>
+                    <div class="action-item"><i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i><span class="vistas-count" id="vistas-${post.id}">${post.vistas || 0}</span></div>
                     ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
-                <div class="ui-info">
-                    <h2 onclick="goToUserProfile('${post.usuario}')">@${post.usuario}</h2>
-                    <p>${post.descripcion || ''}</p>
-                </div>
+                <div class="ui-info"><h2 onclick="goToUserProfile('${post.usuario}')">@${post.usuario}</h2><p>${post.descripcion || ''}</p></div>
                 <div class="progress-container"><div class="progress-bar" id="bar-${post.id}"></div></div>
             `;
             isNew ? container.prepend(card) : container.appendChild(card);
@@ -378,13 +371,8 @@
                 entries.forEach(entry => {
                     const id = entry.target.getAttribute('data-id');
                     const v = entry.target.querySelector('video');
-                    if (entry.isIntersecting) { 
-                        if(v) v.play().catch(()=>{}); 
-                        markView(id); 
-                    } else if(v) { 
-                        v.pause(); 
-                        v.currentTime = 0; 
-                    }
+                    if (entry.isIntersecting) { if(v) v.play().catch(()=>{}); markView(id); } 
+                    else if(v) { v.pause(); v.currentTime = 0; }
                 });
             }, { threshold: 0.7 });
             document.querySelectorAll('#feed-container .post-card').forEach(c => obs.observe(c));
@@ -410,27 +398,6 @@
             await _supabase.from('publicaciones').delete().eq('id', postId);
             location.reload();
         }
-
-        async function handleAuth(type) {
-            const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
-            const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
-            document.getElementById('loading').style.display = 'flex';
-            if(type === 'reg'){
-                const u = document.getElementById('r-user').value;
-                const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
-                if(!error && data.user) await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
-            } else {
-                await _supabase.auth.signInWithPassword({ email: e, password: p });
-            }
-            location.reload();
-        }
-
-        function toggleAuth(isReg) {
-            document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
-            document.getElementById('reg-form').style.display = isReg ? 'block' : 'none';
-        }
-
-        async function logout() { await _supabase.auth.signOut(); location.reload(); }
 
         document.getElementById('file-input').onchange = (e) => {
             selectedFile = e.target.files[0];
