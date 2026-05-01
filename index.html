@@ -171,69 +171,39 @@
         }
 
         async function handleAuth(type) {
-    // 1. Capturar valores con nombres claros
-    const emailLogin = document.getElementById('email').value;
-    const passLogin = document.getElementById('pass').value;
-    
-    const userReg = document.getElementById('r-user').value;
-    const emailReg = document.getElementById('r-email').value;
-    const passReg = document.getElementById('r-pass').value;
-    
-    document.getElementById('loading').style.display = 'flex';
-    
-    if(type === 'reg'){
-        if(!userReg || !emailReg || !passReg) {
-            document.getElementById('loading').style.display = 'none';
-            return showMessage("Completa todos los campos");
-        }
-
-        // Registro en Auth
-        const { data, error } = await _supabase.auth.signUp({ 
-            email: emailReg, 
-            password: passReg 
-        });
-        
-        if (error) {
-            document.getElementById('loading').style.display = 'none';
-            let msg = error.message;
-            if (msg.includes("at least 6 characters")) msg = "La contraseña debe ser de 6+ caracteres";
-            showMessage(msg);
-        } else if (data.user) {
-            // INSERTAR EN PERFILES
-            // Usamos los valores capturados arriba directamente
-            const { error: profileError } = await _supabase
-                .from('perfiles')
-                .insert([
-                    { 
-                        id: data.user.id, 
-                        username: userReg, 
-                        email: emailReg 
-                    }
-                ]);
-
-            if (profileError) {
-                console.error(profileError);
-                document.getElementById('loading').style.display = 'none';
-                showMessage("Error al guardar en tabla perfiles");
+            const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
+            const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
+            
+            if(!e || !p) return showMessage("Faltan datos");
+            document.getElementById('loading').style.display = 'flex';
+            
+            if(type === 'reg'){
+                const u = document.getElementById('r-user').value;
+                if(!u) {
+                    document.getElementById('loading').style.display = 'none';
+                    return showMessage("El nombre de usuario es obligatorio");
+                }
+                const { data, error } = await _supabase.auth.signUp({ email: e, password: p });
+                if (error) {
+                    document.getElementById('loading').style.display = 'none';
+                    showMessage(error.message);
+                } else {
+                    // ARREGLO: Insertamos en la tabla 'perfiles' inmediatamente después del registro
+                    await _supabase.from('perfiles').insert([{ id: data.user.id, username: u }]);
+                    showMessage("¡Cuenta creada! Iniciando sesión...");
+                    setTimeout(() => location.reload(), 1500);
+                }
             } else {
-                showMessage("¡Cuenta creada correctamente!");
-                setTimeout(() => location.reload(), 1500);
+                const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
+                if (error) {
+                    document.getElementById('loading').style.display = 'none';
+                    showMessage("Correo o clave incorrectos");
+                } else {
+                    location.reload();
+                }
             }
         }
-    } else {
-        // Login
-        const { error } = await _supabase.auth.signInWithPassword({ 
-            email: emailLogin, 
-            password: passLogin 
-        });
-        if (error) {
-            document.getElementById('loading').style.display = 'none';
-            showMessage("Credenciales incorrectas");
-        } else {
-            location.reload();
-        }
-    }
-}
+
         function toggleAuth(isReg) {
             document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
             document.getElementById('reg-form').style.display = isReg ? 'block' : 'none';
