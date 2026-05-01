@@ -66,7 +66,6 @@
         
         .btn-delete { color: #ff4444 !important; font-size: 1.8rem !important; margin-top: 5px; opacity: 0.8; }
         
-        /* BARRA DE PROGRESO MEJORADA */
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 25px; background: transparent; z-index: 100; display: flex; align-items: flex-end; cursor: pointer; }
         .progress-bg { width: 100%; height: 5px; background: rgba(255,255,255,0.2); position: relative; }
         .progress-bar { height: 100%; background: #d4af37; width: 0%; position: relative; }
@@ -121,16 +120,20 @@
 
     <div id="auth-screen" class="screen" style="display:flex; align-items:center; justify-content:center; z-index:9000;">
         <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; letter-spacing:5px;">LA MELY</div>
-        <div id="login-msg" style="color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">inicia sesion para ver los videos de la mely</div>
-        <div id="reg-msg" style="display:none; color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">registrate para ver los videos de la mely</div>
+        <!-- MENSAJES DE BIENVENIDA -->
+        <div id="login-msg" style="display:none; color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">inicia sesion para ver los videos de la mely</div>
+        <div id="reg-msg" style="color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">registrate para ver los videos de la mely</div>
 
-        <div id="login-form" style="width:85%; max-width:350px; text-align:center;">
+        <!-- FORMULARIO DE INICIO (Oculto inicialmente para nuevos) -->
+        <div id="login-form" style="display:none; width:85%; max-width:350px; text-align:center;">
             <input type="email" id="email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
             <input type="password" id="pass" placeholder="Contraseña" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
             <button onclick="handleAuth('login')" style="width:100%; padding:16px; background:#d4af37; border:none; border-radius:50px; font-weight:800; text-transform:uppercase; cursor:pointer;">Entrar</button>
             <p style="margin-top:20px; color:#666" onclick="toggleAuth(true)">¿Nuevo aquí? <span style="color:#d4af37">Regístrate</span></p>
         </div>
-        <div id="reg-form" style="display:none; width:85%; max-width:350px; text-align:center;">
+
+        <!-- FORMULARIO DE REGISTRO (Visible inicialmente para nuevos) -->
+        <div id="reg-form" style="width:85%; max-width:350px; text-align:center;">
             <input type="text" id="r-user" placeholder="Nombre de usuario" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
             <input type="email" id="r-email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
             <input type="password" id="r-pass" placeholder="Contraseña" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
@@ -190,7 +193,6 @@
         let selectedFile = null;
         let viewingUser = null;
 
-        // Formatea segundos (65 -> 1:05)
         function formatTime(seconds) {
             if (isNaN(seconds)) return "0:00";
             const m = Math.floor(seconds / 60);
@@ -222,8 +224,11 @@
                 await loadFeed();
                 setupRealtime();
             } else {
+                // SI ES NUEVO O NO TIENE SESIÓN:
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('main-nav').style.display = 'none';
+                // Aseguramos que inicie en el formulario de registro y con su mensaje
+                toggleAuth(true); 
             }
             const splash = document.getElementById('splash-screen');
             splash.style.opacity = '0';
@@ -262,10 +267,12 @@
         }
 
         function toggleAuth(isReg) {
-            document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
+            // isReg true -> Muestra Registro
+            // isReg false -> Muestra Login
             document.getElementById('reg-form').style.display = isReg ? 'block' : 'none';
-            document.getElementById('login-msg').style.display = isReg ? 'none' : 'block';
             document.getElementById('reg-msg').style.display = isReg ? 'block' : 'none';
+            document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
+            document.getElementById('login-msg').style.display = isReg ? 'none' : 'block';
         }
 
         async function logout() { await _supabase.auth.signOut(); location.reload(); }
@@ -412,31 +419,22 @@
             const bar = card.querySelector('.progress-bar');
             const container = card.querySelector('.progress-container');
             const timeDisplay = card.querySelector('.time-display');
-            
             if(!v || !container) return;
-
             v.onclick = () => v.paused ? v.play() : v.pause();
-
-            // Actualizar barra y tiempo
             v.ontimeupdate = () => {
                 const pct = (v.currentTime / v.duration) * 100;
                 bar.style.width = pct + "%";
                 timeDisplay.innerText = `${formatTime(v.currentTime)} / ${formatTime(v.duration)}`;
             };
-
-            // Función para cambiar tiempo al hacer clic o arrastrar
             const scrub = (e) => {
                 const rect = container.getBoundingClientRect();
                 const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
                 const pct = Math.max(0, Math.min(1, x / rect.width));
                 v.currentTime = pct * v.duration;
             };
-
-            // Eventos de ratón y táctiles para la barra
             let isDragging = false;
             container.onmousedown = (e) => { isDragging = true; scrub(e); };
             container.ontouchstart = (e) => { isDragging = true; scrub(e); };
-
             window.addEventListener('mousemove', (e) => { if(isDragging) scrub(e); });
             window.addEventListener('touchmove', (e) => { if(isDragging) scrub(e); });
             window.addEventListener('mouseup', () => { isDragging = false; });
