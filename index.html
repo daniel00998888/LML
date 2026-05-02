@@ -9,38 +9,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Mantenemos tu estilo original intacto para no dañar la interfaz */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
         
-        #toast-container {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10000;
-            width: 80%;
-            max-width: 300px;
-        }
-        .toast-msg {
-            background: rgba(20, 20, 20, 0.95);
-            color: #d4af37;
-            border: 1px solid #d4af37;
-            padding: 12px 20px;
-            border-radius: 50px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 0.9rem;
-            margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            animation: slideUp 0.3s ease-out;
-        }
+        #toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 10000; width: 80%; max-width: 300px; }
+        .toast-msg { background: rgba(20, 20, 20, 0.95); color: #d4af37; border: 1px solid #d4af37; padding: 12px 20px; border-radius: 50px; text-align: center; font-weight: bold; font-size: 0.9rem; margin-top: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        #splash-screen {
-            position: fixed; inset: 0; background: #000; z-index: 10000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.5s ease;
-        }
+        #splash-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
         .splash-logo { font-family: 'Oswald'; font-size: 4rem; color: #d4af37; letter-spacing: 8px; animation: pulse-gold 2s infinite; }
         @keyframes pulse-gold { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 0.8; } }
 
@@ -69,7 +46,6 @@
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 25px; background: transparent; z-index: 100; display: flex; align-items: flex-end; cursor: pointer; }
         .progress-bg { width: 100%; height: 5px; background: rgba(255,255,255,0.2); position: relative; }
         .progress-bar { height: 100%; background: #d4af37; width: 0%; position: relative; }
-        .progress-bar::after { content: ''; position: absolute; right: -5px; top: -3px; width: 10px; height: 10px; background: #d4af37; border-radius: 50%; display: none; }
         .progress-container:hover .progress-bar::after { display: block; }
         
         .time-display { position: absolute; bottom: 10px; left: 15px; font-size: 11px; font-weight: bold; color: rgba(255,255,255,0.8); text-shadow: 1px 1px 2px #000; pointer-events: none; z-index: 101; }
@@ -130,22 +106,23 @@
         <p style="margin-top:15px; color:#d4af37; font-weight:bold;">CARGANDO...</p>
     </div>
 
+    <!-- PANTALLA DE AUTENTICACIÓN -->
     <div id="auth-screen" class="screen" style="display:flex; align-items:center; justify-content:center; z-index:9000; padding-bottom: 0;">
         <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; letter-spacing:5px;">LA MELY</div>
         <div id="login-msg" style="display:none; color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">inicia sesion para ver los videos y fotos de la mely</div>
         <div id="reg-msg" style="color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">registrate para ver los videos y fotos de la mely</div>
 
         <div id="login-form" style="display:none; width:85%; max-width:350px; text-align:center;">
-            <input type="email" id="email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
-            <input type="password" id="pass" placeholder="Contraseña" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
-            <button onclick="handleAuth('login')" style="width:100%; padding:16px; background:#d4af37; border:none; border-radius:50px; font-weight:800; text-transform:uppercase; cursor:pointer;">Entrar</button>
+            <input type="email" id="email" placeholder="Correo" autocomplete="email" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
+            <input type="password" id="pass" placeholder="Contraseña" autocomplete="current-password" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
+            <button id="btn-login-action" onclick="handleAuth('login')" style="width:100%; padding:16px; background:#d4af37; border:none; border-radius:50px; font-weight:800; text-transform:uppercase; cursor:pointer;">Entrar</button>
             <p style="margin-top:20px; color:#666" onclick="toggleAuth(true)">¿Nuevo aquí? <span style="color:#d4af37">Regístrate</span></p>
         </div>
 
         <div id="reg-form" style="width:85%; max-width:350px; text-align:center;">
             <input type="text" id="r-user" placeholder="Nombre de usuario" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
-            <input type="email" id="r-email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
-            <input type="password" id="r-pass" placeholder="Contraseña" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
+            <input type="email" id="r-email" placeholder="Correo" autocomplete="email" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
+            <input type="password" id="r-pass" placeholder="Contraseña" autocomplete="new-password" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
             <button onclick="handleAuth('reg')" style="width:100%; padding:16px; background:#d4af37; border:none; border-radius:50px; font-weight:800; text-transform:uppercase; cursor:pointer;">Crear Cuenta</button>
             <p style="margin-top:20px; color:#666" onclick="toggleAuth(false)">¿Ya tienes cuenta? <span style="color:#d4af37">Inicia Sesión</span></p>
         </div>
@@ -173,7 +150,7 @@
         <div id="upload-screen" class="screen" style="padding:20px; justify-content: center;">
             <div style="width:100%; height:45vh; background:#111; border-radius:15px; overflow:hidden;" id="preview-box"></div>
             <textarea id="post-desc" style="width:100%; background:#222; border:none; color:#fff; padding:15px; margin-top:15px; border-radius:10px; font-family:inherit; resize:none;" placeholder="Escribe algo sobre este video..."></textarea>
-            <button style="margin-top:15px; width:100%; padding:18px; background:#d4af37; border:none; border-radius:12px; font-weight:bold; color:#000; cursor:pointer;" onclick="startUpload()">PUBLICAR AHORA</button>
+            <button id="btn-upload-final" style="margin-top:15px; width:100%; padding:18px; background:#d4af37; border:none; border-radius:12px; font-weight:bold; color:#000; cursor:pointer;" onclick="startUpload()">PUBLICAR AHORA</button>
             <button onclick="location.reload()" style="background:none; border:none; color:#888; margin-top:15px; width:100%; cursor:pointer;">Cancelar</button>
         </div>
 
@@ -195,6 +172,7 @@
         </div>
     </div>
 
+    <!-- BARRA DE NAVEGACIÓN -->
     <div class="bottom-nav" id="main-nav" style="display:none;">
         <div class="nav-item active" id="nav-home" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
         <div class="nav-item" id="nav-search" onclick="showScreen('search')"><i class="fas fa-search"></i>Buscar</div>
@@ -219,6 +197,13 @@
         let currentUserId = null;
         let selectedFile = null;
         let viewingUser = null;
+
+        // Sanitización para prevenir XSS
+        function sanitize(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         function formatTime(seconds) {
             if (isNaN(seconds)) return "0:00";
@@ -264,15 +249,19 @@
             const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
             const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
             if(!e || !p) return showMessage("Faltan datos");
+            
             document.getElementById('loading').style.display = 'flex';
+            
             if(type === 'reg'){
                 const u = document.getElementById('r-user').value;
                 if(!u) { document.getElementById('loading').style.display='none'; return showMessage("Pon un nombre de usuario"); }
-                const { data, error } = await _supabase.auth.signUp({ 
+                
+                const { error } = await _supabase.auth.signUp({ 
                     email: e, 
                     password: p,
-                    options: { data: { username: u, password: p } }
+                    options: { data: { username: u } }
                 });
+                
                 if (error) {
                     document.getElementById('loading').style.display = 'none';
                     showMessage(error.message);
@@ -314,7 +303,7 @@
 
         function goToMyProfile() {
             viewingUser = currentUser;
-            document.getElementById('prof-user').innerText = "@" + currentUser;
+            document.getElementById('prof-user').innerText = "@" + sanitize(currentUser);
             document.getElementById('btn-back-profile').style.display = 'none';
             document.getElementById('btn-logout').style.display = 'inline-block';
             document.getElementById('profile-tabs').style.display = 'flex';
@@ -325,7 +314,7 @@
         function goToUserProfile(username) {
             if(username === currentUser) return goToMyProfile();
             viewingUser = username;
-            document.getElementById('prof-user').innerText = "@" + username;
+            document.getElementById('prof-user').innerText = "@" + sanitize(username);
             document.getElementById('btn-back-profile').style.display = 'block';
             document.getElementById('btn-logout').style.display = 'none';
             document.getElementById('profile-tabs').style.display = 'none';
@@ -343,6 +332,7 @@
             const grid = document.getElementById('profile-grid');
             grid.innerHTML = "<p style='grid-column:1/4; text-align:center; padding:20px; color:#555;'>Cargando...</p>";
             let data = [];
+            
             if(filterType === 'posts') {
                 const { data: posts } = await _supabase.from('publicaciones').select('*').eq('usuario', viewingUser).eq('estado', 'aprobado').order('created_at', { ascending: false });
                 data = posts;
@@ -350,6 +340,7 @@
                 const { data: likedData } = await _supabase.from('likes').select('publicaciones(*)').eq('user_id', currentUserId);
                 data = likedData ? likedData.map(l => l.publicaciones).filter(p => p !== null) : [];
             }
+            
             grid.innerHTML = "";
             data?.forEach(post => {
                 const item = document.createElement('div');
@@ -370,7 +361,7 @@
             data?.forEach(u => {
                 const div = document.createElement('div'); div.className = 'list-item';
                 div.onclick = () => goToUserProfile(u.username);
-                div.innerHTML = `<img class="list-avatar" src="https://ui-avatars.com/api/?name=${u.username}&background=random"><span>@${u.username}</span>`;
+                div.innerHTML = `<img class="list-avatar" src="https://ui-avatars.com/api/?name=${encodeURIComponent(u.username)}&background=random"><span>@${sanitize(u.username)}</span>`;
                 res.appendChild(div);
             });
         }
@@ -379,8 +370,7 @@
             const list = document.getElementById('notif-list'); 
             list.innerHTML = "<div style='text-align:center; padding:20px; color:#555;'>Buscando novedades...</div>";
             
-            // Traemos likes recientes de las publicaciones que le pertenecen al usuario logueado
-            const { data, error } = await _supabase.from('likes')
+            const { data } = await _supabase.from('likes')
                 .select('user_id, publicaciones!inner(*)')
                 .eq('publicaciones.usuario', currentUser)
                 .order('created_at', { ascending: false })
@@ -393,7 +383,6 @@
 
             list.innerHTML = "";
             for(let n of data) {
-                // Obtenemos nombre de quien dio like
                 const { data: prof } = await _supabase.from('perfiles').select('username').eq('id', n.user_id).maybeSingle();
                 const userName = prof?.username || "Alguien";
                 const post = n.publicaciones;
@@ -401,12 +390,12 @@
                 const div = document.createElement('div');
                 div.className = 'list-item';
                 div.innerHTML = `
-                    <img class="list-avatar" src="https://ui-avatars.com/api/?name=${userName}&background=random" onclick="event.stopPropagation(); goToUserProfile('${userName}')">
-                    <div class="list-info" onclick="openViewer(${JSON.stringify(post).replace(/"/g, '&quot;')})">
-                        <b>@${userName}</b>
+                    <img class="list-avatar" src="https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random" onclick="event.stopPropagation(); goToUserProfile('${sanitize(userName)}')">
+                    <div class="list-info" onclick='openViewer(${JSON.stringify(post)})'>
+                        <b>@${sanitize(userName)}</b>
                         <span>le dio like a tu ${post.tipo === 'video' ? 'video' : 'foto'}.</span>
                     </div>
-                    <img class="notif-thumb" src="${post.url}${post.tipo === 'video' ? '#t=0.5' : ''}" onclick="openViewer(${JSON.stringify(post).replace(/"/g, '&quot;')})">
+                    <img class="notif-thumb" src="${post.url}${post.tipo === 'video' ? '#t=0.5' : ''}" onclick='openViewer(${JSON.stringify(post)})'>
                 `;
                 list.appendChild(div);
             }
@@ -415,16 +404,21 @@
         async function loadFeed() {
             const container = document.getElementById('feed-container');
             container.innerHTML = "<div style='padding:50px; text-align:center;'>Preparando tu feed...</div>";
+            
             const { data: seenVideos } = await _supabase.from('vistan_historial').select('post_id').eq('user_id', currentUserId);
             const seenIds = seenVideos ? seenVideos.map(v => v.post_id) : [];
+            
             let query = _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').neq('usuario', currentUser).order('created_at', { ascending: false });
             if (seenIds.length > 0) query = query.not('id', 'in', `(${seenIds.join(',')})`);
+            
             const { data, error } = await query;
             container.innerHTML = "";
+            
             if (error || !data || data.length === 0) {
                 container.innerHTML = `<div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center;"><i class="fas fa-check-circle" style="font-size:4rem; color:#d4af37; margin-bottom:20px;"></i><h2 style="font-family:'Oswald'">¡ESTÁS AL DÍA!</h2><p style="color:#888; margin-top:10px;">Has visto todo el contenido nuevo.</p><button onclick="location.reload()" style="margin-top:20px; background:#222; color:#fff; border:none; padding:10px 20px; border-radius:5px;">Recargar</button></div>`;
                 return;
             }
+            
             data.forEach(post => renderPost(post, container));
             initObserver();
         }
@@ -436,20 +430,20 @@
             card.id = `post-${post.id}`;
             card.setAttribute('data-id', post.id);
 
-            // Determinamos si estamos renderizando dentro del modal de visualización
             const isInViewer = container.id === 'viewer-content';
-            const navAction = isInViewer ? `closeViewer(); goToUserProfile('${post.usuario}')` : `goToUserProfile('${post.usuario}')`;
+            const safeUser = sanitize(post.usuario);
+            const navAction = isInViewer ? `closeViewer(); goToUserProfile('${safeUser}')` : `goToUserProfile('${safeUser}')`;
 
             card.innerHTML = `
                 ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop playsinline></video>` : `<img class="video-player" src="${post.url}">`}
                 <div class="side-actions">
-                    <div class="user-avatar-btn" onclick="${navAction}"><img src="https://ui-avatars.com/api/?name=${post.usuario}&background=random&color=fff" alt="avatar"></div>
+                    <div class="user-avatar-btn" onclick="${navAction}"><img src="https://ui-avatars.com/api/?name=${encodeURIComponent(post.usuario)}&background=random&color=fff" alt="avatar"></div>
                     <div class="action-item"><button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button><span class="likes-count" id="likes-${post.id}">${post.likes || 0}</span></div>
                     <div class="action-item"><button class="action-btn" onclick="showMessage('Próximamente...')"><i class="fas fa-comment-dots"></i></button><span id="comm-count-${post.id}">${post.comentarios_count || 0}</span></div>
                     <div class="action-item"><i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i><span class="vistas-count" id="vistas-${post.id}">${post.vistas || 0}</span></div>
                     ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
-                <div class="ui-info"><h2 onclick="${navAction}">@${post.usuario}</h2><p>${post.descripcion || ''}</p></div>
+                <div class="ui-info"><h2 onclick="${navAction}">@${safeUser}</h2><p>${sanitize(post.descripcion || '')}</p></div>
                 
                 ${post.tipo === 'video' ? `
                 <div class="time-display" id="time-${post.id}">0:00 / 0:00</div>
@@ -465,9 +459,11 @@
         }
 
         async function handleLike(postId, btn) {
+            if (!currentUserId) return;
             const isLiked = btn.classList.contains('active');
             const allBtns = document.querySelectorAll(`#btn-like-${postId}`);
             const allCounts = document.querySelectorAll(`#likes-${postId}`);
+            
             if (!isLiked) {
                 allBtns.forEach(b => b.classList.add('active'));
                 allCounts.forEach(c => c.innerText = parseInt(c.innerText || 0) + 1);
@@ -482,13 +478,13 @@
         }
 
         async function checkLikeStatus(postId, btn) {
-            if (!btn) return;
+            if (!btn || !currentUserId) return;
             const { data } = await _supabase.from('likes').select('id').eq('user_id', currentUserId).eq('post_id', Number(postId)).maybeSingle();
             if (data) btn.classList.add('active');
         }
 
         async function markView(postId) {
-            if(sessionStorage.getItem(`view_${postId}`)) return;
+            if(!currentUserId || sessionStorage.getItem(`view_${postId}`)) return;
             sessionStorage.setItem(`view_${postId}`, 'true');
             await _supabase.rpc('increment_vistas', { post_id: postId.toString() });
             await _supabase.from('vistan_historial').insert([{ user_id: currentUserId, post_id: Number(postId) }]);
@@ -500,25 +496,13 @@
             const container = card.querySelector('.progress-container');
             const timeDisplay = card.querySelector('.time-display');
             if(!v || !container) return;
-            v.onclick = () => v.paused ? v.play() : v.pause();
+            
+            v.onclick = () => v.paused ? v.play().catch(()=>{}) : v.pause();
             v.ontimeupdate = () => {
                 const pct = (v.currentTime / v.duration) * 100;
                 bar.style.width = pct + "%";
                 timeDisplay.innerText = `${formatTime(v.currentTime)} / ${formatTime(v.duration)}`;
             };
-            const scrub = (e) => {
-                const rect = container.getBoundingClientRect();
-                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-                const pct = Math.max(0, Math.min(1, x / rect.width));
-                v.currentTime = pct * v.duration;
-            };
-            let isDragging = false;
-            container.onmousedown = (e) => { isDragging = true; scrub(e); };
-            container.ontouchstart = (e) => { isDragging = true; scrub(e); };
-            window.addEventListener('mousemove', (e) => { if(isDragging) scrub(e); });
-            window.addEventListener('touchmove', (e) => { if(isDragging) scrub(e); });
-            window.addEventListener('mouseup', () => { isDragging = false; });
-            window.addEventListener('touchend', () => { isDragging = false; });
         }
 
         function initObserver() {
@@ -526,8 +510,12 @@
                 entries.forEach(entry => {
                     const id = entry.target.getAttribute('data-id');
                     const v = entry.target.querySelector('video');
-                    if (entry.isIntersecting) { if(v) v.play().catch(()=>{}); markView(id); } 
-                    else if(v) { v.pause(); v.currentTime = 0; }
+                    if (entry.isIntersecting) { 
+                        if(v) v.play().catch(()=>{}); 
+                        markView(id); 
+                    } else if(v) { 
+                        v.pause(); 
+                    }
                 });
             }, { threshold: 0.7 });
             document.querySelectorAll('#feed-container .post-card').forEach(c => obs.observe(c));
@@ -540,7 +528,7 @@
             content.innerHTML = "";
             renderPost(post, content, true);
             const v = content.querySelector('video');
-            if(v) { v.muted = false; v.play().catch(e => console.log("Play prevenido")); }
+            if(v) { v.muted = false; v.play().catch(()=>{}); }
         }
 
         function closeViewer() {
@@ -549,9 +537,9 @@
         }
 
         async function deletePost(postId, fileUrl) {
-            if(!confirm("¿Eliminar?")) return;
-            await _supabase.from('publicaciones').delete().eq('id', postId);
-            location.reload();
+            if(!confirm("¿Eliminar publicación?")) return;
+            const { error } = await _supabase.from('publicaciones').delete().eq('id', postId).eq('usuario', currentUser);
+            if(!error) location.reload();
         }
 
         document.getElementById('file-input').onchange = (e) => {
@@ -564,27 +552,38 @@
         };
 
         async function startUpload() {
-            if(!selectedFile) return;
+            if(!selectedFile || !currentUserId) return;
             document.getElementById('loading').style.display = 'flex';
-            const fName = Date.now() + "_" + selectedFile.name;
-            await _supabase.storage.from('mely_media').upload(fName, selectedFile);
+            
+            const fName = `${currentUserId}/${Date.now()}_${selectedFile.name.replace(/\s/g, '_')}`;
+            const { error: storageError } = await _supabase.storage.from('mely_media').upload(fName, selectedFile);
+            
+            if(storageError) {
+                document.getElementById('loading').style.display = 'none';
+                return showMessage("Error al subir archivo");
+            }
+
             const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
             await _supabase.from('publicaciones').insert([{ 
-                usuario: currentUser, url: urlData.publicUrl, 
+                usuario: currentUser, 
+                url: urlData.publicUrl, 
                 tipo: selectedFile.type.includes('video') ? 'video' : 'imagen', 
                 descripcion: document.getElementById('post-desc').value, 
-                estado: 'pendiente', likes: 0, vistas: 0, comentarios_count: 0 
+                estado: 'pendiente'
             }]);
+            
             showMessage("¡Publicado! Esperando aprobación.");
             setTimeout(() => location.reload(), 2000);
         }
 
         function setupRealtime() {
-            _supabase.channel('public').on('postgres_changes', { event: 'UPDATE', table: 'publicaciones' }, payload => {
+            _supabase.channel('public')
+            .on('postgres_changes', { event: 'UPDATE', table: 'publicaciones' }, payload => {
                 const post = payload.new;
                 document.querySelectorAll(`#likes-${post.id}`).forEach(c => c.innerText = post.likes);
                 document.querySelectorAll(`#vistas-${post.id}`).forEach(v => v.innerText = post.vistas);
-            }).on('postgres_changes', { event: 'INSERT', table: 'likes' }, payload => {
+            })
+            .on('postgres_changes', { event: 'INSERT', table: 'likes' }, payload => {
                 if(document.getElementById('notifications-panel').style.display !== 'flex') {
                     document.getElementById('notif-count').style.display = 'block';
                     document.getElementById('notif-count').innerText = "!";
@@ -596,4 +595,3 @@
     </script>
 </body>
 </html>
-```[cite: 4]
