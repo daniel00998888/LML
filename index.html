@@ -379,7 +379,6 @@
             const list = document.getElementById('notif-list'); 
             list.innerHTML = "<div style='text-align:center; padding:20px; color:#555;'>Buscando novedades...</div>";
             
-            // Traemos likes recientes de las publicaciones que le pertenecen al usuario logueado
             const { data, error } = await _supabase.from('likes')
                 .select('user_id, publicaciones!inner(*)')
                 .eq('publicaciones.usuario', currentUser)
@@ -393,7 +392,6 @@
 
             list.innerHTML = "";
             for(let n of data) {
-                // Obtenemos nombre de quien dio like
                 const { data: prof } = await _supabase.from('perfiles').select('username').eq('id', n.user_id).maybeSingle();
                 const userName = prof?.username || "Alguien";
                 const post = n.publicaciones;
@@ -436,7 +434,6 @@
             card.id = `post-${post.id}`;
             card.setAttribute('data-id', post.id);
 
-            // Determinamos si estamos renderizando dentro del modal de visualización
             const isInViewer = container.id === 'viewer-content';
             const navAction = isInViewer ? `closeViewer(); goToUserProfile('${post.usuario}')` : `goToUserProfile('${post.usuario}')`;
 
@@ -596,4 +593,3 @@
     </script>
 </body>
 </html>
-```[cite: 4]
