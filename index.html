@@ -75,7 +75,7 @@
         .time-display { position: absolute; bottom: 10px; left: 15px; font-size: 11px; font-weight: bold; color: rgba(255,255,255,0.8); text-shadow: 1px 1px 2px #000; pointer-events: none; z-index: 101; }
 
         .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
-        .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; }
+        .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; position: relative; }
         .nav-item.active { color: #fff; }
         .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 3px; }
         
@@ -102,6 +102,15 @@
         
         #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; flex-direction: column; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- NUEVOS ESTILOS PARA BUSCADOR Y BANDEJA --- */
+        .search-panel, .notifications-panel { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; padding-top: 20px; }
+        .panel-header { display: flex; align-items: center; padding: 10px 20px; gap: 15px; border-bottom: 1px solid #222; }
+        .search-box { flex: 1; background: #111; border-radius: 10px; display: flex; align-items: center; padding: 0 15px; }
+        .search-box input { background: none; border: none; color: #fff; padding: 10px; width: 100%; outline: none; }
+        .list-item { display: flex; align-items: center; padding: 15px 20px; gap: 15px; border-bottom: 1px solid #111; cursor: pointer; }
+        .list-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid #d4af37; }
+        .notif-badge { background: #ff0050; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; position: absolute; top: 5px; right: 10%; display: none; }
     </style>
 </head>
 <body>
@@ -120,11 +129,9 @@
 
     <div id="auth-screen" class="screen" style="display:flex; align-items:center; justify-content:center; z-index:9000;">
         <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; letter-spacing:5px;">LA MELY</div>
-        <!-- MENSAJES DE BIENVENIDA -->
         <div id="login-msg" style="display:none; color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">inicia sesion para ver los videos y fotos de la mely</div>
         <div id="reg-msg" style="color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">registrate para ver los videos y fotos de la mely</div>
 
-        <!-- FORMULARIO DE INICIO (Oculto inicialmente para nuevos) -->
         <div id="login-form" style="display:none; width:85%; max-width:350px; text-align:center;">
             <input type="email" id="email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
             <input type="password" id="pass" placeholder="Contraseña" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
@@ -132,7 +139,6 @@
             <p style="margin-top:20px; color:#666" onclick="toggleAuth(true)">¿Nuevo aquí? <span style="color:#d4af37">Regístrate</span></p>
         </div>
 
-        <!-- FORMULARIO DE REGISTRO (Visible inicialmente para nuevos) -->
         <div id="reg-form" style="width:85%; max-width:350px; text-align:center;">
             <input type="text" id="r-user" placeholder="Nombre de usuario" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
             <input type="email" id="r-email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
@@ -170,9 +176,32 @@
         </div>
     </div>
 
+    <!-- --- NUEVOS PANELES (BUSCADOR Y NOTIFICACIONES) --- -->
+    <div id="search-panel" class="search-panel">
+        <div class="panel-header">
+            <i class="fas fa-arrow-left" onclick="toggleSearch(false)"></i>
+            <div class="search-box">
+                <i class="fas fa-search" style="color:#555"></i>
+                <input type="text" id="user-search-input" placeholder="Buscar perfiles..." oninput="searchUsers(this.value)">
+            </div>
+        </div>
+        <div id="search-results" style="overflow-y:auto;"></div>
+    </div>
+
+    <div id="notifications-panel" class="notifications-panel">
+        <div class="panel-header">
+            <i class="fas fa-arrow-left" onclick="toggleNotifs(false)"></i>
+            <h2 style="font-family:'Oswald'; color:#d4af37">Bandeja de entrada</h2>
+        </div>
+        <div id="notif-list" style="overflow-y:auto; padding:10px;"></div>
+    </div>
+
+    <!-- --- NAVEGACIÓN INFERIOR ACTUALIZADA --- -->
     <div class="bottom-nav" id="main-nav" style="display:none;">
         <div class="nav-item active" id="nav-home" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
+        <div class="nav-item" onclick="toggleSearch(true)"><i class="fas fa-search"></i>Buscar</div>
         <div class="nav-item" onclick="document.getElementById('file-input').click()"><div class="plus-btn"><i class="fas fa-plus" style="color:#000;"></i></div></div>
+        <div class="nav-item" onclick="toggleNotifs(true)"><i class="fas fa-comment-dots"></i>Bandeja<span id="notif-count" class="notif-badge">0</span></div>
         <div class="nav-item" id="nav-profile-btn" onclick="goToMyProfile()"><i class="fas fa-user"></i>Perfil</div>
     </div>
 
@@ -224,10 +253,8 @@
                 await loadFeed();
                 setupRealtime();
             } else {
-                // SI ES NUEVO O NO TIENE SESIÓN:
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('main-nav').style.display = 'none';
-                // Aseguramos que inicie en el formulario de registro y con su mensaje
                 toggleAuth(true); 
             }
             const splash = document.getElementById('splash-screen');
@@ -267,8 +294,6 @@
         }
 
         function toggleAuth(isReg) {
-            // isReg true -> Muestra Registro
-            // isReg false -> Muestra Login
             document.getElementById('reg-form').style.display = isReg ? 'block' : 'none';
             document.getElementById('reg-msg').style.display = isReg ? 'block' : 'none';
             document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
@@ -334,6 +359,45 @@
                     <div class="grid-views"><i class="fas fa-play"></i> ${post.vistas || 0}</div>
                 `;
                 grid.appendChild(item);
+            });
+        }
+
+        /* --- FUNCIONES PARA BUSCADOR --- */
+        function toggleSearch(show) { 
+            document.getElementById('search-panel').style.display = show ? 'flex' : 'none'; 
+            if(show) document.getElementById('user-search-input').focus();
+        }
+
+        async function searchUsers(q) {
+            if (q.length < 2) return;
+            const { data } = await _supabase.from('perfiles').select('username').ilike('username', `%${q}%`).limit(10);
+            const res = document.getElementById('search-results'); res.innerHTML = "";
+            data?.forEach(u => {
+                const div = document.createElement('div'); div.className = 'list-item';
+                div.onclick = () => { toggleSearch(false); goToUserProfile(u.username); };
+                div.innerHTML = `<img class="list-avatar" src="https://ui-avatars.com/api/?name=${u.username}&background=random"><span>@${u.username}</span>`;
+                res.appendChild(div);
+            });
+        }
+
+        /* --- FUNCIONES PARA NOTIFICACIONES --- */
+        function toggleNotifs(show) {
+            document.getElementById('notifications-panel').style.display = show ? 'flex' : 'none';
+            if(show) { 
+                document.getElementById('notif-count').style.display = 'none'; 
+                loadNotifs(); 
+            }
+        }
+
+        async function loadNotifs() {
+            const list = document.getElementById('notif-list'); list.innerHTML = "Cargando...";
+            // Consultamos likes recientes en las publicaciones del usuario actual
+            const { data } = await _supabase.from('likes').select('created_at, publicaciones!inner(*)').eq('publicaciones.usuario', currentUser).limit(15);
+            list.innerHTML = data?.length ? "" : "<p style='color:#555; text-align:center;'>No hay novedades aún</p>";
+            data?.forEach(n => {
+                const div = document.createElement('div'); div.className = 'list-item';
+                div.innerHTML = `<i class="fas fa-heart" style="color:#ff0050"></i><span>Alguien le dio like a tu video</span>`;
+                list.appendChild(div);
             });
         }
 
@@ -504,6 +568,10 @@
                 const post = payload.new;
                 document.querySelectorAll(`#likes-${post.id}`).forEach(c => c.innerText = post.likes);
                 document.querySelectorAll(`#vistas-${post.id}`).forEach(v => v.innerText = post.vistas);
+            }).on('postgres_changes', { event: 'INSERT', table: 'likes' }, payload => {
+                // Si alguien da like, mostramos el punto rojo en Bandeja
+                document.getElementById('notif-count').style.display = 'block';
+                document.getElementById('notif-count').innerText = "!";
             }).subscribe();
         }
 
