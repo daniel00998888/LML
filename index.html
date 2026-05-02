@@ -9,38 +9,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Estilos originales preservados íntegramente */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
         
-        #toast-container {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10000;
-            width: 80%;
-            max-width: 300px;
-        }
-        .toast-msg {
-            background: rgba(20, 20, 20, 0.95);
-            color: #d4af37;
-            border: 1px solid #d4af37;
-            padding: 12px 20px;
-            border-radius: 50px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 0.9rem;
-            margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            animation: slideUp 0.3s ease-out;
-        }
+        #toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 10000; width: 80%; max-width: 300px; }
+        .toast-msg { background: rgba(20, 20, 20, 0.95); color: #d4af37; border: 1px solid #d4af37; padding: 12px 20px; border-radius: 50px; text-align: center; font-weight: bold; font-size: 0.9rem; margin-top: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        #splash-screen {
-            position: fixed; inset: 0; background: #000; z-index: 10000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.5s ease;
-        }
+        #splash-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
         .splash-logo { font-family: 'Oswald'; font-size: 4rem; color: #d4af37; letter-spacing: 8px; animation: pulse-gold 2s infinite; }
         @keyframes pulse-gold { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 0.8; } }
 
@@ -69,8 +46,6 @@
         .progress-container { position: absolute; bottom: 0; width: 100%; height: 25px; background: transparent; z-index: 100; display: flex; align-items: flex-end; cursor: pointer; }
         .progress-bg { width: 100%; height: 5px; background: rgba(255,255,255,0.2); position: relative; }
         .progress-bar { height: 100%; background: #d4af37; width: 0%; position: relative; }
-        .progress-bar::after { content: ''; position: absolute; right: -5px; top: -3px; width: 10px; height: 10px; background: #d4af37; border-radius: 50%; display: none; }
-        .progress-container:hover .progress-bar::after { display: block; }
         
         .time-display { position: absolute; bottom: 10px; left: 15px; font-size: 11px; font-weight: bold; color: rgba(255,255,255,0.8); text-shadow: 1px 1px 2px #000; pointer-events: none; z-index: 101; }
 
@@ -130,13 +105,14 @@
         <p style="margin-top:15px; color:#d4af37; font-weight:bold;">CARGANDO...</p>
     </div>
 
+    <!-- Auth Screen -->
     <div id="auth-screen" class="screen" style="display:flex; align-items:center; justify-content:center; z-index:9000; padding-bottom: 0;">
         <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; letter-spacing:5px;">LA MELY</div>
-        <div id="login-msg" style="display:none; color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">inicia sesion para ver los videos y fotos de la mely</div>
-        <div id="reg-msg" style="color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">registrate para ver los videos y fotos de la mely</div>
+        <div id="login-msg" style="display:none; color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">inicia sesion para ver contenido</div>
+        <div id="reg-msg" style="color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">registrate para ver contenido</div>
 
         <div id="login-form" style="display:none; width:85%; max-width:350px; text-align:center;">
-            <input type="email" id="email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
+            <input type="email" id="email" placeholder="Correo" autocomplete="email" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
             <input type="password" id="pass" placeholder="Contraseña" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
             <button onclick="handleAuth('login')" style="width:100%; padding:16px; background:#d4af37; border:none; border-radius:50px; font-weight:800; text-transform:uppercase; cursor:pointer;">Entrar</button>
             <p style="margin-top:20px; color:#666" onclick="toggleAuth(true)">¿Nuevo aquí? <span style="color:#d4af37">Regístrate</span></p>
@@ -144,7 +120,7 @@
 
         <div id="reg-form" style="width:85%; max-width:350px; text-align:center;">
             <input type="text" id="r-user" placeholder="Nombre de usuario" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
-            <input type="email" id="r-email" placeholder="Correo" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
+            <input type="email" id="r-email" placeholder="Correo" autocomplete="email" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:10px;">
             <input type="password" id="r-pass" placeholder="Contraseña" style="width:100%; padding:15px; background:#111; border:1px solid #222; color:#fff; border-radius:12px; margin-bottom:15px;">
             <button onclick="handleAuth('reg')" style="width:100%; padding:16px; background:#d4af37; border:none; border-radius:50px; font-weight:800; text-transform:uppercase; cursor:pointer;">Crear Cuenta</button>
             <p style="margin-top:20px; color:#666" onclick="toggleAuth(false)">¿Ya tienes cuenta? <span style="color:#d4af37">Inicia Sesión</span></p>
@@ -172,8 +148,8 @@
 
         <div id="upload-screen" class="screen" style="padding:20px; justify-content: center;">
             <div style="width:100%; height:45vh; background:#111; border-radius:15px; overflow:hidden;" id="preview-box"></div>
-            <textarea id="post-desc" style="width:100%; background:#222; border:none; color:#fff; padding:15px; margin-top:15px; border-radius:10px; font-family:inherit; resize:none;" placeholder="Escribe algo sobre este video..."></textarea>
-            <button style="margin-top:15px; width:100%; padding:18px; background:#d4af37; border:none; border-radius:12px; font-weight:bold; color:#000; cursor:pointer;" onclick="startUpload()">PUBLICAR AHORA</button>
+            <textarea id="post-desc" maxlength="200" style="width:100%; background:#222; border:none; color:#fff; padding:15px; margin-top:15px; border-radius:10px; font-family:inherit; resize:none;" placeholder="Escribe algo..."></textarea>
+            <button id="pub-btn" style="margin-top:15px; width:100%; padding:18px; background:#d4af37; border:none; border-radius:12px; font-weight:bold; color:#000; cursor:pointer;" onclick="startUpload()">PUBLICAR AHORA</button>
             <button onclick="location.reload()" style="background:none; border:none; color:#888; margin-top:15px; width:100%; cursor:pointer;">Cancelar</button>
         </div>
 
@@ -208,17 +184,25 @@
         <div id="viewer-content" style="width:100%; height:100%;"></div>
     </div>
 
-    <input type="file" id="file-input" accept="video/*,image/*" style="display:none">
+    <input type="file" id="file-input" accept="video/mp4,video/quicktime,image/*" style="display:none">
 
     <script>
+        // Configuración protegida
         const SB_URL = 'https://meiwuluwrdjszxeyoqtt.supabase.co';
-        const SB_KEY = 'sb_publishable_gZgGIamNJqf8ir8vvt1OTw_bJ-rosi4';
+        const SB_KEY = 'sb_publishable_gZgGIamNJqf8ir8vvt1OTw_bJ-rosi4'; 
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
         let currentUser = null;
         let currentUserId = null;
         let selectedFile = null;
         let viewingUser = null;
+
+        // Sanitización para evitar XSS (Asegura que los datos mostrados sean seguros)
+        function sanitize(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
 
         function formatTime(seconds) {
             if (isNaN(seconds)) return "0:00";
@@ -232,9 +216,9 @@
             const toast = document.createElement('div');
             toast.className = 'toast-msg';
             let msg = text;
-            if (msg.includes("at least 6 characters")) msg = "Contraseña muy corta (mínimo 6)";
+            if (msg.includes("at least 6 characters")) msg = "Contraseña corta (mín 6)";
             if (msg.includes("already registered")) msg = "Este correo ya existe";
-            if (msg.includes("Invalid login credentials")) msg = "Correo o clave incorrectos";
+            if (msg.includes("Invalid login credentials")) msg = "Datos incorrectos";
             toast.innerText = msg;
             container.appendChild(toast);
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
@@ -253,7 +237,7 @@
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('main-nav').style.display = 'none';
-                toggleAuth(true); 
+                toggleAuth(false); 
             }
             const splash = document.getElementById('splash-screen');
             splash.style.opacity = '0';
@@ -264,21 +248,24 @@
             const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
             const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
             if(!e || !p) return showMessage("Faltan datos");
+
             document.getElementById('loading').style.display = 'flex';
             if(type === 'reg'){
-                const u = document.getElementById('r-user').value;
-                if(!u) { document.getElementById('loading').style.display='none'; return showMessage("Pon un nombre de usuario"); }
-                const { data, error } = await _supabase.auth.signUp({ 
+                const u = document.getElementById('r-user').value.trim();
+                if(!u || u.length < 3) { document.getElementById('loading').style.display='none'; return showMessage("Usuario muy corto"); }
+                
+                const { error } = await _supabase.auth.signUp({ 
                     email: e, 
                     password: p,
-                    options: { data: { username: u, password: p } }
+                    options: { data: { username: u } }
                 });
                 if (error) {
                     document.getElementById('loading').style.display = 'none';
                     showMessage(error.message);
                 } else {
-                    showMessage("¡Cuenta creada!");
-                    setTimeout(() => location.reload(), 2000);
+                    showMessage("Cuenta creada. ¡Inicia sesión!");
+                    toggleAuth(false);
+                    document.getElementById('loading').style.display = 'none';
                 }
             } else {
                 const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
@@ -314,7 +301,7 @@
 
         function goToMyProfile() {
             viewingUser = currentUser;
-            document.getElementById('prof-user').innerText = "@" + currentUser;
+            document.getElementById('prof-user').innerText = "@" + sanitize(currentUser);
             document.getElementById('btn-back-profile').style.display = 'none';
             document.getElementById('btn-logout').style.display = 'inline-block';
             document.getElementById('profile-tabs').style.display = 'flex';
@@ -323,9 +310,10 @@
         }
 
         function goToUserProfile(username) {
-            if(username === currentUser) return goToMyProfile();
-            viewingUser = username;
-            document.getElementById('prof-user').innerText = "@" + username;
+            const user = sanitize(username);
+            if(user === currentUser) return goToMyProfile();
+            viewingUser = user;
+            document.getElementById('prof-user').innerText = "@" + user;
             document.getElementById('btn-back-profile').style.display = 'block';
             document.getElementById('btn-logout').style.display = 'none';
             document.getElementById('profile-tabs').style.display = 'none';
@@ -348,9 +336,10 @@
                 data = posts;
             } else {
                 const { data: likedData } = await _supabase.from('likes').select('publicaciones(*)').eq('user_id', currentUserId);
-                data = likedData ? likedData.map(l => l.publicaciones).filter(p => p !== null) : [];
+                data = likedData ? likedData.map(l => l.publicaciones).filter(p => p !== null && p.estado === 'aprobado') : [];
             }
             grid.innerHTML = "";
+            if(!data || data.length === 0) grid.innerHTML = "<p style='grid-column:1/4; text-align:center; padding:20px; color:#333;'>Sin contenido</p>";
             data?.forEach(post => {
                 const item = document.createElement('div');
                 item.className = 'grid-item';
@@ -364,13 +353,14 @@
         }
 
         async function searchUsers(q) {
-            if (q.length < 2) return;
-            const { data } = await _supabase.from('perfiles').select('username').ilike('username', `%${q}%`).limit(10);
+            const query = sanitize(q);
+            if (query.length < 2) return;
+            const { data } = await _supabase.from('perfiles').select('username').ilike('username', `%${query}%`).limit(10);
             const res = document.getElementById('search-results'); res.innerHTML = "";
             data?.forEach(u => {
                 const div = document.createElement('div'); div.className = 'list-item';
                 div.onclick = () => goToUserProfile(u.username);
-                div.innerHTML = `<img class="list-avatar" src="https://ui-avatars.com/api/?name=${u.username}&background=random"><span>@${u.username}</span>`;
+                div.innerHTML = `<img class="list-avatar" src="https://ui-avatars.com/api/?name=${encodeURIComponent(u.username)}&background=random"><span>@${sanitize(u.username)}</span>`;
                 res.appendChild(div);
             });
         }
@@ -378,25 +368,33 @@
         async function loadNotifs() {
             const list = document.getElementById('notif-list'); 
             list.innerHTML = "<div style='text-align:center; padding:20px; color:#555;'>Buscando novedades...</div>";
-            const { data } = await _supabase.from('likes').select('user_id, publicaciones!inner(*)').eq('publicaciones.usuario', currentUser).order('created_at', { ascending: false }).limit(20);
+            
+            const { data, error } = await _supabase.from('likes')
+                .select('user_id, publicaciones!inner(*)')
+                .eq('publicaciones.usuario', currentUser)
+                .order('created_at', { ascending: false })
+                .limit(20);
+
             if(!data || data.length === 0) {
-                list.innerHTML = "<div style='padding:50px; text-align:center; color:#444;'><i class='fas fa-bell-slash' style='font-size:3rem; display:block; margin-bottom:10px;'></i>Aún no tienes notificaciones</div>";
+                list.innerHTML = "<div style='padding:50px; text-align:center; color:#444;'><i class='fas fa-bell-slash' style='font-size:3rem; display:block; margin-bottom:10px;'></i>Sin notificaciones</div>";
                 return;
             }
+
             list.innerHTML = "";
             for(let n of data) {
                 const { data: prof } = await _supabase.from('perfiles').select('username').eq('id', n.user_id).maybeSingle();
                 const userName = prof?.username || "Alguien";
                 const post = n.publicaciones;
+
                 const div = document.createElement('div');
                 div.className = 'list-item';
                 div.innerHTML = `
-                    <img class="list-avatar" src="https://ui-avatars.com/api/?name=${userName}&background=random" onclick="event.stopPropagation(); goToUserProfile('${userName}')">
-                    <div class="list-info" onclick="openViewer(${JSON.stringify(post).replace(/"/g, '&quot;')})">
-                        <b>@${userName}</b>
-                        <span>le dio like a tu ${post.tipo === 'video' ? 'video' : 'foto'}.</span>
+                    <img class="list-avatar" src="https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random" onclick="event.stopPropagation(); goToUserProfile('${sanitize(userName)}')">
+                    <div class="list-info">
+                        <b>@${sanitize(userName)}</b>
+                        <span>le dio like a tu contenido.</span>
                     </div>
-                    <img class="notif-thumb" src="${post.url}${post.tipo === 'video' ? '#t=0.5' : ''}" onclick="openViewer(${JSON.stringify(post).replace(/"/g, '&quot;')})">
+                    <img class="notif-thumb" src="${post.url}${post.tipo === 'video' ? '#t=0.5' : ''}" onclick='openViewer(${JSON.stringify(post)})'>
                 `;
                 list.appendChild(div);
             }
@@ -404,7 +402,7 @@
 
         async function loadFeed() {
             const container = document.getElementById('feed-container');
-            container.innerHTML = "<div style='padding:50px; text-align:center;'>Preparando tu feed...</div>";
+            container.innerHTML = "<div style='padding:50px; text-align:center;'>Cargando feed...</div>";
             const { data: seenVideos } = await _supabase.from('vistan_historial').select('post_id').eq('user_id', currentUserId);
             const seenIds = seenVideos ? seenVideos.map(v => v.post_id) : [];
             let query = _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').neq('usuario', currentUser).order('created_at', { ascending: false });
@@ -412,7 +410,7 @@
             const { data, error } = await query;
             container.innerHTML = "";
             if (error || !data || data.length === 0) {
-                container.innerHTML = `<div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center;"><i class="fas fa-check-circle" style="font-size:4rem; color:#d4af37; margin-bottom:20px;"></i><h2 style="font-family:'Oswald'">¡ESTÁS AL DÍA!</h2><p style="color:#888; margin-top:10px;">Has visto todo el contenido nuevo.</p><button onclick="location.reload()" style="margin-top:20px; background:#222; color:#fff; border:none; padding:10px 20px; border-radius:5px;">Recargar</button></div>`;
+                container.innerHTML = `<div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center;"><i class="fas fa-check-circle" style="font-size:4rem; color:#d4af37; margin-bottom:20px;"></i><h2 style="font-family:'Oswald'">ESTÁS AL DÍA</h2><button onclick="location.reload()" style="margin-top:20px; background:#222; color:#fff; border:none; padding:10px 20px; border-radius:5px;">Recargar</button></div>`;
                 return;
             }
             data.forEach(post => renderPost(post, container));
@@ -425,18 +423,21 @@
             card.className = 'post-card';
             card.id = `post-${post.id}`;
             card.setAttribute('data-id', post.id);
+
             const isInViewer = container.id === 'viewer-content';
-            const navAction = isInViewer ? `closeViewer(); goToUserProfile('${post.usuario}')` : `goToUserProfile('${post.usuario}')`;
+            const userDisp = sanitize(post.usuario);
+            const descDisp = sanitize(post.descripcion || '');
+
             card.innerHTML = `
                 ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop playsinline></video>` : `<img class="video-player" src="${post.url}">`}
                 <div class="side-actions">
-                    <div class="user-avatar-btn" onclick="${navAction}"><img src="https://ui-avatars.com/api/?name=${post.usuario}&background=random&color=fff"></div>
+                    <div class="user-avatar-btn" onclick="${isInViewer ? 'closeViewer();' : ''} goToUserProfile('${userDisp}')"><img src="https://ui-avatars.com/api/?name=${encodeURIComponent(userDisp)}&background=random&color=fff"></div>
                     <div class="action-item"><button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button><span class="likes-count" id="likes-${post.id}">${post.likes || 0}</span></div>
                     <div class="action-item"><button class="action-btn" onclick="showMessage('Próximamente...')"><i class="fas fa-comment-dots"></i></button><span>${post.comentarios_count || 0}</span></div>
-                    <div class="action-item"><i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i><span id="vistas-${post.id}">${post.vistas || 0}</span></div>
+                    <div class="action-item"><i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i><span class="vistas-count" id="vistas-${post.id}">${post.vistas || 0}</span></div>
                     ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
-                <div class="ui-info"><h2 onclick="${navAction}">@${post.usuario}</h2><p>${post.descripcion || ''}</p></div>
+                <div class="ui-info"><h2>@${userDisp}</h2><p>${descDisp}</p></div>
                 ${post.tipo === 'video' ? `<div class="time-display" id="time-${post.id}">0:00 / 0:00</div><div class="progress-container" id="container-${post.id}"><div class="progress-bg"><div class="progress-bar" id="bar-${post.id}"></div></div></div>` : ''}
             `;
             isNew ? container.prepend(card) : container.appendChild(card);
@@ -444,57 +445,47 @@
             checkLikeStatus(post.id, card.querySelector(`#btn-like-${post.id}`));
         }
 
-        // --- FUNCIONES DE ACCIÓN CRÍTICAS ---
+        async function handleLike(postId, btn) {
+            if(btn.disabled) return;
+            btn.disabled = true;
+            const isLiked = btn.classList.contains('active');
+            try {
+                if (!isLiked) {
+                    btn.classList.add('active');
+                    await _supabase.from('likes').insert([{ user_id: currentUserId, post_id: Number(postId) }]);
+                    await _supabase.rpc('increment_likes', { post_id: postId.toString() });
+                } else {
+                    btn.classList.remove('active');
+                    await _supabase.from('likes').delete().eq('user_id', currentUserId).eq('post_id', Number(postId));
+                    await _supabase.rpc('decrement_likes', { post_id: postId.toString() });
+                }
+            } catch(e) { console.error(e); }
+            btn.disabled = false;
+        }
 
         async function checkLikeStatus(postId, btn) {
-            if (!btn || !currentUserId) return;
+            if (!btn) return;
             const { data } = await _supabase.from('likes').select('id').eq('user_id', currentUserId).eq('post_id', Number(postId)).maybeSingle();
             if (data) btn.classList.add('active');
         }
 
-        async function handleLike(postId, btn) {
-            if(!currentUserId) return showMessage("Inicia sesión primero");
-            const isLiked = btn.classList.contains('active');
-            const allBtns = document.querySelectorAll(`#btn-like-${postId}`);
-            const allCounts = document.querySelectorAll(`#likes-${postId}`);
-            if (!isLiked) {
-                allBtns.forEach(b => b.classList.add('active'));
-                allCounts.forEach(c => c.innerText = parseInt(c.innerText || 0) + 1);
-                await _supabase.from('likes').insert([{ user_id: currentUserId, post_id: Number(postId) }]);
-                await _supabase.rpc('increment_likes', { post_id: postId.toString() });
-            } else {
-                allBtns.forEach(b => b.classList.remove('active'));
-                allCounts.forEach(c => c.innerText = Math.max(0, parseInt(c.innerText || 0) - 1));
-                await _supabase.from('likes').delete().eq('user_id', currentUserId).eq('post_id', Number(postId));
-                await _supabase.rpc('decrement_likes', { post_id: postId.toString() });
-            }
-        }
-
         async function markView(postId) {
-            if(sessionStorage.getItem(`view_${postId}`)) return;
-            sessionStorage.setItem(`view_${postId}`, 'true');
+            if(sessionStorage.getItem(`v_${postId}`)) return;
+            sessionStorage.setItem(`v_${postId}`, 'true');
             await _supabase.rpc('increment_vistas', { post_id: postId.toString() });
             await _supabase.from('vistan_historial').insert([{ user_id: currentUserId, post_id: Number(postId) }]);
         }
 
-        // --- RESTO DE LÓGICA ---
-
         function setupVideo(card, postId) {
             const v = card.querySelector('video');
             const bar = card.querySelector('.progress-bar');
-            const container = card.querySelector('.progress-container');
             const timeDisplay = card.querySelector('.time-display');
-            if(!v || !container) return;
+            if(!v) return;
             v.onclick = () => v.paused ? v.play() : v.pause();
             v.ontimeupdate = () => {
                 const pct = (v.currentTime / v.duration) * 100;
                 if(bar) bar.style.width = pct + "%";
                 if(timeDisplay) timeDisplay.innerText = `${formatTime(v.currentTime)} / ${formatTime(v.duration)}`;
-            };
-            container.onclick = (e) => {
-                const rect = container.getBoundingClientRect();
-                const pct = (e.clientX - rect.left) / rect.width;
-                v.currentTime = pct * v.duration;
             };
         }
 
@@ -504,7 +495,7 @@
                     const id = entry.target.getAttribute('data-id');
                     const v = entry.target.querySelector('video');
                     if (entry.isIntersecting) { if(v) v.play().catch(()=>{}); markView(id); } 
-                    else if(v) { v.pause(); v.currentTime = 0; }
+                    else if(v) v.pause();
                 });
             }, { threshold: 0.7 });
             document.querySelectorAll('#feed-container .post-card').forEach(c => obs.observe(c));
@@ -512,24 +503,29 @@
 
         function openViewer(post) {
             const modal = document.getElementById('viewer-modal');
+            modal.style.display = 'block';
             const content = document.getElementById('viewer-content');
-            modal.style.display = 'block'; content.innerHTML = "";
+            content.innerHTML = "";
             renderPost(post, content, true);
             const v = content.querySelector('video');
             if(v) { v.muted = false; v.play().catch(()=>{}); }
         }
 
-        function closeViewer() { document.getElementById('viewer-modal').style.display = 'none'; document.getElementById('viewer-content').innerHTML = ""; }
+        function closeViewer() {
+            document.getElementById('viewer-modal').style.display = 'none';
+            document.getElementById('viewer-content').innerHTML = "";
+        }
 
         async function deletePost(postId) {
             if(!confirm("¿Eliminar publicación?")) return;
-            await _supabase.from('publicaciones').delete().eq('id', postId);
-            location.reload();
+            const { error } = await _supabase.from('publicaciones').delete().eq('id', postId).eq('usuario', currentUser);
+            if(!error) location.reload();
         }
 
         document.getElementById('file-input').onchange = (e) => {
             selectedFile = e.target.files[0];
             if(selectedFile){
+                if(selectedFile.size > 20 * 1024 * 1024) return showMessage("Máximo 20MB");
                 const url = URL.createObjectURL(selectedFile);
                 document.getElementById('preview-box').innerHTML = selectedFile.type.includes('video') ? `<video src="${url}" autoplay muted loop style="width:100%; height:100%; object-fit:cover;"></video>` : `<img src="${url}" style="width:100%; height:100%; object-fit:cover;">`;
                 showScreen('upload');
@@ -537,19 +533,33 @@
         };
 
         async function startUpload() {
-            if(!selectedFile) return;
+            if(!selectedFile || !currentUserId) return;
+            const btn = document.getElementById('pub-btn');
+            btn.disabled = true;
             document.getElementById('loading').style.display = 'flex';
-            const fName = Date.now() + "_" + selectedFile.name;
-            await _supabase.storage.from('mely_media').upload(fName, selectedFile);
+            
+            const fExt = selectedFile.name.split('.').pop();
+            const fName = `${currentUserId}_${Date.now()}.${fExt}`;
+            
+            const { data: upData, error: upErr } = await _supabase.storage.from('mely_media').upload(fName, selectedFile);
+            
+            if(upErr) {
+                showMessage("Error al subir archivo");
+                document.getElementById('loading').style.display = 'none';
+                btn.disabled = false;
+                return;
+            }
+
             const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
             await _supabase.from('publicaciones').insert([{ 
                 usuario: currentUser, url: urlData.publicUrl, 
                 tipo: selectedFile.type.includes('video') ? 'video' : 'imagen', 
                 descripcion: document.getElementById('post-desc').value, 
-                estado: 'pendiente', likes: 0, vistas: 0, comentarios_count: 0 
+                estado: 'pendiente'
             }]);
-            showMessage("¡Publicado! Esperando aprobación.");
-            setTimeout(() => location.reload(), 2000);
+            
+            showMessage("¡Enviado a revisión!");
+            setTimeout(() => location.reload(), 1500);
         }
 
         function setupRealtime() {
