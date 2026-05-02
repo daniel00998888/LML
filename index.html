@@ -435,16 +435,21 @@
             card.className = 'post-card';
             card.id = `post-${post.id}`;
             card.setAttribute('data-id', post.id);
+
+            // Determinamos si estamos renderizando dentro del modal de visualización
+            const isInViewer = container.id === 'viewer-content';
+            const navAction = isInViewer ? `closeViewer(); goToUserProfile('${post.usuario}')` : `goToUserProfile('${post.usuario}')`;
+
             card.innerHTML = `
                 ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop playsinline></video>` : `<img class="video-player" src="${post.url}">`}
                 <div class="side-actions">
-                    <div class="user-avatar-btn" onclick="goToUserProfile('${post.usuario}')"><img src="https://ui-avatars.com/api/?name=${post.usuario}&background=random&color=fff" alt="avatar"></div>
+                    <div class="user-avatar-btn" onclick="${navAction}"><img src="https://ui-avatars.com/api/?name=${post.usuario}&background=random&color=fff" alt="avatar"></div>
                     <div class="action-item"><button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button><span class="likes-count" id="likes-${post.id}">${post.likes || 0}</span></div>
                     <div class="action-item"><button class="action-btn" onclick="showMessage('Próximamente...')"><i class="fas fa-comment-dots"></i></button><span id="comm-count-${post.id}">${post.comentarios_count || 0}</span></div>
                     <div class="action-item"><i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i><span class="vistas-count" id="vistas-${post.id}">${post.vistas || 0}</span></div>
                     ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
-                <div class="ui-info"><h2 onclick="goToUserProfile('${post.usuario}')">@${post.usuario}</h2><p>${post.descripcion || ''}</p></div>
+                <div class="ui-info"><h2 onclick="${navAction}">@${post.usuario}</h2><p>${post.descripcion || ''}</p></div>
                 
                 ${post.tipo === 'video' ? `
                 <div class="time-display" id="time-${post.id}">0:00 / 0:00</div>
@@ -535,7 +540,7 @@
             content.innerHTML = "";
             renderPost(post, content, true);
             const v = content.querySelector('video');
-            if(v) { v.muted = false; v.play(); }
+            if(v) { v.muted = false; v.play().catch(e => console.log("Play prevenido")); }
         }
 
         function closeViewer() {
@@ -580,8 +585,6 @@
                 document.querySelectorAll(`#likes-${post.id}`).forEach(c => c.innerText = post.likes);
                 document.querySelectorAll(`#vistas-${post.id}`).forEach(v => v.innerText = post.vistas);
             }).on('postgres_changes', { event: 'INSERT', table: 'likes' }, payload => {
-                // Notificar punto rojo si el like es para una de mis publicaciones
-                // Aquí solo mostramos el punto si la bandeja no está abierta
                 if(document.getElementById('notifications-panel').style.display !== 'flex') {
                     document.getElementById('notif-count').style.display = 'block';
                     document.getElementById('notif-count').innerText = "!";
@@ -593,3 +596,4 @@
     </script>
 </body>
 </html>
+```[cite: 4]
