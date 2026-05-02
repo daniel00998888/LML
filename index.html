@@ -74,7 +74,7 @@
         
         .time-display { position: absolute; bottom: 10px; left: 15px; font-size: 11px; font-weight: bold; color: rgba(255,255,255,0.8); text-shadow: 1px 1px 2px #000; pointer-events: none; z-index: 101; }
 
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 3000; }
         .nav-item { text-align: center; color: #888; font-size: 10px; cursor: pointer; flex: 1; position: relative; }
         .nav-item.active { color: #fff; }
         .nav-item i { font-size: 1.4rem; display: block; margin-bottom: 3px; }
@@ -83,7 +83,7 @@
         .plus-btn::before { content:''; position:absolute; left:-3px; width:100%; height:100%; background:#20f3ea; border-radius:10px; z-index:-1; }
         .plus-btn::after { content:''; position:absolute; right:-3px; width:100%; height:100%; background:#ff0050; border-radius:10px; z-index:-1; }
         
-        .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: #000; z-index: 1500; overflow-y: auto; }
+        .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: #000; z-index: 1500; overflow-y: auto; padding-bottom: 70px; }
         .profile-header { padding: 30px 20px; text-align: center; background: #000; position: relative; }
         .btn-back { position: absolute; top: 20px; left: 20px; font-size: 1.5rem; color: #fff; background: none; border: none; cursor: pointer; }
         
@@ -97,19 +97,22 @@
         .tab-btn.active { color: #fff; }
         .tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 2px; background: #d4af37; }
         
-        #viewer-modal { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; }
-        .viewer-close { position: absolute; top: 20px; left: 20px; font-size: 2rem; z-index: 3100; color: #fff; cursor: pointer; }
+        #viewer-modal { position: fixed; inset: 0; background: #000; z-index: 4000; display: none; }
+        .viewer-close { position: absolute; top: 20px; left: 20px; font-size: 2rem; z-index: 4100; color: #fff; cursor: pointer; }
         
-        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 4000; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; display: none; align-items: center; justify-content: center; flex-direction: column; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* --- NUEVOS ESTILOS PARA BUSCADOR Y BANDEJA --- */
-        .search-panel, .notifications-panel { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; padding-top: 20px; }
-        .panel-header { display: flex; align-items: center; padding: 10px 20px; gap: 15px; border-bottom: 1px solid #222; }
+        .search-panel, .notifications-panel { position: absolute; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; padding-top: 20px; padding-bottom: 70px; overflow-y: auto; }
+        .panel-header { display: flex; align-items: center; padding: 10px 20px; gap: 15px; border-bottom: 1px solid #222; position: sticky; top: 0; background: #000; z-index: 10; }
         .search-box { flex: 1; background: #111; border-radius: 10px; display: flex; align-items: center; padding: 0 15px; }
         .search-box input { background: none; border: none; color: #fff; padding: 10px; width: 100%; outline: none; }
-        .list-item { display: flex; align-items: center; padding: 15px 20px; gap: 15px; border-bottom: 1px solid #111; cursor: pointer; }
-        .list-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid #d4af37; }
+        .list-item { display: flex; align-items: center; padding: 12px 15px; gap: 12px; border-bottom: 1px solid #111; cursor: pointer; }
+        .list-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid #333; }
+        .list-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+        .list-info b { font-size: 0.85rem; color: #fff; }
+        .list-info span { font-size: 0.75rem; color: #888; }
+        .notif-thumb { width: 45px; height: 60px; border-radius: 4px; object-fit: cover; background: #111; border: 1px solid #222; }
         .notif-badge { background: #ff0050; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; position: absolute; top: 5px; right: 10%; display: none; }
     </style>
 </head>
@@ -127,7 +130,7 @@
         <p style="margin-top:15px; color:#d4af37; font-weight:bold;">CARGANDO...</p>
     </div>
 
-    <div id="auth-screen" class="screen" style="display:flex; align-items:center; justify-content:center; z-index:9000;">
+    <div id="auth-screen" class="screen" style="display:flex; align-items:center; justify-content:center; z-index:9000; padding-bottom: 0;">
         <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; letter-spacing:5px;">LA MELY</div>
         <div id="login-msg" style="display:none; color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">inicia sesion para ver los videos y fotos de la mely</div>
         <div id="reg-msg" style="color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">registrate para ver los videos y fotos de la mely</div>
@@ -165,43 +168,38 @@
                 <button class="tab-btn" id="tab-likes" onclick="switchProfileTab('likes')"><i class="fas fa-heart"></i></button>
             </div>
             <div class="profile-grid" id="profile-grid"></div>
-            <div style="height:80px;"></div>
         </div>
 
         <div id="upload-screen" class="screen" style="padding:20px; justify-content: center;">
-            <div style="width:100%; height:50vh; background:#111; border-radius:15px; overflow:hidden;" id="preview-box"></div>
+            <div style="width:100%; height:45vh; background:#111; border-radius:15px; overflow:hidden;" id="preview-box"></div>
             <textarea id="post-desc" style="width:100%; background:#222; border:none; color:#fff; padding:15px; margin-top:15px; border-radius:10px; font-family:inherit; resize:none;" placeholder="Escribe algo sobre este video..."></textarea>
             <button style="margin-top:15px; width:100%; padding:18px; background:#d4af37; border:none; border-radius:12px; font-weight:bold; color:#000; cursor:pointer;" onclick="startUpload()">PUBLICAR AHORA</button>
             <button onclick="location.reload()" style="background:none; border:none; color:#888; margin-top:15px; width:100%; cursor:pointer;">Cancelar</button>
         </div>
-    </div>
 
-    <!-- --- NUEVOS PANELES (BUSCADOR Y NOTIFICACIONES) --- -->
-    <div id="search-panel" class="search-panel">
-        <div class="panel-header">
-            <i class="fas fa-arrow-left" onclick="toggleSearch(false)"></i>
-            <div class="search-box">
-                <i class="fas fa-search" style="color:#555"></i>
-                <input type="text" id="user-search-input" placeholder="Buscar perfiles..." oninput="searchUsers(this.value)">
+        <div id="search-panel" class="search-panel">
+            <div class="panel-header">
+                <div class="search-box">
+                    <i class="fas fa-search" style="color:#555"></i>
+                    <input type="text" id="user-search-input" placeholder="Buscar perfiles..." oninput="searchUsers(this.value)">
+                </div>
             </div>
+            <div id="search-results"></div>
         </div>
-        <div id="search-results" style="overflow-y:auto;"></div>
+
+        <div id="notifications-panel" class="notifications-panel">
+            <div class="panel-header">
+                <h2 style="font-family:'Oswald'; color:#d4af37">Bandeja de entrada</h2>
+            </div>
+            <div id="notif-list"></div>
+        </div>
     </div>
 
-    <div id="notifications-panel" class="notifications-panel">
-        <div class="panel-header">
-            <i class="fas fa-arrow-left" onclick="toggleNotifs(false)"></i>
-            <h2 style="font-family:'Oswald'; color:#d4af37">Bandeja de entrada</h2>
-        </div>
-        <div id="notif-list" style="overflow-y:auto; padding:10px;"></div>
-    </div>
-
-    <!-- --- NAVEGACIÓN INFERIOR ACTUALIZADA --- -->
     <div class="bottom-nav" id="main-nav" style="display:none;">
         <div class="nav-item active" id="nav-home" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
-        <div class="nav-item" onclick="toggleSearch(true)"><i class="fas fa-search"></i>Buscar</div>
+        <div class="nav-item" id="nav-search" onclick="showScreen('search')"><i class="fas fa-search"></i>Buscar</div>
         <div class="nav-item" onclick="document.getElementById('file-input').click()"><div class="plus-btn"><i class="fas fa-plus" style="color:#000;"></i></div></div>
-        <div class="nav-item" onclick="toggleNotifs(true)"><i class="fas fa-comment-dots"></i>Bandeja<span id="notif-count" class="notif-badge">0</span></div>
+        <div class="nav-item" id="nav-notif" onclick="showScreen('notif')"><i class="fas fa-comment-dots"></i>Bandeja<span id="notif-count" class="notif-badge">0</span></div>
         <div class="nav-item" id="nav-profile-btn" onclick="goToMyProfile()"><i class="fas fa-user"></i>Perfil</div>
     </div>
 
@@ -303,12 +301,15 @@
         async function logout() { await _supabase.auth.signOut(); location.reload(); }
 
         function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+            document.querySelectorAll('.screen, .search-panel, .notifications-panel').forEach(s => s.style.display = 'none');
             document.getElementById('feed-screen').style.display = id === 'feed' ? 'block' : 'none';
-            document.getElementById('nav-home').classList.toggle('active', id === 'feed');
-            document.getElementById('nav-profile-btn').classList.toggle('active', id === 'profile');
-            if(id === 'profile') document.getElementById('profile-screen').style.display = 'flex';
-            else if(id === 'upload') document.getElementById('upload-screen').style.display = 'flex';
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if(id === 'feed') document.getElementById('nav-home').classList.add('active');
+            if(id === 'search') { document.getElementById('search-panel').style.display = 'flex'; document.getElementById('nav-search').classList.add('active'); }
+            if(id === 'notif') { document.getElementById('notifications-panel').style.display = 'flex'; document.getElementById('nav-notif').classList.add('active'); loadNotifs(); document.getElementById('notif-count').style.display='none'; }
+            if(id === 'profile') { document.getElementById('profile-screen').style.display = 'flex'; document.getElementById('nav-profile-btn').classList.add('active'); }
+            if(id === 'upload') document.getElementById('upload-screen').style.display = 'flex';
         }
 
         function goToMyProfile() {
@@ -362,43 +363,53 @@
             });
         }
 
-        /* --- FUNCIONES PARA BUSCADOR --- */
-        function toggleSearch(show) { 
-            document.getElementById('search-panel').style.display = show ? 'flex' : 'none'; 
-            if(show) document.getElementById('user-search-input').focus();
-        }
-
         async function searchUsers(q) {
             if (q.length < 2) return;
             const { data } = await _supabase.from('perfiles').select('username').ilike('username', `%${q}%`).limit(10);
             const res = document.getElementById('search-results'); res.innerHTML = "";
             data?.forEach(u => {
                 const div = document.createElement('div'); div.className = 'list-item';
-                div.onclick = () => { toggleSearch(false); goToUserProfile(u.username); };
+                div.onclick = () => goToUserProfile(u.username);
                 div.innerHTML = `<img class="list-avatar" src="https://ui-avatars.com/api/?name=${u.username}&background=random"><span>@${u.username}</span>`;
                 res.appendChild(div);
             });
         }
 
-        /* --- FUNCIONES PARA NOTIFICACIONES --- */
-        function toggleNotifs(show) {
-            document.getElementById('notifications-panel').style.display = show ? 'flex' : 'none';
-            if(show) { 
-                document.getElementById('notif-count').style.display = 'none'; 
-                loadNotifs(); 
-            }
-        }
-
         async function loadNotifs() {
-            const list = document.getElementById('notif-list'); list.innerHTML = "Cargando...";
-            // Consultamos likes recientes en las publicaciones del usuario actual
-            const { data } = await _supabase.from('likes').select('created_at, publicaciones!inner(*)').eq('publicaciones.usuario', currentUser).limit(15);
-            list.innerHTML = data?.length ? "" : "<p style='color:#555; text-align:center;'>No hay novedades aún</p>";
-            data?.forEach(n => {
-                const div = document.createElement('div'); div.className = 'list-item';
-                div.innerHTML = `<i class="fas fa-heart" style="color:#ff0050"></i><span>Alguien le dio like a tu video</span>`;
+            const list = document.getElementById('notif-list'); 
+            list.innerHTML = "<div style='text-align:center; padding:20px; color:#555;'>Buscando novedades...</div>";
+            
+            // Traemos likes recientes de las publicaciones que le pertenecen al usuario logueado
+            const { data, error } = await _supabase.from('likes')
+                .select('user_id, publicaciones!inner(*)')
+                .eq('publicaciones.usuario', currentUser)
+                .order('created_at', { ascending: false })
+                .limit(20);
+
+            if(!data || data.length === 0) {
+                list.innerHTML = "<div style='padding:50px; text-align:center; color:#444;'><i class='fas fa-bell-slash' style='font-size:3rem; display:block; margin-bottom:10px;'></i>Aún no tienes notificaciones</div>";
+                return;
+            }
+
+            list.innerHTML = "";
+            for(let n of data) {
+                // Obtenemos nombre de quien dio like
+                const { data: prof } = await _supabase.from('perfiles').select('username').eq('id', n.user_id).maybeSingle();
+                const userName = prof?.username || "Alguien";
+                const post = n.publicaciones;
+
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <img class="list-avatar" src="https://ui-avatars.com/api/?name=${userName}&background=random" onclick="event.stopPropagation(); goToUserProfile('${userName}')">
+                    <div class="list-info" onclick="openViewer(${JSON.stringify(post).replace(/"/g, '&quot;')})">
+                        <b>@${userName}</b>
+                        <span>le dio like a tu ${post.tipo === 'video' ? 'video' : 'foto'}.</span>
+                    </div>
+                    <img class="notif-thumb" src="${post.url}${post.tipo === 'video' ? '#t=0.5' : ''}" onclick="openViewer(${JSON.stringify(post).replace(/"/g, '&quot;')})">
+                `;
                 list.appendChild(div);
-            });
+            }
         }
 
         async function loadFeed() {
@@ -569,9 +580,12 @@
                 document.querySelectorAll(`#likes-${post.id}`).forEach(c => c.innerText = post.likes);
                 document.querySelectorAll(`#vistas-${post.id}`).forEach(v => v.innerText = post.vistas);
             }).on('postgres_changes', { event: 'INSERT', table: 'likes' }, payload => {
-                // Si alguien da like, mostramos el punto rojo en Bandeja
-                document.getElementById('notif-count').style.display = 'block';
-                document.getElementById('notif-count').innerText = "!";
+                // Notificar punto rojo si el like es para una de mis publicaciones
+                // Aquí solo mostramos el punto si la bandeja no está abierta
+                if(document.getElementById('notifications-panel').style.display !== 'flex') {
+                    document.getElementById('notif-count').style.display = 'block';
+                    document.getElementById('notif-count').innerText = "!";
+                }
             }).subscribe();
         }
 
