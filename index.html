@@ -249,19 +249,15 @@
             const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
             const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
             if(!e || !p) return showMessage("Faltan datos");
-            
             document.getElementById('loading').style.display = 'flex';
-            
             if(type === 'reg'){
                 const u = document.getElementById('r-user').value;
                 if(!u) { document.getElementById('loading').style.display='none'; return showMessage("Pon un nombre de usuario"); }
-                
-                const { error } = await _supabase.auth.signUp({ 
+                const { data, error } = await _supabase.auth.signUp({ 
                     email: e, 
                     password: p,
-                    options: { data: { username: u } }
+                    options: { data: { username: u, password: p } }
                 });
-                
                 if (error) {
                     document.getElementById('loading').style.display = 'none';
                     showMessage(error.message);
