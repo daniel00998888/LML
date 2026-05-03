@@ -230,8 +230,8 @@
         function sharePost(post) {
             const shareUrl = `${window.location.origin}${window.location.pathname}?post_id=${post.id}`;
             const message = post.tipo === 'video' 
-                ? `checa este video impresionante de la mely 😲\n${shareUrl}`
-                : `checa esta foto impresionante de la mely 😲\n${shareUrl}`;
+                ? `Checa Este Video Impresionante de la Mely 😲\n${shareUrl}`
+                : `Checa Esta Foto Impresionante de la Mely 😲\n${shareUrl}`;
 
             if (navigator.share) {
                 navigator.share({ title: 'LA MELY TV', text: message, url: shareUrl }).catch(() => {});
