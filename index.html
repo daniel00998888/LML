@@ -89,7 +89,8 @@
         .list-info b { font-size: 0.85rem; color: #fff; }
         .list-info span { font-size: 0.75rem; color: #888; }
         .notif-thumb { width: 45px; height: 60px; border-radius: 4px; object-fit: cover; background: #111; border: 1px solid #222; }
-        .notif-badge { background: #ff0050; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; position: absolute; top: 5px; right: 10%; display: none; }
+        /* PUNTO ROJO ACTUALIZADO: Solo punto sin numero */
+        .notif-badge { background: #ff0050; width: 10px; height: 10px; border-radius: 50%; position: absolute; top: 8px; right: 25%; display: none; border: 2px solid #000; }
     </style>
 </head>
 <body>
@@ -175,7 +176,7 @@
         <div class="nav-item active" id="nav-home" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
         <div class="nav-item" id="nav-search" onclick="showScreen('search')"><i class="fas fa-search"></i>Buscar</div>
         <div class="nav-item" onclick="document.getElementById('file-input').click()"><div class="plus-btn"><i class="fas fa-plus" style="color:#000;"></i></div></div>
-        <div class="nav-item" id="nav-notif" onclick="showScreen('notif')"><i class="fas fa-comment-dots"></i>Bandeja<span id="notif-count" class="notif-badge">0</span></div>
+        <div class="nav-item" id="nav-notif" onclick="showScreen('notif')"><i class="fas fa-comment-dots"></i>Bandeja<span id="notif-count" class="notif-badge"></span></div>
         <div class="nav-item" id="nav-profile-btn" onclick="goToMyProfile()"><i class="fas fa-user"></i>Perfil</div>
     </div>
 
@@ -251,7 +252,6 @@
                 currentUserId = session.user.id;
                 const { data } = await _supabase.from('perfiles').select('username').eq('id', currentUserId).maybeSingle();
                 
-                // CAMBIO: Si el perfil no existe en la BD (borrado manual), forzar logout[cite: 11]
                 if(!data) {
                     await logout();
                     return;
@@ -291,7 +291,6 @@
                 const u = document.getElementById('r-user').value;
                 if(!u) { document.getElementById('loading').style.display='none'; return showMessage("Pon un nombre de usuario"); }
                 
-                // CAMBIO: Validar si el nombre de usuario ya existe antes de registrar[cite: 11]
                 const { data: existingUser } = await _supabase.from('perfiles').select('username').eq('username', u).maybeSingle();
                 if(existingUser) {
                     document.getElementById('loading').style.display = 'none';
@@ -337,7 +336,12 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if(id === 'feed') document.getElementById('nav-home').classList.add('active');
             if(id === 'search') { document.getElementById('search-panel').style.display = 'flex'; document.getElementById('nav-search').classList.add('active'); }
-            if(id === 'notif') { document.getElementById('notifications-panel').style.display = 'flex'; document.getElementById('nav-notif').classList.add('active'); loadNotifs(); document.getElementById('notif-count').style.display='none'; }
+            if(id === 'notif') { 
+                document.getElementById('notifications-panel').style.display = 'flex'; 
+                document.getElementById('nav-notif').classList.add('active'); 
+                loadNotifs(); 
+                document.getElementById('notif-count').style.display='none'; 
+            }
             if(id === 'profile') { document.getElementById('profile-screen').style.display = 'flex'; document.getElementById('nav-profile-btn').classList.add('active'); }
             if(id === 'upload') document.getElementById('upload-screen').style.display = 'flex';
         }
@@ -601,28 +605,30 @@
 
         function setupRealtime() {
             _supabase.channel('public')
-            // Escucha nuevas publicaciones de cualquier usuario
             .on('postgres_changes', { event: 'INSERT', table: 'publicaciones' }, payload => {
                 const newPost = payload.new;
                 if(newPost.usuario !== currentUser && newPost.estado === 'aprobado') {
                     const container = document.getElementById('feed-container');
-                    // Si el contenedor tiene el mensaje de "Estás al día", lo limpiamos primero
                     if(container.innerText.includes("ESTÁS AL DÍA")) container.innerHTML = "";
                     renderPost(newPost, container, true);
                     showMessage(`Nuevo post de @${newPost.usuario}`);
                 }
             })
-            // Escucha cambios en likes y vistas en tiempo real
             .on('postgres_changes', { event: 'UPDATE', table: 'publicaciones' }, payload => {
                 const post = payload.new;
                 document.querySelectorAll(`#likes-${post.id}`).forEach(c => c.innerText = post.likes);
                 document.querySelectorAll(`#vistas-${post.id}`).forEach(v => v.innerText = post.vistas);
             })
-            // Notificaciones de likes nuevos
-            .on('postgres_changes', { event: 'INSERT', table: 'likes' }, payload => {
-                if(document.getElementById('notifications-panel').style.display !== 'flex') {
-                    document.getElementById('notif-count').style.display = 'block';
-                    document.getElementById('notif-count').innerText = "!";
+            // CAMBIO: PUNTO ROJO EN TIEMPO REAL PARA NOTIFICACIONES[cite: 11]
+            .on('postgres_changes', { event: 'INSERT', table: 'likes' }, async payload => {
+                const newLike = payload.new;
+                // Verificamos si el post que recibió el like es mío
+                const { data: post } = await _supabase.from('publicaciones').select('usuario').eq('id', newLike.post_id).maybeSingle();
+                
+                if (post && post.usuario === currentUser && newLike.user_id !== currentUserId) {
+                    if(document.getElementById('notifications-panel').style.display !== 'flex') {
+                        document.getElementById('notif-count').style.display = 'block';
+                    }
                 }
             }).subscribe();
         }
