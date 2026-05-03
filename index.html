@@ -236,38 +236,51 @@
             }
         }
 
-        async function init() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const sharedPostId = urlParams.get('post_id');
-            if (sharedPostId) localStorage.setItem('redirect_post_id', sharedPostId);
+         async function init() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedPostId = urlParams.get('post_id');
+    
+    // Si hay un post_id en la URL, lo guardamos temporalmente
+    if (sharedPostId) {
+        localStorage.setItem('redirect_post_id', sharedPostId);
+        // OPCIONAL: Limpia la URL visualmente para que no tenga el ?post_id=...
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (session) {
-                currentUserId = session.user.id;
-                const { data } = await _supabase.from('perfiles').select('username').eq('id', currentUserId).maybeSingle();
-                currentUser = data?.username || "Anonimo";
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('main-nav').style.display = 'flex';
-                
-                await loadFeed();
-                setupRealtime();
+    const { data: { session } } = await _supabase.auth.getSession();
+    
+    if (session) {
+        currentUserId = session.user.id;
+        const { data } = await _supabase.from('perfiles').select('username').eq('id', currentUserId).maybeSingle();
+        currentUser = data?.username || "Anonimo";
+        
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('main-nav').style.display = 'flex';
+        
+        await loadFeed();
+        setupRealtime();
 
-                const targetPostId = localStorage.getItem('redirect_post_id');
-                if (targetPostId) {
-                    localStorage.removeItem('redirect_post_id');
-                    const { data: post } = await _supabase.from('publicaciones').select('*').eq('id', targetPostId).maybeSingle();
-                    if (post) openViewer(post);
-                }
-            } else {
-                document.getElementById('auth-screen').style.display = 'flex';
-                document.getElementById('main-nav').style.display = 'none';
-                toggleAuth(true); 
+        // LÓGICA DE REDIRECCIÓN
+        const targetPostId = localStorage.getItem('redirect_post_id');
+        if (targetPostId) {
+            // IMPORTANTE: Eliminarlo ANTES de abrir el viewer para que no se repita al reiniciar
+            localStorage.removeItem('redirect_post_id'); 
+            
+            const { data: post } = await _supabase.from('publicaciones').select('*').eq('id', targetPostId).maybeSingle();
+            if (post) {
+                openViewer(post);
             }
-            const splash = document.getElementById('splash-screen');
-            splash.style.opacity = '0';
-            setTimeout(() => splash.style.display = 'none', 500);
         }
-
+    } else {
+        document.getElementById('auth-screen').style.display = 'flex';
+        document.getElementById('main-nav').style.display = 'none';
+        toggleAuth(true); 
+    }
+    
+    const splash = document.getElementById('splash-screen');
+    splash.style.opacity = '0';
+    setTimeout(() => splash.style.display = 'none', 500);
+}
         async function handleAuth(type) {
             const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
             const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
