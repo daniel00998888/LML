@@ -468,7 +468,7 @@
                     <div class="action-item"><button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button><span class="likes-count" id="likes-${post.id}">${post.likes || 0}</span></div>
                     <div class="action-item"><button class="action-btn" onclick="showMessage('Próximamente...')"><i class="fas fa-comment-dots"></i></button><span id="comm-count-${post.id}">${post.comentarios_count || 0}</span></div>
                     <!-- BOTÓN SHARE LLAMANDO A LA NUEVA FUNCIÓN -->
-                    <div class="action-item"><button class="action-btn" onclick='sharePost(${JSON.stringify(post)})'><i class="fas fa-share"></i></button><span>Share</span></div>
+                    <div class="action-item"><button class="action-btn" onclick='sharePost(${JSON.stringify(post)})'><i class="fas fa-share"></i></button></div>
                     <div class="action-item"><i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i><span class="vistas-count" id="vistas-${post.id}">${post.vistas || 0}</span></div>
                     ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
