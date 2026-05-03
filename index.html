@@ -250,7 +250,14 @@
             if (session) {
                 currentUserId = session.user.id;
                 const { data } = await _supabase.from('perfiles').select('username').eq('id', currentUserId).maybeSingle();
-                currentUser = data?.username || "Anonimo";
+                
+                // CAMBIO: Si el perfil no existe en la BD (borrado manual), forzar logout[cite: 11]
+                if(!data) {
+                    await logout();
+                    return;
+                }
+
+                currentUser = data.username;
                 
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('main-nav').style.display = 'flex';
@@ -283,6 +290,14 @@
             if(type === 'reg'){
                 const u = document.getElementById('r-user').value;
                 if(!u) { document.getElementById('loading').style.display='none'; return showMessage("Pon un nombre de usuario"); }
+                
+                // CAMBIO: Validar si el nombre de usuario ya existe antes de registrar[cite: 11]
+                const { data: existingUser } = await _supabase.from('perfiles').select('username').eq('username', u).maybeSingle();
+                if(existingUser) {
+                    document.getElementById('loading').style.display = 'none';
+                    return showMessage("Ese nombre ya está en uso, prueba con otro");
+                }
+
                 const { data, error } = await _supabase.auth.signUp({ 
                     email: e, 
                     password: p,
