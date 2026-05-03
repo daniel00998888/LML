@@ -89,26 +89,7 @@
         .list-info b { font-size: 0.85rem; color: #fff; }
         .list-info span { font-size: 0.75rem; color: #888; }
         .notif-thumb { width: 45px; height: 60px; border-radius: 4px; object-fit: cover; background: #111; border: 1px solid #222; }
-        
-        /* ESTILO PUNTO ROJO Y CONTADOR */
-        .notif-badge { 
-            background: #ff0050; 
-            color: #fff; 
-            font-size: 10px; 
-            font-weight: bold;
-            min-width: 18px;
-            height: 18px;
-            padding: 0 4px;
-            border-radius: 50%; 
-            position: absolute; 
-            top: 5px; 
-            right: 20%; 
-            display: none; 
-            border: 2px solid #000;
-            align-items: center;
-            justify-content: center;
-            z-index: 5;
-        }
+        .notif-badge { background: #ff0050; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; position: absolute; top: 5px; right: 10%; display: none; }
     </style>
 </head>
 <body>
@@ -214,7 +195,6 @@
         let currentUserId = null;
         let selectedFile = null;
         let viewingUser = null;
-        let unreadNotifications = 0; // CONTADOR DE NOTIFICACIONES
 
         function sanitize(text) {
             const div = document.createElement('div');
@@ -355,18 +335,12 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if(id === 'feed') document.getElementById('nav-home').classList.add('active');
             if(id === 'search') { document.getElementById('search-panel').style.display = 'flex'; document.getElementById('nav-search').classList.add('active'); }
-            
-            // LOGICA NOTIFICACIONES: Reiniciar al entrar[cite: 11]
             if(id === 'notif') { 
                 document.getElementById('notifications-panel').style.display = 'flex'; 
                 document.getElementById('nav-notif').classList.add('active'); 
                 loadNotifs(); 
-                unreadNotifications = 0;
-                const badge = document.getElementById('notif-count');
-                badge.style.display='none'; 
-                badge.innerText = "0";
+                document.getElementById('notif-count').style.display='none'; 
             }
-            
             if(id === 'profile') { document.getElementById('profile-screen').style.display = 'flex'; document.getElementById('nav-profile-btn').classList.add('active'); }
             if(id === 'upload') document.getElementById('upload-screen').style.display = 'flex';
         }
@@ -457,14 +431,15 @@
 
         async function loadFeed() {
             const container = document.getElementById('feed-container');
-            container.innerHTML = "";
+            container.innerHTML = "<div style='padding:50px; text-align:center;'>Preparando tu feed...</div>";
             const { data: seenVideos } = await _supabase.from('vistan_historial').select('post_id').eq('user_id', currentUserId);
             const seenIds = seenVideos ? seenVideos.map(v => v.post_id) : [];
             let query = _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').neq('usuario', currentUser).order('created_at', { ascending: false });
             if (seenIds.length > 0) query = query.not('id', 'in', `(${seenIds.join(',')})`);
             const { data, error } = await query;
+            container.innerHTML = "";
             if (error || !data || data.length === 0) {
-                container.innerHTML = `<div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center;"><i class="fas fa-check-circle" style="font-size:4rem; color:#d4af37; margin-bottom:20px;"></i><h2 style="font-family:'Oswald'">¡ESTÁS AL DÍA!</h2><p style="color:#888; margin-top:10px;">Has visto todo el contenido nuevo.</p></div>`;
+                container.innerHTML = `<div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center;"><i class="fas fa-check-circle" style="font-size:4rem; color:#d4af37; margin-bottom:20px;"></i><h2 style="font-family:'Oswald'">¡ESTÁS AL DÍA!</h2><p style="color:#888; margin-top:10px;">Has visto todo el contenido nuevo.</p><button onclick="location.reload()" style="margin-top:20px; background:#222; color:#fff; border:none; padding:10px 20px; border-radius:5px;">Recargar</button></div>`;
                 return;
             }
             data.forEach(post => renderPost(post, container));
@@ -477,9 +452,11 @@
             card.className = 'post-card';
             card.id = `post-${post.id}`;
             card.setAttribute('data-id', post.id);
+
             const isInViewer = container.id === 'viewer-content';
             const safeUser = sanitize(post.usuario);
             const navAction = isInViewer ? `closeViewer(); goToUserProfile('${safeUser}')` : `goToUserProfile('${safeUser}')`;
+
             card.innerHTML = `
                 ${post.tipo === 'video' ? `<video class="video-player" src="${post.url}" loop playsinline></video>` : `<img class="video-player" src="${post.url}">`}
                 <div class="side-actions">
@@ -493,7 +470,9 @@
                 <div class="ui-info"><h2 onclick="${navAction}">@${safeUser}</h2><p>${sanitize(post.descripcion || '')}</p></div>
                 ${post.tipo === 'video' ? `
                 <div class="time-display" id="time-${post.id}">0:00 / 0:00</div>
-                <div class="progress-container" id="container-${post.id}"><div class="progress-bg"><div class="progress-bar" id="bar-${post.id}"></div></div></div>` : ''}
+                <div class="progress-container" id="container-${post.id}">
+                    <div class="progress-bg"><div class="progress-bar" id="bar-${post.id}"></div></div>
+                </div>` : ''}
             `;
             isNew ? container.prepend(card) : container.appendChild(card);
             if (post.tipo === 'video') setupVideo(card, post.id);
@@ -561,7 +540,10 @@
                 entries.forEach(entry => {
                     const id = entry.target.getAttribute('data-id');
                     const v = entry.target.querySelector('video');
-                    if (entry.isIntersecting) { if(v) v.play().catch(()=>{}); markView(id); } else if(v) v.pause(); 
+                    if (entry.isIntersecting) { 
+                        if(v) v.play().catch(()=>{}); 
+                        markView(id); 
+                    } else if(v) v.pause(); 
                 });
             }, { threshold: 0.7 });
             document.querySelectorAll('#feed-container .post-card').forEach(c => obs.observe(c));
@@ -612,7 +594,12 @@
                 estado: 'aprobado' 
             }]);
             document.getElementById('loading').style.display = 'none';
-            if(!dbError) { showMessage("¡Publicado!"); showScreen('feed'); document.getElementById('post-desc').value = ""; selectedFile = null; }
+            if(!dbError) {
+                showMessage("¡Publicado con éxito!");
+                showScreen('feed');
+                document.getElementById('post-desc').value = "";
+                selectedFile = null;
+            }
         }
 
         function setupRealtime() {
@@ -631,18 +618,17 @@
                 document.querySelectorAll(`#likes-${post.id}`).forEach(c => c.innerText = post.likes);
                 document.querySelectorAll(`#vistas-${post.id}`).forEach(v => v.innerText = post.vistas);
             })
-            // CAMBIO: NOTIFICACIONES EN TIEMPO REAL CON CONTADOR[cite: 11]
             .on('postgres_changes', { event: 'INSERT', table: 'likes' }, async payload => {
                 const newLike = payload.new;
-                const { data: post } = await _supabase.from('publicaciones').select('usuario').eq('id', newLike.post_id).maybeSingle();
-                
-                // Si el like es para mí y yo no lo envié, y no estoy viendo la bandeja
-                if (post && post.usuario === currentUser && newLike.user_id !== currentUserId) {
-                    if(document.getElementById('notifications-panel').style.display !== 'flex') {
-                        unreadNotifications++;
+                // SI ALGUIEN MÁS LE DA LIKE A MI POST (y no soy yo mismo)
+                if(newLike.user_id !== currentUserId) {
+                    const { data: post } = await _supabase.from('publicaciones').select('usuario').eq('id', newLike.post_id).maybeSingle();
+                    if(post && post.usuario === currentUser) {
                         const badge = document.getElementById('notif-count');
-                        badge.innerText = unreadNotifications;
-                        badge.style.display = 'flex';
+                        if(document.getElementById('notifications-panel').style.display !== 'flex') {
+                            badge.style.display = 'block';
+                            badge.innerText = "!"; 
+                        }
                     }
                 }
             }).subscribe();
