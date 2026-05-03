@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Estilos originales preservados */
+        /* Mantenemos tu estilo original intacto para no dañar la interfaz */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; background: #000; color: #fff; overflow: hidden; font-family: 'Montserrat', sans-serif; }
         
@@ -43,10 +43,11 @@
         
         .btn-delete { color: #ff4444 !important; font-size: 1.8rem !important; margin-top: 5px; opacity: 0.8; }
         
-        /* Barra de progreso mejorada para click/touch */
-        .progress-container { position: absolute; bottom: 0; width: 100%; height: 20px; background: transparent; z-index: 100; display: flex; align-items: flex-end; cursor: pointer; pointer-events: auto; }
+        .progress-container { position: absolute; bottom: 0; width: 100%; height: 25px; background: transparent; z-index: 100; display: flex; align-items: flex-end; cursor: pointer; }
         .progress-bg { width: 100%; height: 5px; background: rgba(255,255,255,0.2); position: relative; }
         .progress-bar { height: 100%; background: #d4af37; width: 0%; position: relative; }
+        .progress-bar::after { content: ''; position: absolute; right: -5px; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; background: #fff; border-radius: 50%; display: none; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .progress-container:hover .progress-bar::after { display: block; }
         
         .time-display { position: absolute; bottom: 10px; left: 15px; font-size: 11px; font-weight: bold; color: rgba(255,255,255,0.8); text-shadow: 1px 1px 2px #000; pointer-events: none; z-index: 101; }
 
@@ -106,6 +107,7 @@
         <p style="margin-top:15px; color:#d4af37; font-weight:bold;">CARGANDO...</p>
     </div>
 
+    <!-- PANTALLA DE AUTENTICACIÓN -->
     <div id="auth-screen" class="screen" style="display:flex; align-items:center; justify-content:center; z-index:9000; padding-bottom: 0;">
         <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; letter-spacing:5px;">LA MELY</div>
         <div id="login-msg" style="display:none; color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">inicia sesion para ver los videos y fotos de la mely</div>
@@ -171,6 +173,7 @@
         </div>
     </div>
 
+    <!-- BARRA DE NAVEGACIÓN -->
     <div class="bottom-nav" id="main-nav" style="display:none;">
         <div class="nav-item active" id="nav-home" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
         <div class="nav-item" id="nav-search" onclick="showScreen('search')"><i class="fas fa-search"></i>Buscar</div>
@@ -196,6 +199,7 @@
         let selectedFile = null;
         let viewingUser = null;
 
+        // Sanitización para prevenir XSS
         function sanitize(text) {
             const div = document.createElement('div');
             div.textContent = text;
@@ -361,16 +365,25 @@
 
         async function loadNotifs() {
             const list = document.getElementById('notif-list'); 
-            list.innerHTML = "";
-            const { data } = await _supabase.from('likes').select('user_id, publicaciones!inner(*)').eq('publicaciones.usuario', currentUser).order('created_at', { ascending: false }).limit(20);
+            list.innerHTML = "<div style='text-align:center; padding:20px; color:#555;'>Buscando novedades...</div>";
+            
+            const { data } = await _supabase.from('likes')
+                .select('user_id, publicaciones!inner(*)')
+                .eq('publicaciones.usuario', currentUser)
+                .order('created_at', { ascending: false })
+                .limit(20);
+
             if(!data || data.length === 0) {
-                list.innerHTML = "<div style='padding:50px; text-align:center; color:#444;'>No hay notificaciones</div>";
+                list.innerHTML = "<div style='padding:50px; text-align:center; color:#444;'><i class='fas fa-bell-slash' style='font-size:3rem; display:block; margin-bottom:10px;'></i>Aún no tienes notificaciones</div>";
                 return;
             }
+
+            list.innerHTML = "";
             for(let n of data) {
                 const { data: prof } = await _supabase.from('perfiles').select('username').eq('id', n.user_id).maybeSingle();
                 const userName = prof?.username || "Alguien";
                 const post = n.publicaciones;
+
                 const div = document.createElement('div');
                 div.className = 'list-item';
                 div.innerHTML = `
@@ -388,12 +401,21 @@
         async function loadFeed() {
             const container = document.getElementById('feed-container');
             container.innerHTML = "<div style='padding:50px; text-align:center;'>Preparando tu feed...</div>";
-            const { data, error } = await _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').order('created_at', { ascending: false });
+            
+            const { data: seenVideos } = await _supabase.from('vistan_historial').select('post_id').eq('user_id', currentUserId);
+            const seenIds = seenVideos ? seenVideos.map(v => v.post_id) : [];
+            
+            let query = _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').neq('usuario', currentUser).order('created_at', { ascending: false });
+            if (seenIds.length > 0) query = query.not('id', 'in', `(${seenIds.join(',')})`);
+            
+            const { data, error } = await query;
             container.innerHTML = "";
+            
             if (error || !data || data.length === 0) {
-                container.innerHTML = `<div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center;"><i class="fas fa-check-circle" style="font-size:4rem; color:#d4af37; margin-bottom:20px;"></i><h2 style="font-family:'Oswald'">¡ESTÁS AL DÍA!</h2></div>`;
+                container.innerHTML = `<div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center;"><i class="fas fa-check-circle" style="font-size:4rem; color:#d4af37; margin-bottom:20px;"></i><h2 style="font-family:'Oswald'">¡ESTÁS AL DÍA!</h2><p style="color:#888; margin-top:10px;">Has visto todo el contenido nuevo.</p><button onclick="location.reload()" style="margin-top:20px; background:#222; color:#fff; border:none; padding:10px 20px; border-radius:5px;">Recargar</button></div>`;
                 return;
             }
+            
             data.forEach(post => renderPost(post, container));
             initObserver();
         }
@@ -422,7 +444,7 @@
                 
                 ${post.tipo === 'video' ? `
                 <div class="time-display" id="time-${post.id}">0:00 / 0:00</div>
-                <div class="progress-container" id="container-${post.id}" onclick="seekVideo(event, '${post.id}')">
+                <div class="progress-container" id="container-${post.id}">
                     <div class="progress-bg">
                         <div class="progress-bar" id="bar-${post.id}"></div>
                     </div>
@@ -431,16 +453,6 @@
             isNew ? container.prepend(card) : container.appendChild(card);
             if (post.tipo === 'video') setupVideo(card, post.id);
             checkLikeStatus(post.id, card.querySelector(`#btn-like-${post.id}`));
-        }
-
-        // FUNCIÓN NUEVA: Permite adelantar el video al hacer clic en la barra
-        function seekVideo(e, postId) {
-            const video = document.querySelector(`#post-${postId} video`) || document.querySelector(`#viewer-content video`);
-            if(!video) return;
-            const container = document.getElementById(`container-${postId}`);
-            const rect = container.getBoundingClientRect();
-            const pos = (e.clientX - rect.left) / rect.width;
-            video.currentTime = pos * video.duration;
         }
 
         async function handleLike(postId, btn) {
@@ -453,12 +465,12 @@
                 allBtns.forEach(b => b.classList.add('active'));
                 allCounts.forEach(c => c.innerText = parseInt(c.innerText || 0) + 1);
                 await _supabase.from('likes').insert([{ user_id: currentUserId, post_id: Number(postId) }]);
-                await _supabase.rpc('increment_likes', { post_id_param: postId.toString() });
+                await _supabase.rpc('increment_likes', { post_id: postId.toString() });
             } else {
                 allBtns.forEach(b => b.classList.remove('active'));
                 allCounts.forEach(c => c.innerText = Math.max(0, parseInt(c.innerText || 0) - 1));
                 await _supabase.from('likes').delete().eq('user_id', currentUserId).eq('post_id', Number(postId));
-                await _supabase.rpc('decrement_likes', { post_id_param: postId.toString() });
+                await _supabase.rpc('decrement_likes', { post_id: postId.toString() });
             }
         }
 
@@ -471,23 +483,40 @@
         async function markView(postId) {
             if(!currentUserId || sessionStorage.getItem(`view_${postId}`)) return;
             sessionStorage.setItem(`view_${postId}`, 'true');
-            await _supabase.rpc('increment_vistas', { post_id_param: postId.toString() });
+            await _supabase.rpc('increment_vistas', { post_id: postId.toString() });
             await _supabase.from('vistan_historial').insert([{ user_id: currentUserId, post_id: Number(postId) }]);
         }
 
         function setupVideo(card, postId) {
             const v = card.querySelector('video');
             const bar = card.querySelector('.progress-bar');
+            const container = card.querySelector('.progress-container');
             const timeDisplay = card.querySelector('.time-display');
-            if(!v) return;
+            if(!v || !container) return;
+
+            // Función para cambiar tiempo basado en posición del click/toque
+            const seek = (e) => {
+                const rect = container.getBoundingClientRect();
+                const pos = (e.pageX || e.touches[0].pageX) - rect.left;
+                const pct = Math.max(0, Math.min(1, pos / rect.width));
+                if (v.duration) v.currentTime = pct * v.duration;
+            };
+
+            // Eventos para arrastrar (Mouse y Touch)
+            let isDragging = false;
+            container.onmousedown = (e) => { isDragging = true; seek(e); };
+            window.addEventListener('mousemove', (e) => { if(isDragging) seek(e); });
+            window.addEventListener('mouseup', () => { isDragging = false; });
+
+            container.ontouchstart = (e) => { isDragging = true; seek(e); };
+            container.ontouchmove = (e) => { if(isDragging) seek(e); };
+            container.ontouchend = () => { isDragging = false; };
             
             v.onclick = () => v.paused ? v.play().catch(()=>{}) : v.pause();
             v.ontimeupdate = () => {
-                if (v.duration) {
-                    const pct = (v.currentTime / v.duration) * 100;
-                    if(bar) bar.style.width = pct + "%";
-                    if(timeDisplay) timeDisplay.innerText = `${formatTime(v.currentTime)} / ${formatTime(v.duration)}`;
-                }
+                const pct = (v.currentTime / v.duration) * 100;
+                bar.style.width = pct + "%";
+                timeDisplay.innerText = `${formatTime(v.currentTime)} / ${formatTime(v.duration)}`;
             };
         }
 
@@ -540,12 +569,15 @@
         async function startUpload() {
             if(!selectedFile || !currentUserId) return;
             document.getElementById('loading').style.display = 'flex';
+            
             const fName = `${currentUserId}/${Date.now()}_${selectedFile.name.replace(/\s/g, '_')}`;
             const { error: storageError } = await _supabase.storage.from('mely_media').upload(fName, selectedFile);
+            
             if(storageError) {
                 document.getElementById('loading').style.display = 'none';
                 return showMessage("Error al subir archivo");
             }
+
             const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
             await _supabase.from('publicaciones').insert([{ 
                 usuario: currentUser, 
@@ -554,6 +586,7 @@
                 descripcion: document.getElementById('post-desc').value, 
                 estado: 'pendiente'
             }]);
+            
             showMessage("¡Publicado! Esperando aprobación.");
             setTimeout(() => location.reload(), 2000);
         }
