@@ -236,51 +236,45 @@
             }
         }
 
-         async function init() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const sharedPostId = urlParams.get('post_id');
-    
-    // Si hay un post_id en la URL, lo guardamos temporalmente
-    if (sharedPostId) {
-        localStorage.setItem('redirect_post_id', sharedPostId);
-        // OPCIONAL: Limpia la URL visualmente para que no tenga el ?post_id=...
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-
-    const { data: { session } } = await _supabase.auth.getSession();
-    
-    if (session) {
-        currentUserId = session.user.id;
-        const { data } = await _supabase.from('perfiles').select('username').eq('id', currentUserId).maybeSingle();
-        currentUser = data?.username || "Anonimo";
-        
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('main-nav').style.display = 'flex';
-        
-        await loadFeed();
-        setupRealtime();
-
-        // LÓGICA DE REDIRECCIÓN
-        const targetPostId = localStorage.getItem('redirect_post_id');
-        if (targetPostId) {
-            // IMPORTANTE: Eliminarlo ANTES de abrir el viewer para que no se repita al reiniciar
-            localStorage.removeItem('redirect_post_id'); 
+        async function init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedPostId = urlParams.get('post_id');
             
-            const { data: post } = await _supabase.from('publicaciones').select('*').eq('id', targetPostId).maybeSingle();
-            if (post) {
-                openViewer(post);
+            if (sharedPostId) {
+                localStorage.setItem('redirect_post_id', sharedPostId);
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
+
+            const { data: { session } } = await _supabase.auth.getSession();
+            
+            if (session) {
+                currentUserId = session.user.id;
+                const { data } = await _supabase.from('perfiles').select('username').eq('id', currentUserId).maybeSingle();
+                currentUser = data?.username || "Anonimo";
+                
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('main-nav').style.display = 'flex';
+                
+                await loadFeed();
+                setupRealtime();
+
+                const targetPostId = localStorage.getItem('redirect_post_id');
+                if (targetPostId) {
+                    localStorage.removeItem('redirect_post_id'); 
+                    const { data: post } = await _supabase.from('publicaciones').select('*').eq('id', targetPostId).maybeSingle();
+                    if (post) openViewer(post);
+                }
+            } else {
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('main-nav').style.display = 'none';
+                toggleAuth(true); 
+            }
+            
+            const splash = document.getElementById('splash-screen');
+            splash.style.opacity = '0';
+            setTimeout(() => splash.style.display = 'none', 500);
         }
-    } else {
-        document.getElementById('auth-screen').style.display = 'flex';
-        document.getElementById('main-nav').style.display = 'none';
-        toggleAuth(true); 
-    }
-    
-    const splash = document.getElementById('splash-screen');
-    splash.style.opacity = '0';
-    setTimeout(() => splash.style.display = 'none', 500);
-}
+
         async function handleAuth(type) {
             const e = type === 'reg' ? document.getElementById('r-email').value : document.getElementById('email').value;
             const p = type === 'reg' ? document.getElementById('r-pass').value : document.getElementById('pass').value;
@@ -472,7 +466,6 @@
                     <div class="user-avatar-btn" onclick="${navAction}"><img src="https://ui-avatars.com/api/?name=${encodeURIComponent(post.usuario)}&background=random&color=fff" alt="avatar"></div>
                     <div class="action-item"><button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button><span class="likes-count" id="likes-${post.id}">${post.likes || 0}</span></div>
                     <div class="action-item"><button class="action-btn" onclick="showMessage('Próximamente...')"><i class="fas fa-comment-dots"></i></button><span id="comm-count-${post.id}">${post.comentarios_count || 0}</span></div>
-                    <!-- BOTÓN SHARE SIN SPAN -->
                     <div class="action-item"><button class="action-btn" onclick='sharePost(${JSON.stringify(post)})'><i class="fas fa-share"></i></button></div>
                     <div class="action-item"><i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i><span class="vistas-count" id="vistas-${post.id}">${post.vistas || 0}</span></div>
                     ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
@@ -601,7 +594,6 @@
             }
         };
 
-        // CAMBIO: SUBIDA DIRECTA APROBADA
         async function startUpload() {
             if(!selectedFile || !currentUserId) return;
             document.getElementById('loading').style.display = 'flex';
@@ -620,26 +612,40 @@
                 url: urlData.publicUrl, 
                 tipo: selectedFile.type.includes('video') ? 'video' : 'imagen', 
                 descripcion: document.getElementById('post-desc').value, 
-                estado: 'aprobado' // SE CAMBIÓ A APROBADO PARA PUBLICACIÓN DIRECTA
+                estado: 'aprobado'
             }]);
             
             showMessage("¡Publicado con éxito!");
-            setTimeout(() => location.reload(), 2000);
+            showScreen('feed'); // Cambiado: ahora solo regresa al feed
+            document.getElementById('loading').style.display = 'none';
         }
 
+        // --- SISTEMA REALTIME ACTUALIZADO ---
         function setupRealtime() {
-            _supabase.channel('public')
+            _supabase.channel('la-mely-realtime')
+            .on('postgres_changes', { event: 'INSERT', table: 'publicaciones' }, payload => {
+                const newPost = payload.new;
+                // Si es de otro usuario y está aprobado, lo metemos al feed instantáneamente
+                if (newPost.usuario !== currentUser && newPost.estado === 'aprobado') {
+                    const container = document.getElementById('feed-container');
+                    renderPost(newPost, container, true); // true para prepend (arriba)
+                    initObserver(); // Reiniciar observer para el nuevo video
+                }
+            })
             .on('postgres_changes', { event: 'UPDATE', table: 'publicaciones' }, payload => {
                 const post = payload.new;
+                // Actualizar likes y vistas en cualquier lugar donde aparezca el post
                 document.querySelectorAll(`#likes-${post.id}`).forEach(c => c.innerText = post.likes);
                 document.querySelectorAll(`#vistas-${post.id}`).forEach(v => v.innerText = post.vistas);
             })
             .on('postgres_changes', { event: 'INSERT', table: 'likes' }, payload => {
+                // Si el like es para una publicación nuestra, mostrar aviso
                 if(document.getElementById('notifications-panel').style.display !== 'flex') {
                     document.getElementById('notif-count').style.display = 'block';
                     document.getElementById('notif-count').innerText = "!";
                 }
-            }).subscribe();
+            })
+            .subscribe();
         }
 
         init();
