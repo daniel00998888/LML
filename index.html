@@ -420,6 +420,20 @@
             initObserver();
         }
 
+        function sharePost(url) {
+            const message = "Mira este video increíble en la app de LA MELY TV. ¡Regístrate ahora para ver más contenido exclusivo! Entra aquí: https://lamely.tv";
+            if (navigator.share) {
+                navigator.share({
+                    title: 'LA MELY TV',
+                    text: message,
+                    url: url
+                }).catch(() => {});
+            } else {
+                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message + " " + url)}`;
+                window.open(whatsappUrl, '_blank');
+            }
+        }
+
         function renderPost(post, container, isNew = false) {
             if (!isNew && document.getElementById(`post-${post.id}`)) return;
             const card = document.createElement('div');
@@ -437,6 +451,7 @@
                     <div class="user-avatar-btn" onclick="${navAction}"><img src="https://ui-avatars.com/api/?name=${encodeURIComponent(post.usuario)}&background=random&color=fff" alt="avatar"></div>
                     <div class="action-item"><button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button><span class="likes-count" id="likes-${post.id}">${post.likes || 0}</span></div>
                     <div class="action-item"><button class="action-btn" onclick="showMessage('Próximamente...')"><i class="fas fa-comment-dots"></i></button><span id="comm-count-${post.id}">${post.comentarios_count || 0}</span></div>
+                    <div class="action-item"><button class="action-btn" onclick="sharePost('${post.url}')"><i class="fas fa-share"></i></button><span>Share</span></div>
                     <div class="action-item"><i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i><span class="vistas-count" id="vistas-${post.id}">${post.vistas || 0}</span></div>
                     ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
@@ -494,7 +509,6 @@
             const timeDisplay = card.querySelector('.time-display');
             if(!v || !container) return;
 
-            // Función para cambiar tiempo basado en posición del click/toque
             const seek = (e) => {
                 const rect = container.getBoundingClientRect();
                 const pos = (e.pageX || e.touches[0].pageX) - rect.left;
@@ -502,7 +516,6 @@
                 if (v.duration) v.currentTime = pct * v.duration;
             };
 
-            // Eventos para arrastrar (Mouse y Touch)
             let isDragging = false;
             container.onmousedown = (e) => { isDragging = true; seek(e); };
             window.addEventListener('mousemove', (e) => { if(isDragging) seek(e); });
