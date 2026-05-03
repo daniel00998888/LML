@@ -226,7 +226,28 @@
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
         }
 
+        // --- LÓGICA DE COMPARTIDO ACTUALIZADA ---
+        function sharePost(post) {
+            const shareUrl = `${window.location.origin}${window.location.pathname}?post_id=${post.id}`;
+            const message = post.tipo === 'video' 
+                ? `checa este video impresionante de la mely 😲\n${shareUrl}`
+                : `checa esta foto impresionante de la mely 😲\n${shareUrl}`;
+
+            if (navigator.share) {
+                navigator.share({ title: 'LA MELY TV', text: message, url: shareUrl }).catch(() => {});
+            } else {
+                // Fallback para navegadores que no soportan Web Share
+                const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+                window.open(waUrl, '_blank');
+            }
+        }
+
         async function init() {
+            // Guardamos el post_id de la URL si existe para redirección post-login
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedPostId = urlParams.get('post_id');
+            if (sharedPostId) localStorage.setItem('redirect_post_id', sharedPostId);
+
             const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
                 currentUserId = session.user.id;
@@ -234,8 +255,17 @@
                 currentUser = data?.username || "Anonimo";
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('main-nav').style.display = 'flex';
+                
                 await loadFeed();
                 setupRealtime();
+
+                // Redirección automática si venía de un link compartido
+                const targetPostId = localStorage.getItem('redirect_post_id');
+                if (targetPostId) {
+                    localStorage.removeItem('redirect_post_id');
+                    const { data: post } = await _supabase.from('publicaciones').select('*').eq('id', targetPostId).maybeSingle();
+                    if (post) openViewer(post);
+                }
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('main-nav').style.display = 'none';
@@ -264,7 +294,7 @@
                     showMessage(error.message);
                 } else {
                     showMessage("¡Cuenta creada!");
-                    setTimeout(() => location.reload(), 2000);
+                    setTimeout(() => location.reload(), 1500);
                 }
             } else {
                 const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p });
@@ -420,20 +450,6 @@
             initObserver();
         }
 
-        function sharePost(url) {
-            const message = "Mira este video increíble en la app de LA MELY TV. ¡Regístrate ahora para ver más contenido exclusivo! Entra aquí: https://lamely.tv";
-            if (navigator.share) {
-                navigator.share({
-                    title: 'LA MELY TV',
-                    text: message,
-                    url: url
-                }).catch(() => {});
-            } else {
-                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message + " " + url)}`;
-                window.open(whatsappUrl, '_blank');
-            }
-        }
-
         function renderPost(post, container, isNew = false) {
             if (!isNew && document.getElementById(`post-${post.id}`)) return;
             const card = document.createElement('div');
@@ -451,7 +467,8 @@
                     <div class="user-avatar-btn" onclick="${navAction}"><img src="https://ui-avatars.com/api/?name=${encodeURIComponent(post.usuario)}&background=random&color=fff" alt="avatar"></div>
                     <div class="action-item"><button class="action-btn" id="btn-like-${post.id}" onclick="handleLike('${post.id}', this)"><i class="fas fa-heart"></i></button><span class="likes-count" id="likes-${post.id}">${post.likes || 0}</span></div>
                     <div class="action-item"><button class="action-btn" onclick="showMessage('Próximamente...')"><i class="fas fa-comment-dots"></i></button><span id="comm-count-${post.id}">${post.comentarios_count || 0}</span></div>
-                    <div class="action-item"><button class="action-btn" onclick="sharePost('${post.url}')"><i class="fas fa-share"></i></button><span>Share</span></div>
+                    <!-- BOTÓN SHARE LLAMANDO A LA NUEVA FUNCIÓN -->
+                    <div class="action-item"><button class="action-btn" onclick='sharePost(${JSON.stringify(post)})'><i class="fas fa-share"></i></button><span>Share</span></div>
                     <div class="action-item"><i class="fas fa-play" style="font-size:1.2rem; opacity:0.5"></i><span class="vistas-count" id="vistas-${post.id}">${post.vistas || 0}</span></div>
                     ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
@@ -529,7 +546,7 @@
             v.ontimeupdate = () => {
                 const pct = (v.currentTime / v.duration) * 100;
                 bar.style.width = pct + "%";
-                timeDisplay.innerText = `${formatTime(v.currentTime)} / ${formatTime(v.duration)}`;
+                if(timeDisplay) timeDisplay.innerText = `${formatTime(v.currentTime)} / ${formatTime(v.duration)}`;
             };
         }
 
