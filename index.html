@@ -236,7 +236,7 @@
             }
         }
 
-        async function init() {
+         async function init() {
             const urlParams = new URLSearchParams(window.location.search);
             const sharedPostId = urlParams.get('post_id');
             
@@ -394,35 +394,19 @@
 
         async function loadNotifs() {
             const list = document.getElementById('notif-list'); 
-            list.innerHTML = "<div style='text-align:center; padding:20px; color:#555;'>Buscando novedades...</div>";
-            
-            const { data } = await _supabase.from('likes')
-                .select('user_id, publicaciones!inner(*)')
-                .eq('publicaciones.usuario', currentUser)
-                .order('created_at', { ascending: false })
-                .limit(20);
-
+            list.innerHTML = "";
+            const { data } = await _supabase.from('likes').select('user_id, publicaciones!inner(*)').eq('publicaciones.usuario', currentUser).order('created_at', { ascending: false }).limit(20);
             if(!data || data.length === 0) {
                 list.innerHTML = "<div style='padding:50px; text-align:center; color:#444;'><i class='fas fa-bell-slash' style='font-size:3rem; display:block; margin-bottom:10px;'></i>Aún no tienes notificaciones</div>";
                 return;
             }
-
-            list.innerHTML = "";
             for(let n of data) {
                 const { data: prof } = await _supabase.from('perfiles').select('username').eq('id', n.user_id).maybeSingle();
                 const userName = prof?.username || "Alguien";
                 const post = n.publicaciones;
-
                 const div = document.createElement('div');
                 div.className = 'list-item';
-                div.innerHTML = `
-                    <img class="list-avatar" src="https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random" onclick="event.stopPropagation(); goToUserProfile('${sanitize(userName)}')">
-                    <div class="list-info" onclick='openViewer(${JSON.stringify(post)})'>
-                        <b>@${sanitize(userName)}</b>
-                        <span>le dio like a tu ${post.tipo === 'video' ? 'video' : 'foto'}.</span>
-                    </div>
-                    <img class="notif-thumb" src="${post.url}${post.tipo === 'video' ? '#t=0.5' : ''}" onclick='openViewer(${JSON.stringify(post)})'>
-                `;
+                div.innerHTML = `<img class="list-avatar" src="https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random" onclick="event.stopPropagation(); goToUserProfile('${sanitize(userName)}')"><div class="list-info" onclick='openViewer(${JSON.stringify(post)})'><b>@${sanitize(userName)}</b><span>le dio like a tu ${post.tipo === 'video' ? 'video' : 'foto'}.</span></div><img class="notif-thumb" src="${post.url}${post.tipo === 'video' ? '#t=0.5' : ''}" onclick='openViewer(${JSON.stringify(post)})'>`;
                 list.appendChild(div);
             }
         }
@@ -430,21 +414,16 @@
         async function loadFeed() {
             const container = document.getElementById('feed-container');
             container.innerHTML = "<div style='padding:50px; text-align:center;'>Preparando tu feed...</div>";
-            
             const { data: seenVideos } = await _supabase.from('vistan_historial').select('post_id').eq('user_id', currentUserId);
             const seenIds = seenVideos ? seenVideos.map(v => v.post_id) : [];
-            
             let query = _supabase.from('publicaciones').select('*').eq('estado', 'aprobado').neq('usuario', currentUser).order('created_at', { ascending: false });
             if (seenIds.length > 0) query = query.not('id', 'in', `(${seenIds.join(',')})`);
-            
             const { data, error } = await query;
             container.innerHTML = "";
-            
             if (error || !data || data.length === 0) {
                 container.innerHTML = `<div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center;"><i class="fas fa-check-circle" style="font-size:4rem; color:#d4af37; margin-bottom:20px;"></i><h2 style="font-family:'Oswald'">¡ESTÁS AL DÍA!</h2><p style="color:#888; margin-top:10px;">Has visto todo el contenido nuevo.</p><button onclick="location.reload()" style="margin-top:20px; background:#222; color:#fff; border:none; padding:10px 20px; border-radius:5px;">Recargar</button></div>`;
                 return;
             }
-            
             data.forEach(post => renderPost(post, container));
             initObserver();
         }
@@ -471,18 +450,16 @@
                     ${post.usuario === currentUser ? `<button class="action-btn btn-delete" onclick="deletePost('${post.id}', '${post.url}')"><i class="fas fa-trash-alt"></i></button>` : ''}
                 </div>
                 <div class="ui-info"><h2 onclick="${navAction}">@${safeUser}</h2><p>${sanitize(post.descripcion || '')}</p></div>
-                
                 ${post.tipo === 'video' ? `
                 <div class="time-display" id="time-${post.id}">0:00 / 0:00</div>
                 <div class="progress-container" id="container-${post.id}">
-                    <div class="progress-bg">
-                        <div class="progress-bar" id="bar-${post.id}"></div>
-                    </div>
+                    <div class="progress-bg"><div class="progress-bar" id="bar-${post.id}"></div></div>
                 </div>` : ''}
             `;
             isNew ? container.prepend(card) : container.appendChild(card);
             if (post.tipo === 'video') setupVideo(card, post.id);
             checkLikeStatus(post.id, card.querySelector(`#btn-like-${post.id}`));
+            if(isNew) initObserver(); 
         }
 
         async function handleLike(postId, btn) {
@@ -490,7 +467,6 @@
             const isLiked = btn.classList.contains('active');
             const allBtns = document.querySelectorAll(`#btn-like-${postId}`);
             const allCounts = document.querySelectorAll(`#likes-${postId}`);
-            
             if (!isLiked) {
                 allBtns.forEach(b => b.classList.add('active'));
                 allCounts.forEach(c => c.innerText = parseInt(c.innerText || 0) + 1);
@@ -523,23 +499,16 @@
             const container = card.querySelector('.progress-container');
             const timeDisplay = card.querySelector('.time-display');
             if(!v || !container) return;
-
             const seek = (e) => {
                 const rect = container.getBoundingClientRect();
                 const pos = (e.pageX || e.touches[0].pageX) - rect.left;
                 const pct = Math.max(0, Math.min(1, pos / rect.width));
                 if (v.duration) v.currentTime = pct * v.duration;
             };
-
             let isDragging = false;
             container.onmousedown = (e) => { isDragging = true; seek(e); };
             window.addEventListener('mousemove', (e) => { if(isDragging) seek(e); });
             window.addEventListener('mouseup', () => { isDragging = false; });
-
-            container.ontouchstart = (e) => { isDragging = true; seek(e); };
-            container.ontouchmove = (e) => { if(isDragging) seek(e); };
-            container.ontouchend = () => { isDragging = false; };
-            
             v.onclick = () => v.paused ? v.play().catch(()=>{}) : v.pause();
             v.ontimeupdate = () => {
                 const pct = (v.currentTime / v.duration) * 100;
@@ -556,9 +525,7 @@
                     if (entry.isIntersecting) { 
                         if(v) v.play().catch(()=>{}); 
                         markView(id); 
-                    } else if(v) { 
-                        v.pause(); 
-                    }
+                    } else if(v) v.pause(); 
                 });
             }, { threshold: 0.7 });
             document.querySelectorAll('#feed-container .post-card').forEach(c => obs.observe(c));
@@ -597,55 +564,52 @@
         async function startUpload() {
             if(!selectedFile || !currentUserId) return;
             document.getElementById('loading').style.display = 'flex';
-            
             const fName = `${currentUserId}/${Date.now()}_${selectedFile.name.replace(/\s/g, '_')}`;
             const { error: storageError } = await _supabase.storage.from('mely_media').upload(fName, selectedFile);
-            
-            if(storageError) {
-                document.getElementById('loading').style.display = 'none';
-                return showMessage("Error al subir archivo");
-            }
-
+            if(storageError) { document.getElementById('loading').style.display = 'none'; return showMessage("Error al subir archivo"); }
             const { data: urlData } = _supabase.storage.from('mely_media').getPublicUrl(fName);
-            await _supabase.from('publicaciones').insert([{ 
+            const { error: dbError } = await _supabase.from('publicaciones').insert([{ 
                 usuario: currentUser, 
                 url: urlData.publicUrl, 
                 tipo: selectedFile.type.includes('video') ? 'video' : 'imagen', 
                 descripcion: document.getElementById('post-desc').value, 
-                estado: 'aprobado'
+                estado: 'aprobado' 
             }]);
-            
-            showMessage("¡Publicado con éxito!");
-            showScreen('feed'); // Cambiado: ahora solo regresa al feed
             document.getElementById('loading').style.display = 'none';
+            if(!dbError) {
+                showMessage("¡Publicado con éxito!");
+                showScreen('feed');
+                document.getElementById('post-desc').value = "";
+                selectedFile = null;
+            }
         }
 
-        // --- SISTEMA REALTIME ACTUALIZADO ---
         function setupRealtime() {
-            _supabase.channel('la-mely-realtime')
+            _supabase.channel('public')
+            // Escucha nuevas publicaciones de cualquier usuario
             .on('postgres_changes', { event: 'INSERT', table: 'publicaciones' }, payload => {
                 const newPost = payload.new;
-                // Si es de otro usuario y está aprobado, lo metemos al feed instantáneamente
-                if (newPost.usuario !== currentUser && newPost.estado === 'aprobado') {
+                if(newPost.usuario !== currentUser && newPost.estado === 'aprobado') {
                     const container = document.getElementById('feed-container');
-                    renderPost(newPost, container, true); // true para prepend (arriba)
-                    initObserver(); // Reiniciar observer para el nuevo video
+                    // Si el contenedor tiene el mensaje de "Estás al día", lo limpiamos primero
+                    if(container.innerText.includes("ESTÁS AL DÍA")) container.innerHTML = "";
+                    renderPost(newPost, container, true);
+                    showMessage(`Nuevo post de @${newPost.usuario}`);
                 }
             })
+            // Escucha cambios en likes y vistas en tiempo real
             .on('postgres_changes', { event: 'UPDATE', table: 'publicaciones' }, payload => {
                 const post = payload.new;
-                // Actualizar likes y vistas en cualquier lugar donde aparezca el post
                 document.querySelectorAll(`#likes-${post.id}`).forEach(c => c.innerText = post.likes);
                 document.querySelectorAll(`#vistas-${post.id}`).forEach(v => v.innerText = post.vistas);
             })
+            // Notificaciones de likes nuevos
             .on('postgres_changes', { event: 'INSERT', table: 'likes' }, payload => {
-                // Si el like es para una publicación nuestra, mostrar aviso
                 if(document.getElementById('notifications-panel').style.display !== 'flex') {
                     document.getElementById('notif-count').style.display = 'block';
                     document.getElementById('notif-count').innerText = "!";
                 }
-            })
-            .subscribe();
+            }).subscribe();
         }
 
         init();
