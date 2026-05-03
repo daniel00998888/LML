@@ -106,6 +106,7 @@
         <p style="margin-top:15px; color:#d4af37; font-weight:bold;">CARGANDO...</p>
     </div>
 
+    <!-- PANTALLA DE AUTENTICACIÓN -->
     <div id="auth-screen" class="screen" style="display:flex; align-items:center; justify-content:center; z-index:9000; padding-bottom: 0;">
         <div style="font-family:'Oswald'; font-size:3.5rem; color:#d4af37; letter-spacing:5px;">LA MELY</div>
         <div id="login-msg" style="display:none; color:#fff; font-size:0.9rem; margin-top:-10px; margin-bottom:20px; font-weight:bold; text-align:center;">inicia sesion para ver los videos y fotos de la mely</div>
@@ -171,6 +172,7 @@
         </div>
     </div>
 
+    <!-- BARRA DE NAVEGACIÓN -->
     <div class="bottom-nav" id="main-nav" style="display:none;">
         <div class="nav-item active" id="nav-home" onclick="showScreen('feed')"><i class="fas fa-home"></i>Inicio</div>
         <div class="nav-item" id="nav-search" onclick="showScreen('search')"><i class="fas fa-search"></i>Buscar</div>
@@ -196,6 +198,7 @@
         let selectedFile = null;
         let viewingUser = null;
 
+        // Sanitización para prevenir XSS
         function sanitize(text) {
             const div = document.createElement('div');
             div.textContent = text;
@@ -453,30 +456,18 @@
 
         async function handleLike(postId, btn) {
             if (!currentUserId) return;
-            
             const isLiked = btn.classList.contains('active');
-            // Buscamos TODOS los botones y contadores con este ID en toda la app (Feed y Viewer)
             const allBtns = document.querySelectorAll(`#btn-like-${postId}`);
             const allCounts = document.querySelectorAll(`#likes-${postId}`);
             
             if (!isLiked) {
-                // DAR LIKE
                 allBtns.forEach(b => b.classList.add('active'));
-                allCounts.forEach(c => {
-                    let current = parseInt(c.innerText) || 0;
-                    c.innerText = current + 1;
-                });
-                
+                allCounts.forEach(c => c.innerText = parseInt(c.innerText || 0) + 1);
                 await _supabase.from('likes').insert([{ user_id: currentUserId, post_id: Number(postId) }]);
                 await _supabase.rpc('increment_likes', { post_id: postId.toString() });
             } else {
-                // QUITAR LIKE
                 allBtns.forEach(b => b.classList.remove('active'));
-                allCounts.forEach(c => {
-                    let current = parseInt(c.innerText) || 0;
-                    c.innerText = Math.max(0, current - 1);
-                });
-                
+                allCounts.forEach(c => c.innerText = Math.max(0, parseInt(c.innerText || 0) - 1));
                 await _supabase.from('likes').delete().eq('user_id', currentUserId).eq('post_id', Number(postId));
                 await _supabase.rpc('decrement_likes', { post_id: postId.toString() });
             }
