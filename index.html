@@ -1,5 +1,4 @@
-,
-                roulette: `<div class="glass p-6 text-center"><div id="roulette-container" style="position:relative;width:100%;max-width:280px;height:280px;margin:0 auto 24px;background:conic-gradient(red 0deg 18deg, black 18deg 36deg, red 36deg 54deg, black 54deg 72deg, red 72deg 90deg, black 90deg 108deg, red 108deg 126deg, black 126deg 144deg, red 144deg 162deg, black 162deg 180deg, red 180deg 198deg, black 198deg 216deg, red 216deg 234deg, black 234deg 252deg, red 252deg 270deg, black 270deg 288deg, red 288deg 306deg, black 306deg 324deg, red 324deg 360deg);border-radius:50%;overflow:hidden;box-shadow:0 0 30px rgba(0,0,0,0.6);"><div id="roulette-wheel" style="width:100%;height:100%;position:relative;transition:transform 3.5s cubic-bezier(0.15,0,0.05,1);"><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:100%;height:100%;display:flex;align-items:center;justify-content:center;"><span style="font-size:48px;color:white;font-weight:900;text-shadow:0 2px 10px rgba(0,0,0,0.8);">37</span></div></div></div><div id="roulette-pointer" style="width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-top:30px solid #10b981;margin:0 auto 12px;"></div><div id="roulette-result" class="hidden-view text-2xl font-casino italic my-4 text-emerald-500">NÚMERO</div><div class="flex gap-2 mb-4"><input id="roulette-mult-input" type="number" value="2" min="1.01" max="36" step="0.01" placeholder="Multiplicador" class="input-bet flex-1" style="font-size:11px;"><span style="align-self:center;font-weight:900;color:#10b981;">x</span></div><div class="flex justify-between text-[9px] font-black uppercase mb-1 px-2 tracking-wider"><span class="text-emerald-500">Mín: 1.01x</span><span class="text-amber-500">Máx: 36.00x</span></div><input id="roulette-bet-input" type="number" value="3" min="3" class="input-bet"><button id="btn-roulette" onclick="GameLogic.roulette.spin()" class="btn-action w-full py-4 font-casino">GIRAR</button><div class="instruction-card"><h4>🎡 Reglas Ruleta</h4><p>Elige un multiplicador. Ganas si la ruleta llega a ese número.</p></div></div>`<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -329,9 +328,7 @@
                         <span style="font-size:48px;display:block;margin-bottom:10px;position:relative;z-index:2;">📉</span>
                         <span style="font-casino:true;font-size:11px;font-weight:900;color:white;text-transform:uppercase;letter-spacing:1px;position:relative;z-index:2;">Limbo</span>
                     </div>
-                <div onclick="Router.openGame('aviator')" style="background:linear-gradient(135deg,rgba(14,165,233,0.15) 0%,rgba(14,165,233,0.05) 100%);border:1.5px solid rgba(14,165,233,0.3);border-radius:16px;padding:24px 16px;text-align:center;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;min-height:140px;display:flex;flex-direction:column;justify-content:center;align-items:center;hover:border-opacity-50;">
-                        <div style="position:absolute;right:-30px;top:-30px;font-size:100px;opacity:0.08;">✈️</div>
-                        <span style="font-size:48px;display:block;margin-bottom:10px;position:relative;z-index:2;">✈️</span>
+                <span style="font-size:48px;display:block;margin-bottom:10px;position:relative;z-index:2;">✈️</span>
                         <span style="font-casino:true;font-size:11px;font-weight:900;color:white;text-transform:uppercase;letter-spacing:1px;position:relative;z-index:2;">Aviator</span>
                     </div>
                 <div onclick="Router.openGame('dragon')" style="background:linear-gradient(135deg,rgba(168,85,247,0.15) 0%,rgba(168,85,247,0.05) 100%);border:1.5px solid rgba(168,85,247,0.3);border-radius:16px;padding:24px 16px;text-align:center;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;min-height:140px;display:flex;flex-direction:column;justify-content:center;align-items:center;hover:border-opacity-50;">
@@ -542,6 +539,114 @@
         const initAudioUnlock = () => { const unlock = () => { Object.keys(sfx).forEach(key => { if (sfx[key]) { sfx[key].play().then(() => { sfx[key].pause(); sfx[key].currentTime = 0; }).catch(() => {}); } }); document.removeEventListener('click', unlock); document.removeEventListener('touchstart', unlock); }; document.addEventListener('click', unlock); document.addEventListener('touchstart', unlock); };
         initAudioUnlock();
 
+
+        const Roulette = {
+            selectedChip: 0,
+            currentBet: 0,
+            currentMult: 0,
+            active: false,
+            
+            selectChip(value) {
+                this.selectedChip = value;
+                document.querySelectorAll('.chip-btn').forEach(btn => {
+                    btn.style.border = '2px solid transparent';
+                    btn.style.boxShadow = 'none';
+                });
+                event.target.style.border = '2px solid white';
+                event.target.style.boxShadow = '0 0 12px rgba(255,255,255,0.5)';
+            },
+            
+            placeBet(mult) {
+                if(this.selectedChip === 0) return UI.notify("Elige una ficha primero", "error");
+                this.currentBet += this.selectedChip;
+                this.currentMult = mult;
+                document.getElementById('roulette-current-bet').innerText = this.currentBet.toFixed(2);
+                document.getElementById('roulette-current-mult').innerText = mult.toFixed(1);
+                
+                // Resaltar la tarjeta seleccionada
+                document.querySelectorAll('.mult-card').forEach(card => {
+                    card.style.borderWidth = '1px';
+                    card.style.opacity = '0.6';
+                });
+                event.target.style.borderWidth = '2px';
+                event.target.style.opacity = '1';
+                
+                document.getElementById('btn-roulette-spin').disabled = false;
+                document.getElementById('btn-roulette-spin').style.opacity = '1';
+                document.getElementById('btn-roulette-spin').style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+            },
+            
+            clearBet() {
+                this.currentBet = 0;
+                this.currentMult = 0;
+                this.selectedChip = 0;
+                document.getElementById('roulette-current-bet').innerText = '0.00';
+                document.getElementById('roulette-current-mult').innerText = '--';
+                document.getElementById('btn-roulette-spin').disabled = true;
+                document.getElementById('btn-roulette-spin').style.opacity = '0.5';
+                document.getElementById('btn-roulette-spin').style.background = 'rgba(16,185,129,0.3)';
+                document.querySelectorAll('.chip-btn').forEach(btn => btn.style.border = '2px solid transparent');
+                document.querySelectorAll('.mult-card').forEach(card => card.style.opacity = '0.6');
+            },
+            
+            async spin() {
+                if(this.active || State.isProcessing || this.currentBet === 0) return;
+                this.active = true;
+                State.isProcessing = true;
+                
+                const btn = document.getElementById('btn-roulette-spin');
+                btn.disabled = true;
+                
+                const { data: user = {} } = await sb.from('usuarios').select('saldo').eq('id', State.user.id).single();
+                if(!user || user.saldo < this.currentBet) {
+                    this.active = false;
+                    State.isProcessing = false;
+                    btn.disabled = false;
+                    return UI.notify("Saldo insuficiente", "error");
+                }
+                
+                playSfx('spin');
+                await Core.updateBalanceDB(-this.currentBet);
+                State.balance -= this.currentBet;
+                UI.updateBalance();
+                
+                // Girar la ruleta
+                const wheel = document.getElementById('roulette-small');
+                const mults = [1.5, 2, 3, 5, 10, 20];
+                const randomRotation = Math.random() * 360;
+                const dynamicWinChance = (1 / this.currentMult) / GlobalLuck.luckFactor;
+                const isWin = Math.random() < Math.min(Math.max(dynamicWinChance, 0.01), 0.98);
+                
+                const finalRotation = (360 * 8) + randomRotation;
+                wheel.style.transition = 'transform 3s cubic-bezier(0.15, 0, 0.05, 1)';
+                wheel.style.transform = `rotate(${finalRotation}deg)`;
+                
+                setTimeout(async () => {
+                    if(isWin) {
+                        const win = this.currentBet * this.currentMult;
+                        await Core.updateBalanceDB(win);
+                        State.balance += win;
+                        playSfx('win');
+                        playSfx('winExtra');
+                        UI.notify(`¡GANASTE $${win.toFixed(2)}!`, "success");
+                        GameLogic.adjustLuck(win, this.currentBet, this.currentMult);
+                        await Core.recordHistory({ user_id: State.user.id, type: 'bets', amount: win, label: 'RULETA', status: 'completed' });
+                    } else {
+                        playSfx('lose');
+                        UI.notify("SIN SUERTE", "error");
+                        GameLogic.adjustLuck(0, this.currentBet, 0);
+                        await Core.recordHistory({ user_id: State.user.id, type: 'bets', amount: -this.currentBet, label: 'RULETA', status: 'completed' });
+                    }
+                    
+                    UI.updateBalance();
+                    this.active = false;
+                    State.isProcessing = false;
+                    btn.disabled = false;
+                    this.clearBet();
+                }, 3000);
+            }
+        };
+
         const GlobalLuck = {
             luckFactor: 1.25, winHistory: [], sessionLoss: 0,
             calculateOutcome(betAmount) { const baseChance = 0.45; const adjustedChance = Math.min(baseChance * this.luckFactor, 0.95); const isWin = Math.random() < adjustedChance; if (!isWin) { this.sessionLoss += betAmount; } this.winHistory.push({ bet: betAmount, win: isWin, timestamp: Date.now() }); return isWin; },
@@ -694,11 +799,61 @@
 
         const Router = {
             showView(viewId) { const hasActiveGame = GameLogic.mines?.active || GameLogic.tower?.active || GameLogic.blackjack?.active || GameLogic.chicken?.active || GameLogic.crash?.active || GameLogic.roulette?.active || State.isSpinning; if (hasActiveGame && viewId !== 'game') { UI.notify("Cobra o termina tu apuesta antes de salir", "error"); return; } if(State.isSpinning || State.isProcessing) return; playSfx('click'); document.querySelectorAll('.view-content').forEach(v => v.classList.add('hidden-view')); document.getElementById(`view-${viewId}`).classList.remove('hidden-view'); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); const navId = {'lobby':'nav-home','history':'nav-history','profile':'nav-profile','mundial':'nav-mundial'}[viewId]; if(navId) document.getElementById(navId).classList.add('active'); document.getElementById('bottom-nav-bar').style.transform = 'translateY(0)'; if(viewId === 'history') Core.fetchHistory(); if(viewId === 'profile') UI.updateProfile(); if(viewId === 'mundial') WC.init(); },
-            openGame(game) { if(State.isProcessing) return; playSfx('click'); this.showView('game'); document.getElementById('game-mount').innerHTML = this.templates[game]; document.getElementById('view-game').scrollTop = 0; document.getElementById('bottom-nav-bar').style.transform = 'translateY(100%)'; if(game === 'slots') GameLogic.slots.init(); if(game === 'mines') GameLogic.mines.drawGrid(); if(game === 'tower') GameLogic.tower.drawTower(); if(game === 'blackjack') GameLogic.blackjack.renderInitial(); if(game === 'chicken') GameLogic.chicken.init(); if(game === 'roulette') {} if(game === 'aviator') game = 'crash'; },
+            openGame(game) { if(State.isProcessing) return; playSfx('click'); this.showView('game'); document.getElementById('game-mount').innerHTML = this.templates[game]; document.getElementById('view-game').scrollTop = 0; document.getElementById('bottom-nav-bar').style.transform = 'translateY(100%)'; if(game === 'slots') GameLogic.slots.init(); if(game === 'mines') GameLogic.mines.drawGrid(); if(game === 'tower') GameLogic.tower.drawTower(); if(game === 'blackjack') GameLogic.blackjack.renderInitial(); if(game === 'chicken') GameLogic.chicken.init(); if(game === 'roulette') {}  },
             templates: {
                 slots: `<div class="glass p-6 text-center animate__animated animate__fadeIn"><div class="grid grid-cols-3 gap-2 mb-8"><div class="slot-box"><div id="reel-1" class="slot-reel"></div></div><div class="slot-box"><div id="reel-2" class="slot-reel"></div></div><div class="slot-box"><div id="reel-3" class="slot-reel"></div></div></div><div class="flex justify-between text-[9px] font-black uppercase mb-1 px-2 tracking-wider"><span class="text-emerald-500">Mín: 3.00x</span><span class="text-amber-500">Máx: 500.00x</span></div><input id="slots-bet-input" type="number" value="3" min="3" class="input-bet"><button id="btn-slots-play" onclick="GameLogic.slots.play()" class="btn-action w-full py-5 font-casino text-xl">GIRAR</button><div class="instruction-card"><h4>🎰 Reglas Slots</h4><p>Combina 3 símbolos. 🍒x3 🍋x10 🔔x50 <span class="text-emerald-400">7️⃣x500</span></p></div></div>`,
                 mines: `<div class="glass p-4 text-center mx-auto max-w-[300px]"><div class="risk-badge"><i class="fas fa-bomb"></i> 3 Minas Activas</div><div id="mines-grid" class="grid grid-cols-5 gap-1.5 mb-4"></div><div id="mines-status" class="hidden-view flex justify-between p-3 bg-emerald-500/10 rounded-xl mb-3"><div class="flex flex-col items-start"><span id="mines-mult" class="font-casino text-emerald-500 text-xs">1.00x</span><span id="mines-next-hint" class="text-[7px] text-zinc-500 font-bold uppercase">Siguiente: --</span></div><button id="mines-cashout-btn" onclick="GameLogic.mines.cashout()" class="bg-emerald-500 text-black px-4 py-1 rounded font-bold text-[9px]">COBRAR $0.00</button></div><div id="mines-controls"><div class="flex justify-between text-[9px] font-black uppercase mb-1 px-2 tracking-wider"><span class="text-emerald-500">Mín: 1.25x</span><span class="text-amber-500">Máx: 500.00x</span></div><input id="mines-bet-input" type="number" value="3" min="3" class="input-bet"><button id="btn-mines-start" onclick="GameLogic.mines.start()" class="btn-action w-full py-4 font-casino">APOSTAR</button></div><div class="instruction-card"><h4>💣 Reglas Minas</h4><p>Encuentra diamantes y evita las minas.</p></div></div>`,
-                crash: `<div class="glass p-6 text-center"><div id="crash-mult" class="text-5xl font-casino italic mb-4">1.00x</div><div id="crash-area"><div id="crash-bg" class="bg-infinite"><div class="bg-part"></div><div class="bg-part"></div></div><div id="crash-rocket-container"><div id="crash-rocket">🚀</div></div></div><div class="flex justify-between text-[9px] font-black uppercase mb-1 px-2 tracking-wider mt-6"><span class="text-emerald-500">Mín: 1.01x</span><span class="text-amber-500">Máx: ∞</span></div><input id="crash-bet-input" type="number" value="3" min="3" class="input-bet"><button id="btn-crash" onclick="GameLogic.crash.start()" class="btn-action w-full py-4 font-casino">DESPEGAR</button><div class="instruction-card"><h4>🚀 Reglas Aviator</h4><p>Cobra antes del crash.</p></div></div>`,aviator: `<div class="glass p-6 text-center"><div id="crash-mult" class="text-5xl font-casino italic mb-4">1.00x</div><div id="crash-area"><div id="crash-bg" class="bg-infinite"><div class="bg-part"></div><div class="bg-part"></div></div><div id="crash-rocket-container"><div id="crash-rocket">🚀</div></div></div><div class="flex justify-between text-[9px] font-black uppercase mb-1 px-2 tracking-wider mt-6"><span class="text-emerald-500">Mín: 1.01x</span><span class="text-amber-500">Máx: ∞</span></div><input id="crash-bet-input" type="number" value="3" min="3" class="input-bet"><button id="btn-crash" onclick="GameLogic.crash.start()" class="btn-action w-full py-4 font-casino">DESPEGAR</button><div class="instruction-card"><h4>🚀 Reglas Aviator</h4><p>Cobra antes del crash.</p></div></div>`,
+                crash: `<div class="glass p-6 text-center"><div id="crash-mult" class="text-5xl font-casino italic mb-4">1.00x</div><div id="crash-area"><div id="crash-bg" class="bg-infinite"><div class="bg-part"></div><div class="bg-part"></div></div><div id="crash-rocket-container"><div id="crash-rocket">🚀</div></div></div><div class="flex justify-between text-[9px] font-black uppercase mb-1 px-2 tracking-wider mt-6"><span class="text-emerald-500">Mín: 1.01x</span><span class="text-amber-500">Máx: ∞</span></div><input id="crash-bet-input" type="number" value="3" min="3" class="input-bet"><button id="btn-crash" onclick="GameLogic.crash.start()" class="btn-action w-full py-4 font-casino">DESPEGAR</button><div class="instruction-card"><h4>🚀 Reglas Aviator</h4><p>Cobra antes del crash.</p></div></div>`,
+                roulette: `
+<div class="glass p-4 text-center">
+    <!-- RULETA PEQUEÑA -->
+    <div style="margin-bottom:20px;">
+        <h3 style="font-size:12px;font-weight:900;color:#10b981;text-transform:uppercase;margin-bottom:12px;">🎡 La Ruleta</h3>
+        <div id="roulette-small" style="position:relative;width:140px;height:140px;margin:0 auto;background:conic-gradient(#ef4444 0% 14%, #fbbf24 14% 28%, #10b981 28% 42%, #3b82f6 42% 56%, #ec4899 56% 70%, #8b5cf6 70% 84%, #06b6d4 84% 100%);border-radius:50%;border:3px solid rgba(255,255,255,0.2);box-shadow:0 0 20px rgba(16,185,129,0.3);overflow:hidden;">
+            <div id="roulette-pointer" style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:16px solid #10b981;z-index:10;"></div>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:24px;font-weight:900;background:rgba(0,0,0,0.5);width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;">?</div>
+        </div>
+    </div>
+    
+    <!-- FICHAS PARA APOSTAR -->
+    <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:12px;margin-bottom:16px;">
+        <p style="font-size:9px;font-weight:900;color:white;text-transform:uppercase;margin-bottom:8px;">💰 Elige Fichas</p>
+        <div style="display:grid;grid-cols-5;gap:4px;">
+            <button onclick="Roulette.selectChip(1)" class="chip-btn" style="background:#ef4444;border:2px solid transparent;color:white;font-weight:900;padding:8px;border-radius:8px;cursor:pointer;">$1</button>
+            <button onclick="Roulette.selectChip(5)" class="chip-btn" style="background:#f97316;border:2px solid transparent;color:white;font-weight:900;padding:8px;border-radius:8px;cursor:pointer;">$5</button>
+            <button onclick="Roulette.selectChip(10)" class="chip-btn" style="background:#fbbf24;border:2px solid transparent;color:white;font-weight:900;padding:8px;border-radius:8px;cursor:pointer;">$10</button>
+            <button onclick="Roulette.selectChip(25)" class="chip-btn" style="background:#10b981;border:2px solid transparent;color:white;font-weight:900;padding:8px;border-radius:8px;cursor:pointer;">$25</button>
+            <button onclick="Roulette.selectChip(50)" class="chip-btn" style="background:#06b6d4;border:2px solid transparent;color:white;font-weight:900;padding:8px;border-radius:8px;cursor:pointer;">$50</button>
+        </div>
+    </div>
+    
+    <!-- TABLA DE MULTIPLICADORES PARA APOSTAR -->
+    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;margin-bottom:16px;overflow-x:auto;">
+        <p style="font-size:9px;font-weight:900;color:white;text-transform:uppercase;margin-bottom:10px;text-align:left;">📍 Apuesta en un Multiplicador</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+            <div onclick="Roulette.placeBet(1.5)" class="mult-card" style="background:linear-gradient(135deg,rgba(239,68,68,0.2),rgba(239,68,68,0.05));border:1px solid rgba(239,68,68,0.4);border-radius:8px;padding:12px;cursor:pointer;text-align:center;transition:all 0.2s;"><span style="font-size:14px;font-weight:900;color:#ef4444;">1.5x</span></div>
+            <div onclick="Roulette.placeBet(2)" class="mult-card" style="background:linear-gradient(135deg,rgba(249,115,22,0.2),rgba(249,115,22,0.05));border:1px solid rgba(249,115,22,0.4);border-radius:8px;padding:12px;cursor:pointer;text-align:center;transition:all 0.2s;"><span style="font-size:14px;font-weight:900;color:#f97316;">2x</span></div>
+            <div onclick="Roulette.placeBet(3)" class="mult-card" style="background:linear-gradient(135deg,rgba(251,191,36,0.2),rgba(251,191,36,0.05));border:1px solid rgba(251,191,36,0.4);border-radius:8px;padding:12px;cursor:pointer;text-align:center;transition:all 0.2s;"><span style="font-size:14px;font-weight:900;color:#fbbf24;">3x</span></div>
+            <div onclick="Roulette.placeBet(5)" class="mult-card" style="background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(16,185,129,0.05));border:1px solid rgba(16,185,129,0.4);border-radius:8px;padding:12px;cursor:pointer;text-align:center;transition:all 0.2s;"><span style="font-size:14px;font-weight:900;color:#10b981;">5x</span></div>
+            <div onclick="Roulette.placeBet(10)" class="mult-card" style="background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(59,130,246,0.05));border:1px solid rgba(59,130,246,0.4);border-radius:8px;padding:12px;cursor:pointer;text-align:center;transition:all 0.2s;"><span style="font-size:14px;font-weight:900;color:#3b82f6;">10x</span></div>
+            <div onclick="Roulette.placeBet(20)" class="mult-card" style="background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(168,85,247,0.05));border:1px solid rgba(168,85,247,0.4);border-radius:8px;padding:12px;cursor:pointer;text-align:center;transition:all 0.2s;"><span style="font-size:14px;font-weight:900;color:#a855f7;">20x</span></div>
+        </div>
+    </div>
+    
+    <!-- INFO DE APUESTA -->
+    <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:10px;margin-bottom:12px;">
+        <p style="font-size:9px;color:rgba(255,255,255,0.7);margin-bottom:4px;">APUESTA ACTUAL</p>
+        <p style="font-size:16px;font-weight:900;color:#10b981;">$<span id="roulette-current-bet">0.00</span> en <span id="roulette-current-mult">--</span>x</p>
+    </div>
+    
+    <!-- BOTONES -->
+    <div style="display:flex;gap:8px;">
+        <button id="btn-roulette-clear" onclick="Roulette.clearBet()" class="btn-secondary" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:white;padding:8px;border-radius:8px;font-weight:900;font-size:10px;cursor:pointer;">LIMPIAR</button>
+        <button id="btn-roulette-spin" onclick="Roulette.spin()" disabled style="flex:1;background:rgba(16,185,129,0.3);border:1px solid rgba(16,185,129,0.5);color:#10b981;padding:8px;border-radius:8px;font-weight:900;font-size:10px;cursor:pointer;opacity:0.5;text-transform:uppercase;">GIRAR (Agrega apuesta)</button>
+    </div>
+    
+    <div class="instruction-card"><h4>🎡 Reglas Ruleta</h4><p>1. Elige una ficha. 2. Haz click en un multiplicador. 3. Gira y gana si sale ese multiplicador.</p></div>
+</div>`,
                 tower: `<div class="glass p-4 mx-auto max-w-[280px] text-center"><div class="risk-badge" style="color:#fbbf24;background:rgba(251,191,36,0.1)"><i class="fas fa-bolt"></i> 1 Peligro por Piso</div><div id="tower-container" class="gap-3 mb-4 flex flex-col-reverse"></div><div id="tower-controls"><div class="flex justify-between text-[9px] font-black uppercase mb-1 px-2 tracking-wider"><span class="text-emerald-500">Mín: 1.65x</span><span class="text-amber-500">Máx: 95.00x</span></div><input id="tower-bet-input" type="number" value="3" min="3" class="input-bet"><button id="btn-tower-start" onclick="GameLogic.tower.start()" class="btn-action w-full py-4 font-casino">APOSTAR</button></div><button id="tower-cashout-btn" onclick="GameLogic.tower.cashout()" class="hidden-view btn-action w-full py-4 font-casino">COBRAR $0.00</button><div class="instruction-card"><h4>🗼 Reglas Torre</h4><p>Sube pisos sin tocar minas.</p></div></div>`,
                 blackjack: `<div class="glass p-4 text-center max-w-[320px] mx-auto animate__animated animate__fadeIn"><div class="mb-4"><p class="text-[8px] text-zinc-500 uppercase font-black mb-2">Crupier (Puntos: <span id="dealer-score">?</span>)</p><div id="dealer-cards" class="flex justify-center gap-2 h-[70px]"></div></div><div class="mb-6"><p class="text-[8px] text-emerald-500 uppercase font-black mb-2">Tus Cartas (Puntos: <span id="player-score">0</span>)</p><div id="player-cards" class="flex justify-center gap-2 h-[70px]"></div></div><div id="bj-controls"><div class="flex justify-between text-[9px] font-black uppercase mb-1 px-2 tracking-wider"><span class="text-emerald-500">Mín: 1.00x</span><span class="text-amber-500">Máx: 2.00x</span></div><input id="bj-bet-input" type="number" value="3" min="3" class="input-bet"><button onclick="GameLogic.blackjack.start()" class="btn-action w-full py-4 font-casino">APOSTAR</button></div><div id="bj-actions" class="hidden-view grid grid-cols-2 gap-3"><button onclick="GameLogic.blackjack.hit()" class="btn-action py-4 bg-zinc-800 text-white font-casino">PEDIR</button><button onclick="GameLogic.blackjack.stand()" class="btn-action py-4 font-casino">PLANTARSE</button></div><div class="instruction-card"><h4>🃏 Reglas Blackjack</h4><p>Suma 21 o más que el crupier sin pasarte.</p></div></div>`,
                 chicken: `<div class="glass p-4 text-center"><div id="chicken-status" class="mb-4 text-emerald-500 font-casino text-2xl animate__animated animate__pulse animate__infinite">1.00x</div><div id="chicken-world" class="flex"></div><div id="chicken-controls"><div class="flex justify-between text-[9px] font-black uppercase mb-1 px-2 tracking-wider"><span class="text-emerald-500">Mín: 1.20x</span><span class="text-amber-500">Máx: 100.00x</span></div><input id="chicken-bet-input" type="number" value="3" min="3" class="input-bet"><button onclick="GameLogic.chicken.start()" class="btn-action w-full py-4 font-casino">APOSTAR</button></div><div id="chicken-actions" class="hidden-view grid grid-cols-2 gap-3 mt-4"><button onclick="GameLogic.chicken.move()" class="btn-action py-5 bg-emerald-500 text-black font-black text-lg">AVANZAR</button><button id="chicken-cashout-btn" onclick="GameLogic.chicken.cashout()" class="btn-action py-5 bg-zinc-800 text-white font-black">COBRAR $0.00</button></div><div class="instruction-card"><h4>🐥 Reglas Chicken Road</h4><p>Cruza los carriles sin ser atropellado.</p></div></div>`
